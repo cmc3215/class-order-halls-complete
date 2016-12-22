@@ -1,3 +1,11 @@
+**1.01**
+
+- Release date: 12/22/2016
+- Bug fix, Troops would sometimes become checked for Monitor after being unchecked.
+- Troop count updates no longer require visiting the Class Order Hall. Additionally, counts will be updated immediately now when using items or completing an upgrade that adds troops.
+- New options added to allow monitoring Missions, Class Hall Upgrades, and different types of Work Orders without triggering the Alert when completed.
+
 **1.0**
-* Release date: 11/27/2016
-* Initial release.
+
+- Release date: 11/27/2016
+- Initial release.

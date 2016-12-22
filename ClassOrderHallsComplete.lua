@@ -10,8 +10,6 @@ NS.lastTimeUpdateRequest = nil;
 NS.lastTimeUpdateRequestSent = nil;
 NS.lastTimeUpdateAll = nil;
 --
-NS.updateEventsRequired = 0; -- Increases based on player zone
-NS.updateEventsCount = 0;
 NS.shipmentConfirmsRequired = 3; -- Bypassed for players without a Class Order Hall
 NS.shipmentConfirmsCount = 0;
 NS.shipmentConfirmsFlaggedComplete = false;
@@ -53,6 +51,7 @@ NS.currentCharacter = {
 	classID = select( 3, UnitClass( "player" ) ),	-- Permanent
 	key = nil,										-- Set on initialize and reset after character deletion
 	level = nil,									-- Reset in UpdateCharacter()
+	troops = nil,									-- Set on events
 };
 --
 NS.classRef = {
@@ -175,7 +174,15 @@ NS.DefaultSavedVariables = function()
 		["characters"] = {},
 		["showCharacterRealms"] = true,
 		["alert"] = "current",
+		["alertMissions"] = true,
+		["alertClassHallUpgrades"] = true,
+		["alertTroops"] = true,
 		["alertArtifactResearchNotes"] = true,
+		["alertAnyArtifactResearchNotes"] = true,
+		["alertChampionArmaments"] = true,
+		["alertLegionCookingRecipes"] = true,
+		["alertInstantCompleteWorldQuest"] = true,
+		["alertBonusRollToken"] = true,
 		["alertDisableInInstances"] = true,
 	};
 end
@@ -193,10 +200,18 @@ end
 NS.Upgrade = function()
 	local vars = NS.DefaultSavedVariables();
 	local version = NS.db["version"];
-	-- 1.x
-	--if version < 1.x then
-		-- Do upgrades
-	--end
+	-- 1.01
+	if version < 1.01 then
+		NS.db["alertMissions"] = vars["alertMissions"];
+		NS.db["alertClassHallUpgrades"] = vars["alertClassHallUpgrades"];
+		NS.db["alertTroops"] = vars["alertTroops"];
+		NS.db["alertArtifactResearchNotes"] = vars["alertArtifactResearchNotes"];
+		NS.db["alertAnyArtifactResearchNotes"] = vars["alertAnyArtifactResearchNotes"];
+		NS.db["alertChampionArmaments"] = vars["alertChampionArmaments"];
+		NS.db["alertLegionCookingRecipes"] = vars["alertLegionCookingRecipes"];
+		NS.db["alertInstantCompleteWorldQuest"] = vars["alertInstantCompleteWorldQuest"];
+		NS.db["alertBonusRollToken"] = vars["alertBonusRollToken"];
+	end
 	--
 	NS.db["version"] = NS.version;
 end
@@ -425,8 +440,9 @@ NS.UpdateCharacter = function()
 			--------------------------------------------------------------------------------------------------------------------------------------------
 			-- Troops => Follower Shipments
 			--------------------------------------------------------------------------------------------------------------------------------------------
-			if inOrderHall then
-				NS.db["characters"][k]["troops"] = C_Garrison.GetClassSpecCategoryInfo( LE_FOLLOWER_TYPE_GARRISON_7_0 );
+			if NS.currentCharacter.troops then
+				NS.db["characters"][k]["troops"] = CopyTable( NS.currentCharacter.troops );
+				NS.currentCharacter.troops = nil;
 			end
 			local troops = NS.db["characters"][k]["troops"];
 			for i = 1, #troops do
@@ -535,7 +551,7 @@ NS.UpdateCharacter = function()
 			end
 			-- Bonus Roll (Tier 5)
 			if NS.classRef[NS.currentCharacter.class].bonusroll and talentTiers[5] and not talentTiers[5].isBeingResearched and talentTiers[5].id == NS.classRef[NS.currentCharacter.class].bonusroll then
-				local texture = 133858; -- GetItemIcon( 139460 ) - Need to confirm this matches work orders
+				local texture = 133858;
 				local capacity = 1;
 				local ordersKey = NS.FindKeyByField( NS.db["characters"][k]["orders"], "texture", texture );
 				local orders = ordersKey and NS.db["characters"][k]["orders"][ordersKey]["total"] or 0;
@@ -750,8 +766,10 @@ NS.UpdateCharacters = function()
 			if #mip.lines == 0 then
 				mip.lines[#mip.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. GARRISON_EMPTY_IN_PROGRESS_LIST .. FONT_COLOR_CODE_CLOSE;
 			elseif mip.incomplete == 0 then
-				alertCurrentCharacter = ( not alertCurrentCharacter and char["name"] == NS.currentCharacter.name ) and true or alertCurrentCharacter; -- All characters
-				alertAnyCharacter = true; -- All characters
+				if NS.db["alertMissions"] then
+					alertCurrentCharacter = ( not alertCurrentCharacter and char["name"] == NS.currentCharacter.name ) and true or alertCurrentCharacter; -- All characters
+					alertAnyCharacter = true; -- All characters
+				end
 			end
 		end
 		--
@@ -776,8 +794,10 @@ NS.UpdateCharacters = function()
 				else
 					advancementsComplete = advancementsComplete + 1; -- All characters
 					oa.lines[#oa.lines + 1] = GREEN_FONT_COLOR_CODE .. COMPLETE .. FONT_COLOR_CODE_CLOSE;
-					alertCurrentCharacter = ( not alertCurrentCharacter and char["name"] == NS.currentCharacter.name ) and true or alertCurrentCharacter; -- All characters
-					alertAnyCharacter = true; -- All characters
+					if NS.db["alertClassHallUpgrades"] then
+						alertCurrentCharacter = ( not alertCurrentCharacter and char["name"] == NS.currentCharacter.name ) and true or alertCurrentCharacter; -- All characters
+						alertAnyCharacter = true; -- All characters
+					end
 				end
 				--oa.lines[#oa.lines + 1] = " ";
 				--oa.lines[#oa.lines + 1] = string.format( L["Research Time: %s"], HIGHLIGHT_FONT_COLOR_CODE .. SecondsToTime( talent.researchDuration ) ) .. FONT_COLOR_CODE_CLOSE;
@@ -831,8 +851,8 @@ NS.UpdateCharacters = function()
 				end
 				--
 				wo.lines = {};
-				if o.troopCount then
-					wo.text = wo.text .. " - " .. o.troopCount .. "/" .. o.capacity;
+				if wo.troopCount then
+					wo.text = wo.text .. " - " .. wo.troopCount .. "/" .. wo.capacity;
 				end
 				if wo.readyToStart > 0 then
 					if wo.texture == 133858 then -- Seal of Broken Fate
@@ -841,22 +861,29 @@ NS.UpdateCharacters = function()
 						wo.lines[#wo.lines + 1] = GREEN_FONT_COLOR_CODE .. string.format( L["%d Ready to start"], wo.readyToStart ) .. FONT_COLOR_CODE_CLOSE;
 					end
 				end
-				if o.total and o.total > 0 then
-					if wo.readyForPickup == o.total then
+				if o.total and wo.total > 0 then
+					if wo.readyForPickup == wo.total then
 						wo.lines[#wo.lines + 1] = GREEN_FONT_COLOR_CODE .. string.format( L["%d Ready for pickup"], wo.readyForPickup ) .. FONT_COLOR_CODE_CLOSE;
-						alertCurrentCharacter = ( not alertCurrentCharacter and char["name"] == NS.currentCharacter.name ) and true or alertCurrentCharacter; -- All characters
-						alertAnyCharacter = true; -- All characters
+						if ( wo.troopCount and NS.db["alertTroops"] ) or
+						   ( wo.texture == 237446 and NS.db["alertArtifactResearchNotes"] ) or
+						   ( wo.texture == 975736 and NS.db["alertChampionArmaments"] ) or
+						   ( wo.texture == 134939 and NS.db["alertLegionCookingRecipes"] ) or
+						   ( ( wo.texture == 140157 or wo.texture == 139888 or wo.texture == 140155 or wo.texture == 140038 or wo.texture == 139892 or wo.texture == 140158 ) and NS.db["alertInstantCompleteWorldQuest"] ) or
+						   ( wo.texture == 133858 and NS.db["alertBonusRollToken"] ) then
+							alertCurrentCharacter = ( not alertCurrentCharacter and char["name"] == NS.currentCharacter.name ) and true or alertCurrentCharacter; -- All characters
+							alertAnyCharacter = true; -- All characters
+						end
 					else
 						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["%d/%d Ready for pickup %s"], wo.readyForPickup, o.total, string.format( L["(Next: %s)"], SecondsToTime( wo.nextSeconds ) ) ) .. FONT_COLOR_CODE_CLOSE;
-						-- Alert: Artifact Research Notes
-						if wo.texture == 237446 and wo.readyForPickup > 0 and NS.db["alertArtifactResearchNotes"] then
+						-- Alert: Any Artifact Research Notes
+						if wo.texture == 237446 and wo.readyForPickup > 0 and NS.db["alertArtifactResearchNotes"] and NS.db["alertAnyArtifactResearchNotes"] then
 							alertCurrentCharacter = ( not alertCurrentCharacter and char["name"] == NS.currentCharacter.name ) and true or alertCurrentCharacter; -- All characters
 							alertAnyCharacter = true; -- All characters
 						end
 					end
 				end
-				if o.troopCount and #wo.lines == 0 then
-					if o.troopCount == o.capacity then
+				if wo.troopCount and #wo.lines == 0 then
+					if wo.troopCount == wo.capacity then
 						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. L["0 recruits remaining"] .. FONT_COLOR_CODE_CLOSE;
 					else
 						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. L["You must visit your Class Order Hall\nat least once to record troop counts."] .. FONT_COLOR_CODE_CLOSE;
@@ -1015,18 +1042,6 @@ NS.OnPlayerLogin = function( event ) -- PLAYER_LOGIN
 	end );
 end
 --
-NS.UpdateEventsHandler = function( event )
-	-- RequestLandingPageShipmentInfo() -> GARRISON_LANDINGPAGE_SHIPMENTS
-	-- RequestClassSpecCategoryInfo() -> GARRISON_FOLLOWER_CATEGORIES_UPDATED
-	COHCEventsFrame:UnregisterEvent( event );
-	NS.updateEventsCount = NS.updateEventsCount + 1;
-	if NS.updateEventsCount == NS.updateEventsRequired then
-		NS.updateEventsCount = 0;
-		--NS.Print( "Event update" ); -- DEBUG
-		NS.UpdateAll( "forceUpdate" );
-	end
-end
---
 NS.UpdateRequestHandler = function( event )
 	local currentTime = time();
 	-- Ticker
@@ -1045,20 +1060,11 @@ NS.UpdateRequestHandler = function( event )
 			NS.lastTimeUpdateRequest = nil;
 			NS.lastTimeUpdateRequestSent = currentTime;
 			if hasOrderHall then
-				-- Event(s) dependent update
-				NS.updateEventsCount = 0;
-				-- Work Orders
-				NS.updateEventsRequired = 1;
+				-- Work Orders {REQUEST}
 				COHCEventsFrame:RegisterEvent( "GARRISON_LANDINGPAGE_SHIPMENTS" );
 				C_Garrison.RequestLandingPageShipmentInfo();
-				if inOrderHall then
-					-- Troops
-					NS.updateEventsRequired = NS.updateEventsRequired + 1;
-					COHCEventsFrame:RegisterEvent( "GARRISON_FOLLOWER_CATEGORIES_UPDATED" );
-					C_Garrison.RequestClassSpecCategoryInfo( LE_FOLLOWER_TYPE_GARRISON_7_0 );
-				end
 			else
-				-- Bypass events, call update directly if player has no Class Order Hall
+				-- Bypass event, call update directly if player has no Class Order Hall
 				NS.UpdateAll( "forceUpdate" );
 			end
 		end
@@ -1083,16 +1089,50 @@ end
 NS.Frame( "COHCEventsFrame", UIParent, {
 	topLevel = true,
 	OnEvent = function ( self, event, ... )
-		if		event == "GARRISON_LANDINGPAGE_SHIPMENTS"		then	NS.UpdateEventsHandler( event );
-		elseif	event == "GARRISON_FOLLOWER_CATEGORIES_UPDATED"	then	NS.UpdateEventsHandler( event );
+		if		event == "GARRISON_LANDINGPAGE_SHIPMENTS"		then
+			--------------------------------------------------------------------------------------------------------------------------------
+			-- Work Orders {UPDATED}
+			--------------------------------------------------------------------------------------------------------------------------------
+			self:UnregisterEvent( event );
+			NS.UpdateAll( "forceUpdate" );
+			--------------------------------------------------------------------------------------------------------------------------------
+		elseif	event == "GARRISON_FOLLOWER_CATEGORIES_UPDATED"	then
+			--------------------------------------------------------------------------------------------------------------------------------
+			-- Troops {UPDATED}
+			--------------------------------------------------------------------------------------------------------------------------------
+			local troops = C_Garrison.GetClassSpecCategoryInfo( LE_FOLLOWER_TYPE_GARRISON_7_0 );
+			if troops and #troops > 0 then
+				NS.currentCharacter.troops = troops;
+				if NS.initialized then
+					-- RequestLandingPageShipmentInfo() followed by NS.UpdateAll
+					-- Only required and effective OUTSIDE event zone or period
+					NS.UpdateRequestHandler( event );
+				end
+			end
+			--------------------------------------------------------------------------------------------------------------------------------
 		elseif	event == "CHAT_MSG_CURRENCY"					then	NS.OnChatMsgCurrency( event );
 		elseif	event == "BONUS_ROLL_RESULT"					then	NS.OnBonusRollResult( event );
 		elseif	event == "ADDON_LOADED"							then	NS.OnAddonLoaded( event );
 		elseif	event == "PLAYER_LOGIN"							then	NS.OnPlayerLogin( event );
+		else
+			--------------------------------------------------------------------------------------------------------------------------------
+			-- Troops {REQUEST}
+			--------------------------------------------------------------------------------------------------------------------------------
+			if C_Garrison.HasGarrison( LE_GARRISON_TYPE_7_0 ) then
+				C_Garrison.RequestClassSpecCategoryInfo( LE_FOLLOWER_TYPE_GARRISON_7_0 );
+			end
+			--------------------------------------------------------------------------------------------------------------------------------
 		end
 	end,
 	OnLoad = function( self )
 		self:RegisterEvent( "ADDON_LOADED" );
 		self:RegisterEvent( "PLAYER_LOGIN" );
+		-- Troops
+		self:RegisterEvent( "GARRISON_FOLLOWER_CATEGORIES_UPDATED" );
+		self:RegisterEvent( "GARRISON_FOLLOWER_ADDED" );
+		self:RegisterEvent( "GARRISON_FOLLOWER_REMOVED" );
+		self:RegisterEvent( "GARRISON_TALENT_COMPLETE" );
+		self:RegisterEvent( "GARRISON_TALENT_UPDATE" );
+		self:RegisterEvent( "GARRISON_SHOW_LANDING_PAGE" );
 	end,
 } );

@@ -584,14 +584,28 @@ NS.FormatNum = function( num )
 end
 --
 NS.MoneyToString = function( money, colorCode )
-	local moneyText = GetCoinText( money );
-	if colorCode then
-		moneyText = string.gsub( moneyText, "(%d+)", colorCode .. "%1" .. FONT_COLOR_CODE_CLOSE );
+	local negative = money < 0;
+	money = math.abs( money );
+	--
+	local gold = money >= COPPER_PER_GOLD and NS.FormatNum( math.floor( money / COPPER_PER_GOLD ) ) or nil;
+	local silver = math.floor( ( money % COPPER_PER_GOLD ) / COPPER_PER_SILVER );
+	local copper = math.floor( money % COPPER_PER_SILVER );
+	--
+	gold = ( gold and colorCode ) and ( colorCode .. gold .. FONT_COLOR_CODE_CLOSE ) or gold;
+	silver = ( silver > 0 and colorCode ) and ( colorCode .. silver .. FONT_COLOR_CODE_CLOSE ) or ( silver > 0 and silver ) or nil;
+	copper = colorCode .. copper .. FONT_COLOR_CODE_CLOSE;
+	--
+	local g,s,c = "|cffffd70ag|r","|cffc7c7cfs|r","|cffeda55fc|r";
+	local moneyText = copper .. c;
+	if silver then
+		moneyText = silver .. s .. " " .. moneyText;
 	end
-	moneyText = string.gsub( moneyText, ",", "" );
-	moneyText = string.gsub( moneyText, " Gold", "|cffffd70ag|r", 1 );
-	moneyText = string.gsub( moneyText, " Silver", "|cffc7c7cfs|r", 1 );
-	moneyText = string.gsub( moneyText, " Copper", "|cffeda55fc|r", 1 );
+	if gold then
+		moneyText = gold .. g .. " " .. moneyText;
+	end
+	if negative then
+		moneyText = colorCode and ( colorCode "-|r" .. moneyText ) or ( "-" .. moneyText );
+	end
 	return moneyText;
 end
 --

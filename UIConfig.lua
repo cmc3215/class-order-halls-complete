@@ -618,8 +618,11 @@ NS.UI.cfg = {
 			tabText			= OPTIONS,
 			Init			= function( SubFrame )
 				NS.TextFrame( "MiscLabel", SubFrame, L["Miscellaneous"], {
-					size = { 100, 16 },
-					setPoint = { "TOPLEFT", "$parent", "TOPLEFT", 8, -8 },
+					setPoint = {
+						{ "TOPLEFT", "$parent", "TOPLEFT", 8, -8 },
+						{ "RIGHT", -8 },
+					},
+					fontObject = "GameFontNormalLarge",
 				} );
 				NS.CheckButton( "ShowMinimapButtonCheckButton", SubFrame, L["Show Minimap Button"], {
 					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 3, -1 },
@@ -636,7 +639,7 @@ NS.UI.cfg = {
 				} );
 				NS.CheckButton( "LargeMinimapButtonCheckButton", SubFrame, L["Large Minimap Button"], {
 					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
-					tooltip = L["Enables larger minimap button\nsimilar to Class Hall Report\n\n(Character Specific)"],
+					tooltip = L["Enables larger Minimap button\nsimilar to Class Hall Report\n\n(Character Specific)"],
 					OnClick = function( checked )
 						COHCMinimapButton:UpdateSize( NS.dbpc["largeMinimapButton"] );
 						COHCMinimapButton:UpdatePos();
@@ -658,19 +661,19 @@ NS.UI.cfg = {
 					tooltip = L["Show or hide\ncharacter realms"],
 					db = "showCharacterRealms",
 				} );
-				NS.TextFrame( "AlertLabel", SubFrame, L["Alert - Flashes minimap button when an indicator is |cff20ff20green|r (|TInterface\\COMMON\\Indicator-Green:20:20|t) meaning |cff20ff20Complete|r"], {
+				NS.TextFrame( "AlertLabel", SubFrame, L["Alert - Flashes Minimap button when an indicator is |TInterface\\COMMON\\Indicator-Green:20:20|t"], {
 					setPoint = {
 						{ "TOPLEFT", "#sibling", "BOTTOMLEFT", -3, -8 },
-						{ "RIGHT", -12 },
+						{ "RIGHT", -8 },
 					},
+					fontObject = "GameFontNormalLarge",
 				} );
 				NS.DropDownMenu( "AlertDropDownMenu", SubFrame, {
 					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", -12, -1 },
-					tooltip = L["|cffffffffDisabled:|r\nNo alert, minimap\nbutton won't flash.\n\n|cffffffffCurrent Character:|r\n|cff20ff20Green|r indicator on\ncurrent character.\n\n|cffffffffAny Character:|r\n|cff20ff20Green|r indicator on\nany character."],
 					buttons = {
-						{ L["Disabled"], "disabled" },
 						{ L["Current Character"], "current" },
 						{ L["Any Character"], "any" },
+						{ L["Disabled"], "disabled" },
 					},
 					OnClick = function( info )
 						NS.db["alert"] = info.value;
@@ -678,23 +681,87 @@ NS.UI.cfg = {
 					end,
 					width = 116,
 				} );
-				NS.CheckButton( "AlertArtifactResearchNotesCheckButton", SubFrame, string.format( L["Include any |T237446:20:20|t %sArtifact Research Notes|r ready for pickup"], ITEM_QUALITY_COLORS[6].hex ), {
-					template = "InterfaceOptionsSmallCheckButtonTemplate",
-					setPoint = { "TOPLEFT", "#sibling", "TOPRIGHT", -2, -1 },
-					tooltip = L["Artifact Research Notes\nwith a |cffffff00yellow|r indicator\nwill also trigger an alert."],
-					OnClick = function()
+				NS.CheckButton( "AlertMissionsCheckButton", SubFrame, L["Missions"], {
+					setPoint = { "TOPLEFT", "$parentAlertDropDownMenu", "BOTTOMLEFT", 15, -1 },
+					tooltip = L["|cffffffffEnable Alert|r\nMissions In Progress"],
+					OnClick = function( checked )
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "alertMissions",
+				} );
+				NS.CheckButton( "AlertClassHallUpgradesCheckButton", SubFrame, L["Class Hall Upgrades"], {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					tooltip = L["|cffffffffEnable Alert|r\nClass Hall Upgrade Research"],
+					OnClick = function( checked )
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "alertClassHallUpgrades",
+				} );
+				NS.CheckButton( "AlertTroopsCheckButton", SubFrame, L["Troops"], {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					tooltip = L["|cffffffffEnable Alert|r\nTroop Work Orders"],
+					OnClick = function( checked )
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "alertTroops",
+				} );
+				NS.CheckButton( "AlertArtifactResearchNotesCheckButton", SubFrame, L["Artifact Research Notes"], {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					tooltip = L["|cffffffffEnable Alert|r\nArtifact Research Notes Work Orders"],
+					OnClick = function( checked )
 						NS.UpdateAll( "forceUpdate" );
 					end,
 					db = "alertArtifactResearchNotes",
 				} );
+				NS.CheckButton( "AlertAnyArtifactResearchNotesCheckButton", SubFrame, string.format( L["Include 1/2 |T237446:20:20|t %sArtifact Research Notes|r ready for pickup"], ITEM_QUALITY_COLORS[6].hex ), {
+					template = "InterfaceOptionsSmallCheckButtonTemplate",
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 24, -1 },
+					OnClick = function()
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "alertAnyArtifactResearchNotes",
+				} );
+				NS.CheckButton( "AlertChampionArmamentsCheckButton", SubFrame, L["Champion Armaments"], {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", -24, -1 },
+					tooltip = L["|cffffffffEnable Alert|r\nChampion Armaments Work Orders"],
+					OnClick = function( checked )
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "alertChampionArmaments",
+				} );
+				NS.CheckButton( "AlertLegionCookingRecipesCheckButton", SubFrame, L["Legion Cooking Recipes"], {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					tooltip = L["|cffffffffEnable Alert|r\nLegion Cooking Recipe Work Orders"],
+					OnClick = function( checked )
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "alertLegionCookingRecipes",
+				} );
+				NS.CheckButton( "AlertInstantCompleteWorldQuestCheckButton", SubFrame, L["Instant Complete World Quest"], {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					tooltip = L["|cffffffffEnable Alert|r\nInstant Complete World Quest\n(e.g. Focusing Crystal) Work Order"],
+					OnClick = function( checked )
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "alertInstantCompleteWorldQuest",
+				} );
+				NS.CheckButton( "AlertBonusRollTokenCheckButton", SubFrame, L["Seal of Broken Fate"], {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					tooltip = L["|cffffffffEnable Alert|r\nSeal of Broken Fate Work Order"],
+					OnClick = function( checked )
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "alertBonusRollToken",
+				} );
 				NS.CheckButton( "AlertDisableInInstancesCheckButton", SubFrame, L["Disable in Instances"], {
-					setPoint = { "TOPLEFT", "$parentAlertDropDownMenu", "BOTTOMLEFT", 15, -1 },
-					tooltip = L["Disable Alert in Arenas, Dungeons,\nBattlegrounds, and Raids"],
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					tooltip = L["|cffffffffDisable Alert|r\nIn Arenas, Dungeons,\nBattlegrounds, and Raids"],
 					OnClick = function( checked )
 						NS.UpdateAll( "forceUpdate" );
 					end,
 					db = "alertDisableInInstances",
 				} );
+
 			end,
 			Refresh			= function( SubFrame )
 				local sfn = SubFrame:GetName();
@@ -703,7 +770,15 @@ NS.UI.cfg = {
 				_G[sfn .. "ShowClassHallReportMinimapButtonCheckButton"]:SetChecked( NS.dbpc["showClassHallReportMinimapButton"] );
 				_G[sfn .. "ShowCharacterRealmsCheckButton"]:SetChecked( NS.db["showCharacterRealms"] );
 				_G[sfn .. "AlertDropDownMenu"]:Reset( NS.db["alert"] );
+				_G[sfn .. "AlertMissionsCheckButton"]:SetChecked( NS.db["alertMissions"] );
+				_G[sfn .. "AlertClassHallUpgradesCheckButton"]:SetChecked( NS.db["alertClassHallUpgrades"] );
+				_G[sfn .. "AlertTroopsCheckButton"]:SetChecked( NS.db["alertTroops"] );
 				_G[sfn .. "AlertArtifactResearchNotesCheckButton"]:SetChecked( NS.db["alertArtifactResearchNotes"] );
+				_G[sfn .. "AlertAnyArtifactResearchNotesCheckButton"]:SetChecked( NS.db["alertAnyArtifactResearchNotes"] );
+				_G[sfn .. "AlertChampionArmamentsCheckButton"]:SetChecked( NS.db["alertChampionArmaments"] );
+				_G[sfn .. "AlertLegionCookingRecipesCheckButton"]:SetChecked( NS.db["alertLegionCookingRecipes"] );
+				_G[sfn .. "AlertInstantCompleteWorldQuestCheckButton"]:SetChecked( NS.db["alertInstantCompleteWorldQuest"] );
+				_G[sfn .. "AlertBonusRollTokenCheckButton"]:SetChecked( NS.db["alertBonusRollToken"] );
 				_G[sfn .. "AlertDisableInInstancesCheckButton"]:SetChecked( NS.db["alertDisableInInstances"] );
 			end,
 		},
@@ -747,7 +822,7 @@ NS.UI.cfg = {
 					},
 					fontObject = "GameFontHighlight",
 				} );
-				NS.TextFrame( "IndicatorsRed", SubFrame, L["|TInterface\\COMMON\\Indicator-Red:20:20|t All Incomplete"], {
+				NS.TextFrame( "IndicatorsRed", SubFrame, L["|TInterface\\COMMON\\Indicator-Red:20:20|t All incomplete"], {
 					setPoint = {
 						{ "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, 0 },
 						{ "RIGHT", -8 },
@@ -797,8 +872,8 @@ NS.UI.cfg = {
 				} );
 				NS.TextFrame( "NeedMoreHelp", SubFrame, string.format(
 						L["%sQuestions, comments, and suggestions can be made on Curse.\nPlease submit bug reports on CurseForge.|r\n\n" ..
-						"http://www.curse.com/addons/wow/class-order-halls-complete\n" ..
-						"http://wow.curseforge.com/addons/class-order-halls-complete/tickets/"],
+						"https://mods.curse.com/addons/wow/254300-class-order-halls-complete\n" ..
+						"https://wow.curseforge.com/projects/class-order-halls-complete/issues"],
 						NORMAL_FONT_COLOR_CODE
 					), {
 					setPoint = {

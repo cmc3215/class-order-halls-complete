@@ -173,6 +173,8 @@ NS.DefaultSavedVariables = function()
 		["version"] = NS.version,
 		["characters"] = {},
 		["showCharacterRealms"] = true,
+		["forgetDragPosition"] = true,
+		["dragPosition"] = nil,
 		["alert"] = "current",
 		["alertMissions"] = true,
 		["alertClassHallUpgrades"] = true,
@@ -211,6 +213,10 @@ NS.Upgrade = function()
 		NS.db["alertLegionCookingRecipes"] = vars["alertLegionCookingRecipes"];
 		NS.db["alertInstantCompleteWorldQuest"] = vars["alertInstantCompleteWorldQuest"];
 		NS.db["alertBonusRollToken"] = vars["alertBonusRollToken"];
+	end
+	-- 1.02
+	if version < 1.02 then
+		NS.db["forgetDragPosition"] = vars["forgetDragPosition"];
 	end
 	--
 	NS.db["version"] = NS.version;

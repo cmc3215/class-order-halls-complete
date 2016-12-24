@@ -25,10 +25,12 @@ NS.UI.cfg = {
 		OnHide		= function( MainFrame )
 			StaticPopup_Hide( "COHC_CHARACTER_DELETE" );
 			PlaySound( "UI_Garrison_GarrisonReport_Close" );
+			NS.db["dragPosition"] = { MainFrame:GetPoint( 1 ) };
 		end,
 		Reposition = function( MainFrame )
 			MainFrame:ClearAllPoints();
-			MainFrame:SetPoint( "TOPLEFT", 45, -120 );
+			local pos = ( NS.db["forgetDragPosition"] or not NS.db["dragPosition"] ) and ( { "TOPLEFT", 45, -120 } ) or NS.db["dragPosition"];
+			MainFrame:SetPoint( unpack( pos ) );
 		end,
 	},
 	--
@@ -661,9 +663,14 @@ NS.UI.cfg = {
 					tooltip = L["Show or hide\ncharacter realms"],
 					db = "showCharacterRealms",
 				} );
+				NS.CheckButton( "ForgetDragPositionCheckButton", SubFrame, L["Forget Drag Position"], {
+					setPoint = { "LEFT", "$parentShowMinimapButtonCheckButton", "LEFT", ( ( NS.UI.cfg.mainFrame.width - 11 ) / 2 ), 0 },
+					tooltip = L["Forget drag position of\nthis frame when closed"],
+					db = "forgetDragPosition",
+				} );
 				NS.TextFrame( "AlertLabel", SubFrame, L["Alert - Flashes Minimap button when an indicator is |TInterface\\COMMON\\Indicator-Green:20:20|t"], {
 					setPoint = {
-						{ "TOPLEFT", "#sibling", "BOTTOMLEFT", -3, -8 },
+						{ "TOPLEFT", "$parentShowCharacterRealmsCheckButton", "BOTTOMLEFT", -3, -8 },
 						{ "RIGHT", -8 },
 					},
 					fontObject = "GameFontNormalLarge",
@@ -769,6 +776,7 @@ NS.UI.cfg = {
 				_G[sfn .. "LargeMinimapButtonCheckButton"]:SetChecked( NS.dbpc["largeMinimapButton"] );
 				_G[sfn .. "ShowClassHallReportMinimapButtonCheckButton"]:SetChecked( NS.dbpc["showClassHallReportMinimapButton"] );
 				_G[sfn .. "ShowCharacterRealmsCheckButton"]:SetChecked( NS.db["showCharacterRealms"] );
+				_G[sfn .. "ForgetDragPositionCheckButton"]:SetChecked( NS.db["forgetDragPosition"] );
 				_G[sfn .. "AlertDropDownMenu"]:Reset( NS.db["alert"] );
 				_G[sfn .. "AlertMissionsCheckButton"]:SetChecked( NS.db["alertMissions"] );
 				_G[sfn .. "AlertClassHallUpgradesCheckButton"]:SetChecked( NS.db["alertClassHallUpgrades"] );
@@ -852,9 +860,8 @@ NS.UI.cfg = {
 				} );
 				NS.TextFrame( "GettingStarted", SubFrame, string.format(
 						L["%s1.|r Log into a character you want to monitor.\n" ..
-						"%s2.|r Visit your Class Order Hall (updates Troop counts).\n" ..
-						"%s3.|r Select Characters tab and uncheck what you don't want to monitor.\n" ..
-						"%s4.|r Repeat 1-3 for all characters you want included in this addon."],
+						"%s2.|r Select Characters tab and uncheck what you don't want to monitor.\n" ..
+						"%s3.|r Repeat 1-2 for all characters you want included in this addon."],
 						NORMAL_FONT_COLOR_CODE, NORMAL_FONT_COLOR_CODE, NORMAL_FONT_COLOR_CODE, NORMAL_FONT_COLOR_CODE
 					), {
 					setPoint = {

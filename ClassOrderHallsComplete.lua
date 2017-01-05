@@ -172,9 +172,12 @@ NS.DefaultSavedVariables = function()
 	return {
 		["version"] = NS.version,
 		["characters"] = {},
+		["orderCharactersAutomatically"] = true,
+		["currentCharacterFirst"] = true,
 		["showCharacterRealms"] = true,
 		["forgetDragPosition"] = true,
 		["dragPosition"] = nil,
+		["monitorRows"] = 8,
 		["alert"] = "current",
 		["alertMissions"] = true,
 		["alertClassHallUpgrades"] = true,
@@ -218,6 +221,12 @@ NS.Upgrade = function()
 	if version < 1.02 then
 		NS.db["forgetDragPosition"] = vars["forgetDragPosition"];
 	end
+	-- 1.03
+	if version < 1.03 then
+		NS.db["orderCharactersAutomatically"] = vars["orderCharactersAutomatically"];
+		NS.db["currentCharacterFirst"] = vars["currentCharacterFirst"];
+		NS.db["monitorRows"] = vars["monitorRows"];
+	end
 	--
 	NS.db["version"] = NS.version;
 end
@@ -236,6 +245,49 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------
 -- Misc
 --------------------------------------------------------------------------------------------------------------------------------------------
+NS.SortCharacters = function( order, move )
+	local selectedCharacterName = NS.selectedCharacterKey and NS.db["characters"][NS.selectedCharacterKey]["name"] or NS.currentCharacter.name;
+	--
+	if order == "automatic" then
+		table.sort ( NS.db["characters"],
+			function ( char1, char2 )
+				if char1["realm"] == char2["realm"] then
+					return char1["name"] < char2["name"];
+				else
+					return char1["realm"] < char2["realm"];
+				end
+			end
+		);
+	elseif order == "manual" then
+		for i = 1, #NS.db["characters"] do
+			if i == move["ck"] then
+				-- Order
+				NS.db["characters"][i]["order"] = move["order"];
+			elseif move["ck"] > move["order"] then
+				-- Moving Up, Reorder Downward
+				if i == move["order"] or ( i < move["ck"] and i > move["order"] ) then
+					NS.db["characters"][i]["order"] = i + 1;
+				end
+			elseif move["ck"] < move["order"] then
+				-- Moving Down, Reorder Upward
+				if i == move["order"] or ( i > move["ck"] and i < move["order"] ) then
+					NS.db["characters"][i]["order"] = i - 1;
+				end
+			end
+		end
+		NS.Sort( NS.db["characters"], "order", "ASC" );
+	end
+	--
+	NS.currentCharacter.key = NS.FindKeyByField( NS.db["characters"], "name", NS.currentCharacter.name );
+	NS.selectedCharacterKey = NS.FindKeyByField( NS.db["characters"], "name", selectedCharacterName );
+end
+--
+NS.ResetCharactersOrderPositions = function()
+	for i = 1, #NS.db["characters"] do
+		NS.db["characters"][i]["order"] = i;
+	end
+end
+--
 NS.OrdersReadyToPickup = function( ready, total, duration, nextSeconds, updateTime, currentTime )
 	-- Calculate how many orders could have completed in the time past, which could not be larger than the
 	-- amount of orders in progress ( i.e. total - ready ), then we just add the orders that were already ready
@@ -669,15 +721,12 @@ NS.UpdateCharacter = function()
 	-- Sort Characters by realm and name, only when a new character was added
 	--------------------------------------------------------------------------------------------------------------------------------------------
 	if newCharacter then
-		table.sort ( NS.db["characters"],
-			function ( char1, char2 )
-				if char1["realm"] == char2["realm"] then
-					return char1["name"] < char2["name"];
-				else
-					return char1["realm"] < char2["realm"];
-				end
-			end
-		);
+		if NS.db["orderCharactersAutomatically"] then
+			NS.SortCharacters( "automatic" );
+			NS.ResetCharactersOrderPositions();
+		else
+			NS.db["characters"][k]["order"] = k;
+		end
 	end
 end
 --

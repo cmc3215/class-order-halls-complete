@@ -15,6 +15,7 @@ NS.UI.cfg = {
 		frameStrata	= "MEDIUM",
 		frameLevel	= "TOP",
 		Init		= function( MainFrame )
+			MainFrame:SetHeight( NS.UI.cfg.mainFrame.height + ( ( NS.db["monitorRows"] - 8 ) * 50 ) );
 			MainFrame.portrait:SetTexture( "Interface\\TargetingFrame\\UI-Classes-Circles" );
 			MainFrame.portrait:SetTexCoord( unpack( CLASS_ICON_TCOORDS[strupper( NS.currentCharacter.class )] ) );
 		end,
@@ -24,12 +25,14 @@ NS.UI.cfg = {
 		end,
 		OnHide		= function( MainFrame )
 			StaticPopup_Hide( "COHC_CHARACTER_DELETE" );
+			StaticPopup_Hide( "COHC_CHARACTER_ORDER" );
 			PlaySound( "UI_Garrison_GarrisonReport_Close" );
-			NS.db["dragPosition"] = { MainFrame:GetPoint( 1 ) };
+			local point, relativeTo, relativePoint, xOffset, yOffset = MainFrame:GetPoint( 1 );
+			NS.db["dragPosition"] = ( point and point == relativePoint and xOffset and yOffset ) and { point, xOffset, yOffset } or nil;
 		end,
 		Reposition = function( MainFrame )
 			MainFrame:ClearAllPoints();
-			local pos = ( NS.db["forgetDragPosition"] or not NS.db["dragPosition"] ) and ( { "TOPLEFT", 45, -120 } ) or NS.db["dragPosition"];
+			local pos = ( NS.db["forgetDragPosition"] or not NS.db["dragPosition"] ) and { "TOPLEFT", 45, -120 } or NS.db["dragPosition"];
 			MainFrame:SetPoint( unpack( pos ) );
 		end,
 	},
@@ -66,11 +69,11 @@ NS.UI.cfg = {
 					justifyH = "CENTER",
 				} );
 				NS.ScrollFrame( "ScrollFrame", SubFrame, {
-					size = { 686, ( 50 * 8 - 5 ) },
+					size = { 686, ( 50 * NS.db["monitorRows"] - 5 ) },
 					setPoint = { "TOPLEFT", "$parentNameColumnHeaderButton", "BOTTOMLEFT", 1, -3 },
 					buttonTemplate = "COHCMonitorTabScrollFrameButtonTemplate",
 					udpate = {
-						numToDisplay = 8,
+						numToDisplay = NS.db["monitorRows"],
 						buttonHeight = 50,
 						alwaysShowScrollBar = true,
 						UpdateFunction = function( sf )
@@ -89,7 +92,7 @@ NS.UI.cfg = {
 								end
 								-- Monitoring?
 								if monitoring > 0 then
-									if char["name"] == NS.currentCharacter.name then
+									if NS.db["currentCharacterFirst"] and char["name"] == NS.currentCharacter.name then
 										-- Force current character to beginning of items
 										local t = { char };
 										for i = 1, #items do
@@ -447,9 +450,10 @@ NS.UI.cfg = {
 					setPoint = { "LEFT", "#sibling", "RIGHT", -12, -1 },
 					buttons = function()
 						local t = {};
+						local maxOrderPosition = #NS.db["characters"];
 						for ck,c in ipairs( NS.db["characters"] ) do
 							local cn = NS.db["showCharacterRealms"] and c["name"] or strsplit( "-", c["name"], 2 );
-							tinsert( t, { cn, ck } );
+							tinsert( t, { ( ( c["order"] < 10 and maxOrderPosition > 9 ) and ( "0" .. c["order"] ) or c["order"] ) .. ". " .. cn, ck } );
 						end
 						return t;
 					end,
@@ -459,9 +463,22 @@ NS.UI.cfg = {
 					end,
 					width = 190,
 				} );
+				NS.CheckButton( "OrderAutomaticallyCheckButton", SubFrame, L["Order Automatically"], {
+					setPoint = { "LEFT", "#sibling", "RIGHT", 0, 0 },
+					tooltip = L["Order characters automatically by realm > name.\nUncheck to order characters manually by number."],
+					OnClick = function( checked )
+						NS.SortCharacters( "automatic" );
+						NS.ResetCharactersOrderPositions();
+						NS.UpdateAll( "forceUpdate" );
+						SubFrame:Refresh();
+						-- Prevent Automatic/Manual conflict
+						StaticPopup_Hide( "COHC_CHARACTER_ORDER" );
+					end,
+					db = "orderCharactersAutomatically",
+				} );
 				NS.TextFrame( "MonitoredNum", SubFrame, "", {
 					size = { 386, 20 },
-					setPoint = { "LEFT", "#sibling", "RIGHT", -6, 0 },
+					setPoint = { "LEFT", "$parentCharacterDropDownMenu", "RIGHT", -6, 0 },
 					fontObject = "GameFontHighlight",
 					justifyH = "RIGHT",
 				} );
@@ -540,29 +557,90 @@ NS.UI.cfg = {
 					justifyH = "CENTER",
 					justifyV = "CENTER",
 				} );
+				NS.Button( "OrderButton", SubFrame, L["Order"], {
+					size = { 110, 22 },
+					setPoint = { "BOTTOMLEFT", "$parent", "BOTTOMLEFT", 8, 8 },
+					OnClick = function()
+						local cname = NS.db["characters"][NS.selectedCharacterKey]["name"];
+						cname = NS.db["showCharacterRealms"] and cname or strsplit( "-", cname, 2 );
+						StaticPopup_Show( "COHC_CHARACTER_ORDER", NS.selectedCharacterKey .. ". " .. cname, nil, { ["ck"] = NS.selectedCharacterKey, ["name"] = cname } );
+					end,
+				} );
+				NS.Button( "DeleteCharacterButton", SubFrame, L["Delete"], {
+					size = { 110, 22 },
+					setPoint = { "LEFT", "#sibling", "RIGHT", 10, 0 },
+					OnClick = function()
+						local cname = NS.db["characters"][NS.selectedCharacterKey]["name"];
+						cname = NS.db["showCharacterRealms"] and cname or strsplit( "-", cname, 2 );
+						StaticPopup_Show( "COHC_CHARACTER_DELETE", cname, nil, { ["ck"] = NS.selectedCharacterKey, ["name"] = cname } );
+					end,
+				} );
 				NS.Button( "UncheckAllButton", SubFrame, L["Uncheck All"], {
 					size = { 110, 22 },
-					setPoint = { "BOTTOMRIGHT", "$parent", "BOTTOM", ( -55 - 8 ), 8 },
+					setPoint = { "LEFT", "#sibling", "RIGHT", 10, 0 },
 					OnClick = function()
 						MonitorSetChecks( false );
 						_G[SubFrame:GetName() .. "ScrollFrame"]:Update();
 					end,
 				} );
-				NS.Button( "DeleteCharacterButton", SubFrame, L["Delete"], {
-					size = { 110, 22 },
-					setPoint = { "BOTTOM", "$parent", "BOTTOM", 0, 8 },
-					OnClick = function()
-						StaticPopup_Show( "COHC_CHARACTER_DELETE", NS.db["characters"][NS.selectedCharacterKey]["name"], nil, { ["ck"] = NS.selectedCharacterKey, ["name"] = NS.db["characters"][NS.selectedCharacterKey]["name"] } );
-					end,
-				} );
 				NS.Button( "CheckAllButton", SubFrame, L["Check All"], {
 					size = { 110, 22 },
-					setPoint = { "BOTTOMLEFT", "$parent", "BOTTOM", ( 55 + 8 ), 8 },
+					setPoint = { "LEFT", "#sibling", "RIGHT", 10, 0 },
 					OnClick = function()
 						MonitorSetChecks( true );
 						_G[SubFrame:GetName() .. "ScrollFrame"]:Update();
 					end,
 				} );
+				NS.CheckButton( "CurrentCharacterFirstCheckButton", SubFrame, L["Current Character First"], {
+					template = "InterfaceOptionsSmallCheckButtonTemplate",
+					setPoint = { "LEFT", "#sibling", "RIGHT", 45, -1 },
+					tooltip = L["Show current character first on the\nMonitor tab, regardless of order."],
+					db = "currentCharacterFirst",
+				} );
+				StaticPopupDialogs["COHC_CHARACTER_ORDER"] = {
+					text = L["\n%s\n\n|cffffd200Order|r\n|cff82c5ffNumber|r"],
+					button1 = L["Change"],
+					button2 = CANCEL,
+					hasEditBox = 1,
+					maxLetters = 2,
+					OnAccept = function ( self, data )
+						local order = self.editBox:GetNumber();
+						if order > 0 then
+							local char = NS.db["characters"][data["ck"]];
+							local maxOrderPosition = #NS.db["characters"];
+							order = order > maxOrderPosition and maxOrderPosition or order;
+							if char and char["order"] ~= order then
+								NS.SortCharacters( "manual", { ["ck"] = data["ck"], ["order"] = order } );
+								NS.UpdateAll( "forceUpdate" );
+								SubFrame:Refresh();
+								NS.Print( string.format( L["Order changed: %d. %s"], order, data["name"] ) );
+							end
+						else
+							NS.Print( RED_FONT_COLOR_CODE .. L["Order must be greater than zero."] .. FONT_COLOR_CODE_CLOSE );
+						end
+					end,
+					OnCancel = function ( self ) end,
+					OnShow = function ( self )
+						self.editBox:SetNumeric( true );
+						self.editBox:SetFocus();
+					end,
+					OnHide = function ( self )
+						self.editBox:SetText( "" );
+					end,
+					EditBoxOnEnterPressed = function ( self )
+						local parent = self:GetParent();
+						local OnAccept = StaticPopupDialogs[parent.which].OnAccept;
+						OnAccept( parent, parent.data );
+						parent:Hide();
+					end,
+					EditBoxOnEscapePressed = function( self )
+						self:GetParent():Hide();
+					end,
+					hideOnEscape = 1,
+					timeout = 0,
+					exclusive = 1,
+					whileDead = 1,
+				};
 				StaticPopupDialogs["COHC_CHARACTER_DELETE"] = {
 					text = L["Delete character? %s"];
 					button1 = YES,
@@ -575,7 +653,8 @@ NS.UI.cfg = {
 						-- Reset keys (Exactly like initialize)
 						NS.currentCharacter.key = NS.FindKeyByField( NS.db["characters"], "name", NS.currentCharacter.name ); -- Must be reset when a character is deleted because the keys shift up one
 						NS.selectedCharacterKey = NS.currentCharacter.key; -- Sets selected character to current character
-						-- Refresh
+						-- Reset Order Positions and Refresh
+						NS.ResetCharactersOrderPositions();
 						SubFrame:Refresh();
 					end,
 					OnCancel = function ( self ) end,
@@ -595,6 +674,13 @@ NS.UI.cfg = {
 			Refresh			= function( SubFrame )
 				local sfn = SubFrame:GetName();
 				_G[sfn .. "CharacterDropDownMenu"]:Reset( NS.selectedCharacterKey );
+				_G[sfn .. "OrderAutomaticallyCheckButton"]:SetChecked( NS.db["orderCharactersAutomatically"] );
+				if NS.db["orderCharactersAutomatically"] then
+					_G[sfn .. "OrderButton"]:Disable();
+				else
+					_G[sfn .. "OrderButton"]:Enable();
+				end
+				_G[sfn .. "CurrentCharacterFirstCheckButton"]:SetChecked( NS.db["currentCharacterFirst"] );
 				-- Merge Missions, Research, Work Orders into items for ScrollFrame
 				wipe( NS.charactersTabItems );
 				local char = NS.db["characters"][NS.selectedCharacterKey];
@@ -667,6 +753,50 @@ NS.UI.cfg = {
 					setPoint = { "LEFT", "$parentShowMinimapButtonCheckButton", "LEFT", ( ( NS.UI.cfg.mainFrame.width - 11 ) / 2 ), 0 },
 					tooltip = L["Forget drag position of\nthis frame when closed"],
 					db = "forgetDragPosition",
+					OnClick = function()
+						SubFrame:Refresh();
+					end,
+				} );
+				NS.Button( "CenterButton", SubFrame, L["Center"], {
+					size = { 80, 20 },
+					setPoint = { "LEFT", "#sibling", "RIGHT", 145, 0 },
+					fontObject = "GameFontNormalSmall",
+					OnClick = function()
+						NS.UI.MainFrame:ClearAllPoints();
+						NS.UI.MainFrame:SetPoint( "CENTER", 0, 0 );
+					end,
+				} );
+				NS.DropDownMenu( "MonitorRowsDropDownMenu", SubFrame, {
+					setPoint = { "TOPLEFT", "$parentForgetDragPositionCheckButton", "BOTTOMLEFT", -13, -1 },
+					tooltip = L["The maximum number of\ncharacters visible at once."] .. "\n" .. RED_FONT_COLOR_CODE .. L["Requires Reload"] .. FONT_COLOR_CODE_CLOSE,
+					buttons = {
+						{ L["08 Monitor Rows"], 8 },
+						{ L["09 Monitor Rows"], 9 },
+						{ L["10 Monitor Rows"], 10 },
+						{ L["11 Monitor Rows"], 11 },
+						{ L["12 Monitor Rows"], 12 },
+					},
+					OnClick = function( info )
+						NS.db["monitorRows"] = info.value;
+						--
+						local currentHeight = NS.UI.MainFrame:GetHeight();
+						local newHeight = NS.UI.cfg.mainFrame.height + ( ( info.value - 8 ) * 50 );
+						if currentHeight ~= newHeight then
+							_G[SubFrame:GetName() .. "ReloadUIButton"]:Show();
+						else
+							_G[SubFrame:GetName() .. "ReloadUIButton"]:Hide();
+						end
+					end,
+					width = 133,
+				} );
+				NS.Button( "ReloadUIButton", SubFrame, L["Reload UI"], {
+					hidden = true,
+					size = { 80, 20 },
+					setPoint = { "LEFT", "#sibling", "RIGHT", 1, 0 },
+					fontObject = "GameFontNormalSmall",
+					OnClick = function()
+						ReloadUI();
+					end,
 				} );
 				NS.TextFrame( "AlertLabel", SubFrame, L["Alert - Flashes Minimap button when an indicator is |TInterface\\COMMON\\Indicator-Green:20:20|t"], {
 					setPoint = {
@@ -777,6 +907,12 @@ NS.UI.cfg = {
 				_G[sfn .. "ShowClassHallReportMinimapButtonCheckButton"]:SetChecked( NS.dbpc["showClassHallReportMinimapButton"] );
 				_G[sfn .. "ShowCharacterRealmsCheckButton"]:SetChecked( NS.db["showCharacterRealms"] );
 				_G[sfn .. "ForgetDragPositionCheckButton"]:SetChecked( NS.db["forgetDragPosition"] );
+				if NS.db["forgetDragPosition"] then
+					_G[sfn .. "CenterButton"]:Disable();
+				else
+					_G[sfn .. "CenterButton"]:Enable();
+				end
+				_G[sfn .. "MonitorRowsDropDownMenu"]:Reset( NS.db["monitorRows"] );
 				_G[sfn .. "AlertDropDownMenu"]:Reset( NS.db["alert"] );
 				_G[sfn .. "AlertMissionsCheckButton"]:SetChecked( NS.db["alertMissions"] );
 				_G[sfn .. "AlertClassHallUpgradesCheckButton"]:SetChecked( NS.db["alertClassHallUpgrades"] );

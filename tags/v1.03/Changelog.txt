@@ -1,0 +1,25 @@
+**1.03**
+
+- Release date: 01/05/2017
+- New option on Characters tab, "Order Automatically". You can now leave characters ordered automatically by realm > name or order manually by position number.
+- New option on Characters tab, "Current Character First". You can now choose to leave the current character at the top of the Monitor tab or go strictly by order.
+- Bug fix, rare corruption of drag position when option "Forget Drag Position" was unchecked would cause frame to not be shown.
+- Added "Center" button to Options tab beside the "Forget Drag Position" checkbox.
+- New option "Monitor Rows". You can now select between 8 and 12 characters to be visible at once on the Monitor tab, requires reload.
+
+**1.02**
+
+- Release date: 12/24/2016
+- New option, Forget Drag Position
+
+**1.01**
+
+- Release date: 12/22/2016
+- Bug fix, Troops would sometimes become checked for Monitor after being unchecked.
+- Troop count updates no longer require visiting the Class Order Hall. Additionally, counts will be updated immediately now when using items or completing an upgrade that adds troops.
+- New options added to allow monitoring Missions, Class Hall Upgrades, and different types of Work Orders without triggering the Alert when completed.
+
+**1.0**
+
+- Release date: 11/27/2016
+- Initial release.

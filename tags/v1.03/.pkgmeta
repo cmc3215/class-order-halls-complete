@@ -1,0 +1,6 @@
+package-as: ClassOrderHallsComplete
+enable-nolib-creation: no
+
+manual-changelog:
+	filename: Changelog.txt
+	markup-type: markdown

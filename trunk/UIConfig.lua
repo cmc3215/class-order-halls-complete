@@ -171,7 +171,7 @@ NS.UI.cfg = {
 									--------------------------------------------------------------------------------------------------------------------------------------------
 									local seals = NS.allCharacters.seals[items[k]["name"]];
 									if seals.sealOfBrokenFate then
-										_G[bn .. "CurrencySealOfBrokenFateText"]:SetText( items[k]["sealOfBrokenFate"] .. "|T" .. 133858 .. ":16:16:3:0|t" );
+										_G[bn .. "CurrencySealOfBrokenFateText"]:SetText( items[k]["sealOfBrokenFate"] .. "|T" .. 1604167 .. ":16:16:3:0|t" );
 										_G[bn .. "CurrencySealOfBrokenFate"]:SetScript( "OnClick", OnClick );
 										_G[bn .. "CurrencySealOfBrokenFate"]:SetScript( "OnEnter", function( self ) SealButton_OnEnter( self, seals.sealOfBrokenFate.text, seals.sealOfBrokenFate.lines ); end );
 										_G[bn .. "CurrencySealOfBrokenFate"]:SetScript( "OnLeave", OnLeave );

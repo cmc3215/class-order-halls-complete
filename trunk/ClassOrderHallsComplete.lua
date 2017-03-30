@@ -456,7 +456,7 @@ NS.UpdateCharacter = function()
 						end
 					end
 					-- Talent Tier Available?
-					if ( not NS.db["characters"][k]["advancement"]["talentBeingResearched"] and #talentTiers < 6 ) then
+					if ( not NS.db["characters"][k]["advancement"]["talentBeingResearched"] and #talentTiers < 8 ) then
 						if #talentTiers == 0 or ( #talentTiers == 1 and NS.currentCharacter.level >= 105 ) or NS.currentCharacter.level >= 110 then
 							NS.db["characters"][k]["advancement"]["newTalentTier"] = {};
 							local newTier = #talentTiers + 1;
@@ -609,7 +609,7 @@ NS.UpdateCharacter = function()
 			end
 			-- Bonus Roll (Tier 5)
 			if NS.classRef[NS.currentCharacter.class].bonusroll and talentTiers[5] and not talentTiers[5].isBeingResearched and talentTiers[5].id == NS.classRef[NS.currentCharacter.class].bonusroll then
-				local texture = 133858;
+				local texture = 1604167;
 				local capacity = 1;
 				local ordersKey = NS.FindKeyByField( NS.db["characters"][k]["orders"], "texture", texture );
 				local orders = ordersKey and NS.db["characters"][k]["orders"][ordersKey]["total"] or 0;
@@ -873,9 +873,9 @@ NS.UpdateCharacters = function()
 					oa.lines[#oa.lines + 1] = string.format( L["Cost: %s"], HIGHLIGHT_FONT_COLOR_CODE .. BreakUpLargeNumbers( talent.researchCost ) .. FONT_COLOR_CODE_CLOSE .. "|T".. 1397630 ..":0:0:2:0|t" );
 				end
 				oa.status = "available";
-			elseif char["advancement"]["numTalents"] == 6 then
+			elseif char["advancement"]["numTalents"] == 8 then
 				oa.texture = 133743;
-				oa.text = L["Order Advancement 6/6"];
+				oa.text = L["Class Hall Upgrades - 8/8"];
 				oa.lines = HIGHLIGHT_FONT_COLOR_CODE .. L["There are no new tiers available,\nbegin research to switch talents."] .. FONT_COLOR_CODE_CLOSE;
 				oa.status = "maxed";
 			end
@@ -910,7 +910,7 @@ NS.UpdateCharacters = function()
 					wo.text = wo.text .. " - " .. wo.troopCount .. "/" .. wo.capacity;
 				end
 				if wo.readyToStart > 0 then
-					if wo.texture == 133858 then -- Seal of Broken Fate
+					if wo.texture == 1604167 then -- Seal of Broken Fate
 						wo.lines[#wo.lines + 1] = seals[char["name"]].sealOfBrokenFate.lines;
 					else
 						wo.lines[#wo.lines + 1] = GREEN_FONT_COLOR_CODE .. string.format( L["%d Ready to start"], wo.readyToStart ) .. FONT_COLOR_CODE_CLOSE;
@@ -924,7 +924,7 @@ NS.UpdateCharacters = function()
 						   ( wo.texture == 975736 and NS.db["alertChampionArmaments"] ) or
 						   ( wo.texture == 134939 and NS.db["alertLegionCookingRecipes"] ) or
 						   ( ( wo.texture == 140157 or wo.texture == 139888 or wo.texture == 140155 or wo.texture == 140038 or wo.texture == 139892 or wo.texture == 140158 ) and NS.db["alertInstantCompleteWorldQuest"] ) or
-						   ( wo.texture == 133858 and NS.db["alertBonusRollToken"] ) then
+						   ( wo.texture == 1604167 and NS.db["alertBonusRollToken"] ) then
 							alertCurrentCharacter = ( not alertCurrentCharacter and char["name"] == NS.currentCharacter.name ) and true or alertCurrentCharacter; -- All characters
 							alertAnyCharacter = true; -- All characters
 						end

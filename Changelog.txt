@@ -1,3 +1,9 @@
+**1.05**
+
+- Release date: 04/05/2017
+- New option, Dock Minimap Button. You can now uncheck this option to allow dragging the Minimap button anywhere.
+- Bug fix, in some situations after upgrading from a previous version (v1.0-v1.02) and clicking on the Characters tab, you would get a LUA error. Thanks to Curse user cortx for reporting this issue.
+
 **1.04**
 
 - Release date: 03/30/2017

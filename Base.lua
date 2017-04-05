@@ -420,6 +420,7 @@ NS.MinimapButton = function( name, texture, set )
 	local f = CreateFrame( "Button", name, Minimap );
 	f:SetFrameStrata( "MEDIUM" );
 	f.dbpc = set.dbpc; -- Saved position variable per character
+	f.docked = true;
 	local h,i,o,bg;
 	local fSize,hSize,iSize,oSize,bgSize;
 	local iOffsetX,iOffsetY,bgOffsetX,bgOffsetY;
@@ -430,24 +431,44 @@ NS.MinimapButton = function( name, texture, set )
 	f:RegisterForClicks( "LeftButtonUp", "RightButtonUp" );
 	f:RegisterForDrag( "LeftButton", "RightButton" );
 	local BeingDragged = function()
-		local xpos,ypos = GetCursorPosition();
-		local xmin,ymin = Minimap:GetLeft(), Minimap:GetBottom();
-		xpos = xmin - xpos / UIParent:GetScale() + 70;
-		ypos = ypos / UIParent:GetScale() - ymin - 70;
-		local pos = math.deg( math.atan2( ypos, xpos ) );
-		if pos < 0 then pos = pos + 360; end
-		NS.dbpc[f.dbpc] = pos;
-		f:UpdatePos();
+		-- Undocked
+		if not f.docked then
+			f:StartMoving();
+		-- Docked
+		else
+			local xpos,ypos = GetCursorPosition();
+			local xmin,ymin = Minimap:GetLeft(), Minimap:GetBottom();
+			xpos = xmin - xpos / UIParent:GetScale() + 70;
+			ypos = ypos / UIParent:GetScale() - ymin - 70;
+			local pos = math.deg( math.atan2( ypos, xpos ) );
+			if pos < 0 then pos = pos + 360; end
+			NS.dbpc[f.dbpc] = pos;
+			f:UpdatePos();
+		end
 	end
 	f:SetScript( "OnDragStart", function()
 		f:SetScript( "OnUpdate", BeingDragged );
 	end );
 	f:SetScript( "OnDragStop", function()
 		f:SetScript( "OnUpdate", nil );
+		-- Undocked
+		if not f.docked then
+			f:StopMovingOrSizing();
+			local point, relativeTo, relativePoint, xOffset, yOffset = f:GetPoint( 1 );
+			NS.dbpc[f.dbpc] = ( point and point == relativePoint and xOffset and yOffset ) and { point, xOffset, yOffset } or { "CENTER", 0, 150 };
+		end
 	end );
 	function f:UpdatePos()
 		f:ClearAllPoints();
-		f:SetPoint( "TOPLEFT", "Minimap", "TOPLEFT", arc - ( radius * cos( NS.dbpc[f.dbpc] ) ), ( radius * sin( NS.dbpc[f.dbpc] ) ) - arc );
+		-- Undocked
+		if not f.docked then
+			f:SetParent( UIParent );
+			f:SetPoint( unpack( NS.dbpc[f.dbpc] ) );
+		-- Docked
+		else
+			f:SetParent( Minimap );
+			f:SetPoint( "TOPLEFT", "Minimap", "TOPLEFT", arc - ( radius * cos( NS.dbpc[f.dbpc] ) ), ( radius * sin( NS.dbpc[f.dbpc] ) ) - arc );
+		end
 	end
 	function f:UpdateSize( large )
 		h:ClearAllPoints();
@@ -596,6 +617,7 @@ end
 NS.MoneyToString = function( money, colorCode )
 	local negative = money < 0;
 	money = math.abs( money );
+	colorCode = colorCode or HIGHLIGHT_FONT_COLOR_CODE;
 	--
 	local gold = money >= COPPER_PER_GOLD and NS.FormatNum( math.floor( money / COPPER_PER_GOLD ) ) or nil;
 	local silver = math.floor( ( money % COPPER_PER_GOLD ) / COPPER_PER_SILVER );
@@ -603,15 +625,18 @@ NS.MoneyToString = function( money, colorCode )
 	--
 	gold = ( gold and colorCode ) and ( colorCode .. gold .. FONT_COLOR_CODE_CLOSE ) or gold;
 	silver = ( silver > 0 and colorCode ) and ( colorCode .. silver .. FONT_COLOR_CODE_CLOSE ) or ( silver > 0 and silver ) or nil;
-	copper = colorCode .. copper .. FONT_COLOR_CODE_CLOSE;
+	copper = ( copper > 0 and colorCode ) and ( colorCode .. copper .. FONT_COLOR_CODE_CLOSE ) or ( copper > 0 and copper ) or nil;
 	--
 	local g,s,c = "|cffffd70ag|r","|cffc7c7cfs|r","|cffeda55fc|r";
-	local moneyText = copper .. c;
+	local moneyText = "";
+	if copper then
+		moneyText = copper .. c;
+	end
 	if silver then
-		moneyText = silver .. s .. " " .. moneyText;
+		moneyText = copper and ( silver .. s .. " " .. moneyText ) or ( silver .. s );
 	end
 	if gold then
-		moneyText = gold .. g .. " " .. moneyText;
+		moneyText = ( copper or silver ) and ( gold .. g .. " " .. moneyText ) or ( gold .. g );
 	end
 	if negative then
 		moneyText = colorCode and ( colorCode "-|r" .. moneyText ) or ( "-" .. moneyText );

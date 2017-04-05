@@ -725,6 +725,16 @@ NS.UI.cfg = {
 					end,
 					dbpc = "showMinimapButton",
 				} );
+				NS.CheckButton( "DockMinimapButtonCheckButton", SubFrame, L["Dock Minimap Button"], {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					tooltip = L["Docks Minimap button\nto drag around Minimap,\nundock to drag anywhere\n\n(Character Specific)"],
+					OnClick = function( checked )
+						NS.dbpc[COHCMinimapButton.dbpc] = checked and NS.DefaultSavedVariablesPerCharacter()["minimapButtonPosition"] or { "CENTER", 0, 150 };
+						COHCMinimapButton.docked = checked;
+						COHCMinimapButton:UpdatePos();
+					end,
+					dbpc = "dockMinimapButton",
+				} );
 				NS.CheckButton( "LargeMinimapButtonCheckButton", SubFrame, L["Large Minimap Button"], {
 					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
 					tooltip = L["Enables larger Minimap button\nsimilar to Class Hall Report\n\n(Character Specific)"],
@@ -745,12 +755,12 @@ NS.UI.cfg = {
 					dbpc = "showClassHallReportMinimapButton",
 				} );
 				NS.CheckButton( "ShowCharacterRealmsCheckButton", SubFrame, L["Show Character Realms"], {
-					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					setPoint = { "LEFT", "$parentShowMinimapButtonCheckButton", "LEFT", ( ( NS.UI.cfg.mainFrame.width - 11 ) / 2 ), 0 },
 					tooltip = L["Show or hide\ncharacter realms"],
 					db = "showCharacterRealms",
 				} );
 				NS.CheckButton( "ForgetDragPositionCheckButton", SubFrame, L["Forget Drag Position"], {
-					setPoint = { "LEFT", "$parentShowMinimapButtonCheckButton", "LEFT", ( ( NS.UI.cfg.mainFrame.width - 11 ) / 2 ), 0 },
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
 					tooltip = L["Forget drag position of\nthis frame when closed"],
 					db = "forgetDragPosition",
 					OnClick = function()
@@ -800,7 +810,7 @@ NS.UI.cfg = {
 				} );
 				NS.TextFrame( "AlertLabel", SubFrame, L["Alert - Flashes Minimap button when an indicator is |TInterface\\COMMON\\Indicator-Green:20:20|t"], {
 					setPoint = {
-						{ "TOPLEFT", "$parentShowCharacterRealmsCheckButton", "BOTTOMLEFT", -3, -8 },
+						{ "TOPLEFT", "$parentShowClassHallReportMinimapButtonCheckButton", "BOTTOMLEFT", -3, -8 },
 						{ "RIGHT", -8 },
 					},
 					fontObject = "GameFontNormalLarge",
@@ -903,6 +913,7 @@ NS.UI.cfg = {
 			Refresh			= function( SubFrame )
 				local sfn = SubFrame:GetName();
 				_G[sfn .. "ShowMinimapButtonCheckButton"]:SetChecked( NS.dbpc["showMinimapButton"] );
+				_G[sfn .. "DockMinimapButtonCheckButton"]:SetChecked( NS.dbpc["dockMinimapButton"] );
 				_G[sfn .. "LargeMinimapButtonCheckButton"]:SetChecked( NS.dbpc["largeMinimapButton"] );
 				_G[sfn .. "ShowClassHallReportMinimapButtonCheckButton"]:SetChecked( NS.dbpc["showClassHallReportMinimapButton"] );
 				_G[sfn .. "ShowCharacterRealmsCheckButton"]:SetChecked( NS.db["showCharacterRealms"] );

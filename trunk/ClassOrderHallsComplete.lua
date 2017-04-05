@@ -197,6 +197,7 @@ NS.DefaultSavedVariablesPerCharacter = function()
 		["version"] = NS.version,
 		["showMinimapButton"] = true,
 		["largeMinimapButton"] = true,
+		["dockMinimapButton"] = true,
 		["minimapButtonPosition"] = 302.5,
 		["showClassHallReportMinimapButton"] = true,
 	};
@@ -227,6 +228,10 @@ NS.Upgrade = function()
 		NS.db["currentCharacterFirst"] = vars["currentCharacterFirst"];
 		NS.db["monitorRows"] = vars["monitorRows"];
 	end
+	-- 1.05
+	if version < 1.05 then
+		NS.ResetCharactersOrderPositions(); -- Fixes missing field "order" in "characters" table introduced in v1.03
+	end
 	--
 	NS.db["version"] = NS.version;
 end
@@ -234,10 +239,10 @@ end
 NS.UpgradePerCharacter = function()
 	local varspercharacter = NS.DefaultSavedVariablesPerCharacter();
 	local version = NS.dbpc["version"];
-	-- 1.x
-	--if version < 1.x then
-		-- Do upgrades
-	--end
+	-- 1.05
+	if version < 1.05 then
+		NS.dbpc["dockMinimapButton"] = varspercharacter["dockMinimapButton"];
+	end
 	--
 	NS.dbpc["version"] = NS.version;
 end
@@ -1084,6 +1089,7 @@ NS.OnPlayerLogin = function( event ) -- PLAYER_LOGIN
 	NS.UpdateRequestHandler( event ); -- Initial update request
 	NS.UpdateRequestHandler(); -- Start handler/ticker
 	-- COHC Minimap Button
+	COHCMinimapButton.docked = NS.dbpc["dockMinimapButton"];
 	COHCMinimapButton:UpdateSize( NS.dbpc["largeMinimapButton"] );
 	COHCMinimapButton:UpdatePos(); -- Reset to last drag position
 	if not NS.dbpc["showMinimapButton"] then

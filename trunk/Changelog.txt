@@ -1,3 +1,9 @@
+**1.06**
+
+- Release date: 04/08/2017
+- Icons on the Monitor tab will now be assigned a specific column. For example, all "Artifact Research Notes" icons will appear in column 3 by default but can be changed.
+- New dropdown on Options tab allows changing the column in which icons appear on the Monitor tab.
+
 **1.05**
 
 - Release date: 04/05/2017

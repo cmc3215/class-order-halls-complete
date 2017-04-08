@@ -178,6 +178,18 @@ NS.DefaultSavedVariables = function()
 		["forgetDragPosition"] = true,
 		["dragPosition"] = nil,
 		["monitorRows"] = 8,
+		["monitorColumn"] = {
+			"missions",
+			"advancement",
+			"artifact-research-notes",
+			"cooking-recipes",
+			"troop1",
+			"troop2",
+			"champion-armaments",
+			"world-quest-complete/bonus-roll",
+			"troop3",
+			"troop4",
+		},
 		["alert"] = "current",
 		["alertMissions"] = true,
 		["alertClassHallUpgrades"] = true,
@@ -232,6 +244,10 @@ NS.Upgrade = function()
 	if version < 1.05 then
 		NS.ResetCharactersOrderPositions(); -- Fixes missing field "order" in "characters" table introduced in v1.03
 	end
+	-- 1.06
+	if version < 1.06 then
+		NS.db["monitorColumn"] = vars["monitorColumn"];
+	end
 	--
 	NS.db["version"] = NS.version;
 end
@@ -285,6 +301,35 @@ NS.SortCharacters = function( order, move )
 	--
 	NS.currentCharacter.key = NS.FindKeyByField( NS.db["characters"], "name", NS.currentCharacter.name );
 	NS.selectedCharacterKey = NS.FindKeyByField( NS.db["characters"], "name", selectedCharacterName );
+end
+--
+NS.ChangeColumns = function( old, new )
+	-- Create temp table for column slugs that require change
+	local t = {};
+	-- Write column slugs to temp table that require change
+	for i = 1, #NS.db["monitorColumn"] do
+		if i == old then
+			-- New
+			t[new] = NS.db["monitorColumn"][i];
+			NS.Print( i .. ", " .. new .. " NEW!" );
+		elseif old > new then
+			-- Moving Up, Reorder Downward
+			if i == new or ( i < old and i > new ) then
+				t[i + 1] = NS.db["monitorColumn"][i];
+				NS.Print( i .. ", " .. ( i + 1 ) );
+			end
+		elseif old < new then
+			-- Moving Down, Reorder Upward
+			if i == new or ( i > old and i < new ) then
+				t[i - 1] = NS.db["monitorColumn"][i];
+				NS.Print( i .. ", " .. ( i - 1 ) );
+			end
+		end
+	end
+	-- Copy changed column slugs to primary table
+	for k,v in pairs( t ) do
+		NS.db["monitorColumn"][k] = v;
+	end
 end
 --
 NS.ResetCharactersOrderPositions = function()
@@ -537,6 +582,7 @@ NS.UpdateCharacter = function()
 				monitorable[texture] = true;
 				--NS.Print( "|T" .. troops[i].icon .. ":16|t count = " .. troops[i].count ); -- DEBUG
 			end
+			NS.Sort( NS.db["characters"][k]["orders"], "capacity", "ASC" ); -- Order troops by capacity for a more consistent display
 			-- Loose Shipments
 			local looseShipments = C_Garrison.GetLooseShipments( LE_GARRISON_TYPE_7_0 );
 			for i = 1, #looseShipments do
@@ -889,6 +935,7 @@ NS.UpdateCharacters = function()
 		-- Work Orders
 		--
 		orders[char["name"]] = {};
+		local troopNum = 0; -- Used to increment troop monitor order
 		for _,o in ipairs( char["orders"] ) do -- o is for order, that's good enough for me
 			if char["monitor"][o["texture"]] then -- Orders use texture as the monitorIndex
 				orders[char["name"]][#orders[char["name"]] + 1] = {};
@@ -946,8 +993,23 @@ NS.UpdateCharacters = function()
 					if wo.troopCount == wo.capacity then
 						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. L["0 recruits remaining"] .. FONT_COLOR_CODE_CLOSE;
 					else
-						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. L["You must visit your Class Order Hall\nat least once to record troop counts."] .. FONT_COLOR_CODE_CLOSE;
+						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. L["Unable to detect troop counts"] .. FONT_COLOR_CODE_CLOSE;
 					end
+				end
+				-- Monitor Column
+				if wo.troopCount then
+					troopNum = troopNum + 1;
+					wo.monitorColumn = "troop" .. troopNum;
+				elseif wo.texture == 237446 then
+					wo.monitorColumn = "artifact-research-notes";
+				elseif wo.texture == 975736 then
+					wo.monitorColumn = "champion-armaments";
+				elseif wo.texture == 134939 then
+					wo.monitorColumn = "cooking-recipes";
+				elseif ( wo.texture == 140157 or wo.texture == 139888 or wo.texture == 140155 or wo.texture == 140038 or wo.texture == 139892 or wo.texture == 140158 ) then
+					wo.monitorColumn = "world-quest-complete/bonus-roll";
+				elseif wo.texture == 1604167 then
+					wo.monitorColumn = "world-quest-complete/bonus-roll";
 				end
 			end
 		end

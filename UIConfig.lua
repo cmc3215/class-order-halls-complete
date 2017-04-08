@@ -26,6 +26,7 @@ NS.UI.cfg = {
 		OnHide		= function( MainFrame )
 			StaticPopup_Hide( "COHC_CHARACTER_DELETE" );
 			StaticPopup_Hide( "COHC_CHARACTER_ORDER" );
+			StaticPopup_Hide( "COHC_MONITOR_COLUMN" );
 			PlaySound( "UI_Garrison_GarrisonReport_Close" );
 			local point, relativeTo, relativePoint, xOffset, yOffset = MainFrame:GetPoint( 1 );
 			NS.db["dragPosition"] = ( point and point == relativePoint and xOffset and yOffset ) and { point, xOffset, yOffset } or nil;
@@ -182,12 +183,15 @@ NS.UI.cfg = {
 									--------------------------------------------------------------------------------------------------------------------------------------------
 									local monitorNum = 0;
 									local passedTime = currentTime - items[k]["updateTime"]; -- Time passed since character's last update
+									for monitorNum = ( monitorNum + 1 ), monitorMax do
+										_G[bn .. "Monitor" .. monitorNum]:Hide(); -- Hide monitor buttons up to max
+									end
 									--------------------------------------------------------------------------------------------------------------------------------------------
 									-- Missions
 									--------------------------------------------------------------------------------------------------------------------------------------------
 									local missions = NS.allCharacters.missions[items[k]["name"]];
 									if next( missions ) then
-										monitorNum = monitorNum + 1;
+										monitorNum = NS.FindKeyByValue( NS.db["monitorColumn"], "missions" );
 										_G[bn .. "Monitor" .. monitorNum]:SetNormalTexture( missions.texture );
 										_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnEnter", function( self ) MonitorButton_OnEnter( self, missions.text, missions.lines ); end );
 										_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnLeave", OnLeave );
@@ -207,7 +211,7 @@ NS.UI.cfg = {
 									--------------------------------------------------------------------------------------------------------------------------------------------
 									local advancement = NS.allCharacters.advancement[items[k]["name"]];
 									if next( advancement ) then
-										monitorNum = monitorNum + 1;
+										monitorNum = NS.FindKeyByValue( NS.db["monitorColumn"], "advancement" );
 										_G[bn .. "Monitor" .. monitorNum]:SetNormalTexture( advancement.texture );
 										_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnEnter", function( self ) MonitorButton_OnEnter( self, advancement.text, advancement.lines ); end );
 										_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnLeave", OnLeave );
@@ -227,7 +231,7 @@ NS.UI.cfg = {
 									--------------------------------------------------------------------------------------------------------------------------------------------
 									local orders = NS.allCharacters.orders[items[k]["name"]];
 									for i = 1, #orders do
-										monitorNum = monitorNum + 1;
+										monitorNum = NS.FindKeyByValue( NS.db["monitorColumn"], orders[i].monitorColumn );
 										_G[bn .. "Monitor" .. monitorNum]:SetNormalTexture( orders[i].texture );
 										_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnEnter", function( self ) MonitorButton_OnEnter( self, orders[i].text, orders[i].lines ); end );
 										_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnLeave", OnLeave );
@@ -243,11 +247,6 @@ NS.UI.cfg = {
 										_G[bn .. "Monitor" .. monitorNum]:Show();
 									end
 									--------------------------------------------------------------------------------------------------------------------------------------------
-									-- Hide unused monitor buttons up to max
-									for monitorNum = ( monitorNum + 1 ), monitorMax do
-										_G[bn .. "Monitor" .. monitorNum]:Hide();
-									end
-									--
 									b:Show();
 								else
 									b:Hide();
@@ -808,6 +807,50 @@ NS.UI.cfg = {
 						ReloadUI();
 					end,
 				} );
+				local columnNames = {
+					["missions"] = L["Missions"],
+					["advancement"] = L["Class Hall Upgrades"],
+					["artifact-research-notes"] = L["Artifact Research Notes"],
+					["cooking-recipes"] = L["Legion Cooking Recipes"],
+					["troop1"] = L["Troop #1"],
+					["troop2"] = L["Troop #2"],
+					["champion-armaments"] = L["Champion Armaments"],
+					["world-quest-complete/bonus-roll"] = L["Instant World Quest Complete / Seal of Broken Fate"],
+					["troop3"] = L["Troop #3"],
+					["troop4"] = L["Troop #4"],
+				};
+				NS.DropDownMenu( "MonitorColumnsDropDownMenu", SubFrame, {
+					setPoint = { "TOPLEFT", "$parentMonitorRowsDropDownMenu", "BOTTOMLEFT", 0, -1 },
+					tooltip = L["Column numbers for\nicons on the Monitor tab."],
+					buttons = function()
+						local t = {};
+						for ck,cslug in ipairs( NS.db["monitorColumn"] ) do
+							tinsert( t, { ( ck < 10 and ( "0" .. ck ) or ck ) .. ". " .. columnNames[cslug], ck } );
+						end
+						return t;
+					end,
+					width = 133,
+				} );
+				NS.Button( "ColumnButton", SubFrame, L["Column"], {
+					size = { 80, 20 },
+					setPoint = { "LEFT", "#sibling", "RIGHT", 1, 0 },
+					fontObject = "GameFontNormalSmall",
+					OnClick = function()
+						local ck = UIDropDownMenu_GetSelectedValue( _G[SubFrame:GetName() .. "MonitorColumnsDropDownMenu"] );
+						local cname = columnNames[NS.db["monitorColumn"][ck]];
+						StaticPopup_Show( "COHC_MONITOR_COLUMN", ck .. ". " .. cname, nil, { ["ck"] = ck, ["name"] = cname } );
+					end,
+				} );
+				NS.Button( "ResetButton", SubFrame, L["Reset"], {
+					size = { 80, 20 },
+					setPoint = { "LEFT", "#sibling", "RIGHT", 4, 0 },
+					fontObject = "GameFontNormalSmall",
+					OnClick = function()
+						NS.db["monitorColumn"] = NS.DefaultSavedVariables()["monitorColumn"];
+						SubFrame:Refresh();
+						NS.Print( L["Monitor columns reset"] );
+					end,
+				} );
 				NS.TextFrame( "AlertLabel", SubFrame, L["Alert - Flashes Minimap button when an indicator is |TInterface\\COMMON\\Indicator-Green:20:20|t"], {
 					setPoint = {
 						{ "TOPLEFT", "$parentShowClassHallReportMinimapButtonCheckButton", "BOTTOMLEFT", -3, -8 },
@@ -909,6 +952,49 @@ NS.UI.cfg = {
 					db = "alertDisableInInstances",
 				} );
 
+				StaticPopupDialogs["COHC_MONITOR_COLUMN"] = {
+					text = L["\n%s\n\n|cffffd200Column|r\n|cff82c5ffNumber|r"],
+					button1 = L["Change"],
+					button2 = CANCEL,
+					hasEditBox = 1,
+					maxLetters = 2,
+					OnAccept = function ( self, data )
+						local column = self.editBox:GetNumber();
+						if column > 0 then
+							local mc = NS.db["monitorColumn"][data["ck"]];
+							local maxColumn = #NS.db["monitorColumn"];
+							column = column > maxColumn and maxColumn or column;
+							if mc and mc ~= NS.FindKeyByValue( NS.db["monitorColumn"], mc ) then
+								NS.ChangeColumns( data["ck"], column );
+								SubFrame:Refresh();
+								NS.Print( string.format( L["Column changed: %d. %s"], column, data["name"] ) );
+							end
+						else
+							NS.Print( RED_FONT_COLOR_CODE .. L["Column must be greater than zero."] .. FONT_COLOR_CODE_CLOSE );
+						end
+					end,
+					OnCancel = function ( self ) end,
+					OnShow = function ( self )
+						self.editBox:SetNumeric( true );
+						self.editBox:SetFocus();
+					end,
+					OnHide = function ( self )
+						self.editBox:SetText( "" );
+					end,
+					EditBoxOnEnterPressed = function ( self )
+						local parent = self:GetParent();
+						local OnAccept = StaticPopupDialogs[parent.which].OnAccept;
+						OnAccept( parent, parent.data );
+						parent:Hide();
+					end,
+					EditBoxOnEscapePressed = function( self )
+						self:GetParent():Hide();
+					end,
+					hideOnEscape = 1,
+					timeout = 0,
+					exclusive = 1,
+					whileDead = 1,
+				};
 			end,
 			Refresh			= function( SubFrame )
 				local sfn = SubFrame:GetName();
@@ -924,6 +1010,7 @@ NS.UI.cfg = {
 					_G[sfn .. "CenterButton"]:Enable();
 				end
 				_G[sfn .. "MonitorRowsDropDownMenu"]:Reset( NS.db["monitorRows"] );
+				_G[sfn .. "MonitorColumnsDropDownMenu"]:Reset( 1 );
 				_G[sfn .. "AlertDropDownMenu"]:Reset( NS.db["alert"] );
 				_G[sfn .. "AlertMissionsCheckButton"]:SetChecked( NS.db["alertMissions"] );
 				_G[sfn .. "AlertClassHallUpgradesCheckButton"]:SetChecked( NS.db["alertClassHallUpgrades"] );

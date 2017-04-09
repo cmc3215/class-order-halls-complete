@@ -311,18 +311,15 @@ NS.ChangeColumns = function( old, new )
 		if i == old then
 			-- New
 			t[new] = NS.db["monitorColumn"][i];
-			NS.Print( i .. ", " .. new .. " NEW!" );
 		elseif old > new then
 			-- Moving Up, Reorder Downward
 			if i == new or ( i < old and i > new ) then
 				t[i + 1] = NS.db["monitorColumn"][i];
-				NS.Print( i .. ", " .. ( i + 1 ) );
 			end
 		elseif old < new then
 			-- Moving Down, Reorder Upward
 			if i == new or ( i > old and i < new ) then
 				t[i - 1] = NS.db["monitorColumn"][i];
-				NS.Print( i .. ", " .. ( i - 1 ) );
 			end
 		end
 	end

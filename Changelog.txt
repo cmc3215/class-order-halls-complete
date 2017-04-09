@@ -1,3 +1,8 @@
+**1.08**
+
+- Release date: 04/09/2017
+- Added code to print message when an unexpected work order fails to be shown. This fixes addon breaking errors reported but is mostly to allow reports to come in to provide a permanent fix.
+
 **1.07**
 
 - Release date: 04/08/2017

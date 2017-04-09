@@ -232,19 +232,23 @@ NS.UI.cfg = {
 									local orders = NS.allCharacters.orders[items[k]["name"]];
 									for i = 1, #orders do
 										monitorNum = NS.FindKeyByValue( NS.db["monitorColumn"], orders[i].monitorColumn );
-										_G[bn .. "Monitor" .. monitorNum]:SetNormalTexture( orders[i].texture );
-										_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnEnter", function( self ) MonitorButton_OnEnter( self, orders[i].text, orders[i].lines ); end );
-										_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnLeave", OnLeave );
-										_G[bn .. "Monitor" .. monitorNum .. "TopRightText"]:SetText( orders[i].troopCount and orders[i].troopCount or "" );
-										local color = ( orders[i].total == 0 and "Gray" ) or ( orders[i].readyForPickup == 0 and "Red" ) or ( orders[i].readyForPickup < orders[i].total and "Yellow" ) or "Green";
-										_G[bn .. "Monitor" .. monitorNum .. "CenterText"]:SetText( ( color == "Gray" and "" ) or ( orders[i].readyForPickup .. "/" .. orders[i].total ) );
-										_G[bn .. "Monitor" .. monitorNum .. "Indicator"]:SetTexture( "Interface\\COMMON\\Indicator-" .. color );
-										if color == "Green" then
-											_G[bn .. "Monitor" .. monitorNum]:GetNormalTexture():SetVertexColor( 0.1, 1.0, 0.1 );
+										if not monitorNum then
+											NS.Print( "Unexpected work order, please report to addon author on Curse: " .. orders[i].text .. " - " .. orders[i].texture );
 										else
-											_G[bn .. "Monitor" .. monitorNum]:GetNormalTexture():SetVertexColor( 1.0, 1.0, 1.0 );
+											_G[bn .. "Monitor" .. monitorNum]:SetNormalTexture( orders[i].texture );
+											_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnEnter", function( self ) MonitorButton_OnEnter( self, orders[i].text, orders[i].lines ); end );
+											_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnLeave", OnLeave );
+											_G[bn .. "Monitor" .. monitorNum .. "TopRightText"]:SetText( orders[i].troopCount and orders[i].troopCount or "" );
+											local color = ( orders[i].total == 0 and "Gray" ) or ( orders[i].readyForPickup == 0 and "Red" ) or ( orders[i].readyForPickup < orders[i].total and "Yellow" ) or "Green";
+											_G[bn .. "Monitor" .. monitorNum .. "CenterText"]:SetText( ( color == "Gray" and "" ) or ( orders[i].readyForPickup .. "/" .. orders[i].total ) );
+											_G[bn .. "Monitor" .. monitorNum .. "Indicator"]:SetTexture( "Interface\\COMMON\\Indicator-" .. color );
+											if color == "Green" then
+												_G[bn .. "Monitor" .. monitorNum]:GetNormalTexture():SetVertexColor( 0.1, 1.0, 0.1 );
+											else
+												_G[bn .. "Monitor" .. monitorNum]:GetNormalTexture():SetVertexColor( 1.0, 1.0, 1.0 );
+											end
+											_G[bn .. "Monitor" .. monitorNum]:Show();
 										end
-										_G[bn .. "Monitor" .. monitorNum]:Show();
 									end
 									--------------------------------------------------------------------------------------------------------------------------------------------
 									b:Show();

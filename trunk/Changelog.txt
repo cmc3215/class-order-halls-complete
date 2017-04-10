@@ -1,3 +1,8 @@
+**1.09**
+
+- Release date: 04/09/2017
+- Bug fix, Instant World Quest Complete work orders were causing unexpected behavior with the newly introduced numbered columns. Messages related to these unexpected work orders that were added in v1.08 should no longer appear and the missing icons should be back now. Thanks alot to all the Curse users who reported information related to this bug.
+
 **1.08**
 
 - Release date: 04/09/2017

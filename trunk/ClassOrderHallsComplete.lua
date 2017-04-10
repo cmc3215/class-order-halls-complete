@@ -972,7 +972,7 @@ NS.UpdateCharacters = function()
 						   ( wo.texture == 237446 and NS.db["alertArtifactResearchNotes"] ) or
 						   ( wo.texture == 975736 and NS.db["alertChampionArmaments"] ) or
 						   ( wo.texture == 134939 and NS.db["alertLegionCookingRecipes"] ) or
-						   ( ( wo.texture == 140157 or wo.texture == 139888 or wo.texture == 140155 or wo.texture == 140038 or wo.texture == 139892 or wo.texture == 140158 ) and NS.db["alertInstantCompleteWorldQuest"] ) or
+						   ( ( wo.texture == 135705 or wo.texture == 341980 or wo.texture == 1411833 or wo.texture == 1033908 or wo.texture == 1367345 or wo.texture == 1135365 ) and NS.db["alertInstantCompleteWorldQuest"] ) or
 						   ( wo.texture == 1604167 and NS.db["alertBonusRollToken"] ) then
 							alertCurrentCharacter = ( not alertCurrentCharacter and char["name"] == NS.currentCharacter.name ) and true or alertCurrentCharacter; -- All characters
 							alertAnyCharacter = true; -- All characters
@@ -1003,7 +1003,7 @@ NS.UpdateCharacters = function()
 					wo.monitorColumn = "champion-armaments";
 				elseif wo.texture == 134939 then
 					wo.monitorColumn = "cooking-recipes";
-				elseif ( wo.texture == 140157 or wo.texture == 139888 or wo.texture == 140155 or wo.texture == 140038 or wo.texture == 139892 or wo.texture == 140158 ) then
+				elseif ( wo.texture == 135705 or wo.texture == 341980 or wo.texture == 1411833 or wo.texture == 1033908 or wo.texture == 1367345 or wo.texture == 1135365 ) then
 					wo.monitorColumn = "world-quest-complete/bonus-roll";
 				elseif wo.texture == 1604167 then
 					wo.monitorColumn = "world-quest-complete/bonus-roll";

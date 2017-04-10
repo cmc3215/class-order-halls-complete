@@ -819,7 +819,7 @@ NS.UI.cfg = {
 					["troop1"] = L["Troop #1"],
 					["troop2"] = L["Troop #2"],
 					["champion-armaments"] = L["Champion Armaments"],
-					["world-quest-complete/bonus-roll"] = L["Instant World Quest Complete / Seal of Broken Fate"],
+					["world-quest-complete/blessing-order/bonus-roll"] = L["Instant World Quest Complete / Blessing of the Order / Seal of Broken Fate"],
 					["troop3"] = L["Troop #3"],
 					["troop4"] = L["Troop #4"],
 				};
@@ -939,6 +939,14 @@ NS.UI.cfg = {
 					end,
 					db = "alertInstantCompleteWorldQuest",
 				} );
+				NS.CheckButton( "AlertBlessingOfTheOrderCheckButton", SubFrame, L["Blessing of the Order"], {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					tooltip = L["|cffffffffEnable Alert|r\nBlessing of the Order\nPriest Work Order"],
+					OnClick = function( checked )
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "alertBlessingOfTheOrder",
+				} );
 				NS.CheckButton( "AlertBonusRollTokenCheckButton", SubFrame, L["Seal of Broken Fate"], {
 					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
 					tooltip = L["|cffffffffEnable Alert|r\nSeal of Broken Fate Work Order"],
@@ -948,14 +956,13 @@ NS.UI.cfg = {
 					db = "alertBonusRollToken",
 				} );
 				NS.CheckButton( "AlertDisableInInstancesCheckButton", SubFrame, L["Disable in Instances"], {
-					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					setPoint = { "LEFT", "$parentAlertMissionsCheckButton", "LEFT", ( ( NS.UI.cfg.mainFrame.width - 11 ) / 2 ), 0 },
 					tooltip = L["|cffffffffDisable Alert|r\nIn Arenas, Dungeons,\nBattlegrounds, and Raids"],
 					OnClick = function( checked )
 						NS.UpdateAll( "forceUpdate" );
 					end,
 					db = "alertDisableInInstances",
 				} );
-
 				StaticPopupDialogs["COHC_MONITOR_COLUMN"] = {
 					text = L["\n%s\n\n|cffffd200Column|r\n|cff82c5ffNumber|r"],
 					button1 = L["Change"],
@@ -1024,6 +1031,7 @@ NS.UI.cfg = {
 				_G[sfn .. "AlertChampionArmamentsCheckButton"]:SetChecked( NS.db["alertChampionArmaments"] );
 				_G[sfn .. "AlertLegionCookingRecipesCheckButton"]:SetChecked( NS.db["alertLegionCookingRecipes"] );
 				_G[sfn .. "AlertInstantCompleteWorldQuestCheckButton"]:SetChecked( NS.db["alertInstantCompleteWorldQuest"] );
+				_G[sfn .. "AlertBlessingOfTheOrderCheckButton"]:SetChecked( NS.db["alertBlessingOfTheOrder"] );
 				_G[sfn .. "AlertBonusRollTokenCheckButton"]:SetChecked( NS.db["alertBonusRollToken"] );
 				_G[sfn .. "AlertDisableInInstancesCheckButton"]:SetChecked( NS.db["alertDisableInInstances"] );
 			end,

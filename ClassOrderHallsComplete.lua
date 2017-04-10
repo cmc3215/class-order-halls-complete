@@ -64,104 +64,117 @@ NS.classRef = {
 	-- artifact = "Artifact Research Notes"										- questID
 	-- armaments = Champion Armaments or Equipment Work Orders Talent - Tier 3	- talent.id
 	-- wqcomplete = World Quest Complete Work Order Talent - Tier 5				- talent.id, itemID, itemName
+	-- blessingorder = Blessing of the Order Work Order Talent - Tier 5			- talent.id, itemID, itemName
 	-- bonusroll = Bonus Roll Work Order Talent - Tier 5						- talent.id
 	-- missions = "Missions"													- questID
 	--
 	["WARRIOR"] = {
-		advancement = 42611, 								-- Einar the Runecaster
-		artifact = 43888, 									-- Hitting the Books
-		armaments = 411, 									-- Heavenly Forge
-		wqcomplete = { 410, 140157, L["Horn of War"] },		-- Val'kyr Call
-		--bonusroll = 0,									-- N/A
-		missions = 42598,									-- Champions of Skyhold
+		advancement = 42611, 									-- Einar the Runecaster
+		artifact = 43888, 										-- Hitting the Books
+		armaments = 411, 										-- Heavenly Forge
+		wqcomplete = { 410, 140157, L["Horn of War"] },			-- Val'kyr Call
+		--blessingorder = { 0, 0 },								-- N/A
+		--bonusroll = 0,										-- N/A
+		missions = 42598,										-- Champions of Skyhold
 	},
 	["DEATHKNIGHT"] = {
-		advancement = 43268,								-- Tech It Up A Notch
-		artifact = 43877,									-- Hitting the Books
-		armaments = 433,									-- Brothers in Arms
+		advancement = 43268,									-- Tech It Up A Notch
+		artifact = 43877,										-- Hitting the Books
+		armaments = 433,										-- Brothers in Arms
 		wqcomplete = { 432, 139888, L["Frost Crux"] },			-- Frost Wyrm
-		--bonusroll = 0,									-- N/A
-		missions = 43264,									-- Rise, Champions
+		--blessingorder = { 0, 0 },								-- N/A
+		--bonusroll = 0,										-- N/A
+		missions = 43264,										-- Rise, Champions
 	},
 	["PALADIN"] = {
-		advancement = 42850, 								-- Tech It Up A Notch
-		artifact = 43883, 									-- Hitting the Books
-		armaments =	400, 									-- Plowshares to Swords
-		wqcomplete = { 399, 140155, L["Silver Hand Orders"] }, -- Grand Crusade
-		bonusroll = 398, 									-- Holy Purpose
-		missions = 42846,									-- The Blood Matriarch
+		advancement = 42850, 									-- Tech It Up A Notch
+		artifact = 43883, 										-- Hitting the Books
+		armaments =	400, 										-- Plowshares to Swords
+		wqcomplete = { 399, 140155, L["Silver Hand Orders"] },	-- Grand Crusade
+		--blessingorder = { 0, 0 },								-- N/A
+		bonusroll = 398, 										-- Holy Purpose
+		missions = 42846,										-- The Blood Matriarch
 	},
 	["MONK"] = {
-		advancement = 42191, 								-- Tech It Up A Notch
-		artifact = 43881, 									-- Hitting the Books
-		--armaments = 0, 									-- N/A
-		--wqcomplete = { 0, 0 },							-- N/A
-		bonusroll = 256, 									-- One with Destiny
-		missions = 42187,									-- Rise, Champions
+		advancement = 42191, 									-- Tech It Up A Notch
+		artifact = 43881, 										-- Hitting the Books
+		--armaments = 0, 										-- N/A
+		--wqcomplete = { 0, 0 },								-- N/A
+		--blessingorder = { 0, 0 },								-- N/A
+		bonusroll = 256, 										-- One with Destiny
+		missions = 42187,										-- Rise, Champions
 	},
 	["PRIEST"] = {
-		advancement = 43277, 								-- Tech It Up A Notch
-		artifact = 43884, 									-- Hitting the Books
-		armaments =	455, 									-- Armaments of Light
-		--wqcomplete = { 0, 0 },							-- N/A
-		bonusroll = 454, 									-- Blessed Seals
-		missions = 43270,									-- Rise, Champions
+		advancement = 43277, 									-- Tech It Up A Notch
+		artifact = 43884, 										-- Hitting the Books
+		armaments =	455, 										-- Armaments of Light
+		--wqcomplete = { 0, 0 },								-- N/A
+		blessingorder = { 448, 140156, L["Blessing of the Order"] },-- Tithe
+		bonusroll = 454, 										-- Blessed Seals
+		missions = 43270,										-- Rise, Champions
 	},
 	["SHAMAN"] = {
-		advancement = 41740, 								-- Tech It Up A Notch
-		artifact = 43886, 									-- Speaking to the Wind
-		--armaments = 0, 									-- N/A
-		--wqcomplete = { 0, 0 },							-- N/A
-		bonusroll = 49, 									-- Spirit Walk
-		missions = 42383,									-- Rise, Champions
+		advancement = 41740, 									-- Tech It Up A Notch
+		artifact = 43886, 										-- Speaking to the Wind
+		--armaments = 0, 										-- N/A
+		--wqcomplete = { 0, 0 },								-- N/A
+		--blessingorder = { 0, 0 },								-- N/A
+		bonusroll = 49, 										-- Spirit Walk
+		missions = 42383,										-- Rise, Champions
 	},
 	["DRUID"] = {
-		advancement = 42588, 								-- Branching Out
-		artifact = 43879, 									-- Hitting the Books
-		--armaments = 0, 									-- N/A
-		--wqcomplete = { 0, 0 },							-- N/A
-		bonusroll = 355, 									-- Elune's Chosen
-		missions = 42583,									-- Rise, Champions
+		advancement = 42588, 									-- Branching Out
+		artifact = 43879, 										-- Hitting the Books
+		--armaments = 0, 										-- N/A
+		--wqcomplete = { 0, 0 },								-- N/A
+		--blessingorder = { 0, 0 },								-- N/A
+		bonusroll = 355, 										-- Elune's Chosen
+		missions = 42583,										-- Rise, Champions
 	},
 	["ROGUE"] = {
-		advancement = 43015, 								-- What Winstone Suggests
-		artifact = 43885, 									-- Hitting the Books
-		armaments =	444, 									-- Weapons Smuggler
-		--wqcomplete = { 0, 0 },							-- N/A
-		bonusroll = 443, 									-- Plunder
-		missions = 42139,									-- Rise, Champions
+		advancement = 43015, 									-- What Winstone Suggests
+		artifact = 43885, 										-- Hitting the Books
+		armaments =	444, 										-- Weapons Smuggler
+		--wqcomplete = { 0, 0 },								-- N/A
+		--blessingorder = { 0, 0 },								-- N/A
+		bonusroll = 443, 										-- Plunder
+		missions = 42139,										-- Rise, Champions
 	},
 	["MAGE"] = {
-		advancement = 42696, 								-- Tech It Up A Notch
-		artifact = 43749, 									-- Hitting the Books
-		armaments =	389, 									-- Arcane Armaments
+		advancement = 42696, 									-- Tech It Up A Notch
+		artifact = 43749, 										-- Hitting the Books
+		armaments =	389, 										-- Arcane Armaments
 		wqcomplete = { 388, 140038, L["Focusing Crystal"] },	-- Might of Dalaran
-		bonusroll = 387, 									-- Arcane Divination
-		missions = 42663,									-- Rise, Champions
+		--blessingorder = { 0, 0 },								-- N/A
+		bonusroll = 387, 										-- Arcane Divination
+		missions = 42663,										-- Rise, Champions
 	},
 	["WARLOCK"] = {
-		advancement = 42601, 								-- Tech It Up A Notch
-		artifact = 43887, 									-- Hitting the Books
-		armaments =	364, 									-- Shadow Pact
-		wqcomplete = { 367, 139892, L["Demonic Phylactery"] }, -- Unleash Infernal
+		advancement = 42601, 									-- Tech It Up A Notch
+		artifact = 43887, 										-- Hitting the Books
+		armaments =	364, 										-- Shadow Pact
+		wqcomplete = { 367, 139892, L["Demonic Phylactery"] },	-- Unleash Infernal
+		--blessingorder = { 0, 0 },								-- N/A
 		--bonusroll = 0, -- N/A
-		missions = 42608,									-- Rise, Champions
+		missions = 42608,										-- Rise, Champions
 	},
 	["HUNTER"] = {
-		advancement = 42526, 								-- Tech It Up A Notch
-		artifact = 43880, 									-- Hitting the Books
-		armaments = 378, 									-- Fletchery
-		--wqcomplete = { 0, 0 },							-- N/A
-		bonusroll = 377, 									-- Unseen Path
-		missions = 42519,									-- Rise, Champions
+		advancement = 42526, 									-- Tech It Up A Notch
+		artifact = 43880, 										-- Hitting the Books
+		armaments = 378, 										-- Fletchery
+		--wqcomplete = { 0, 0 },								-- N/A
+		--blessingorder = { 0, 0 },								-- N/A
+		bonusroll = 377, 										-- Unseen Path
+		missions = 42519,										-- Rise, Champions
 	},
 	["DEMONHUNTER"] = {
-		advancement = 42683, 								-- Demonic Improvements
-		artifact = 43878, 									-- Hitting the Books
-		armaments =	422, 									-- Fel Armaments
-		wqcomplete = { 421, 140158, L["Empowered Rift Core"] },-- Fel Hammer's Wrath
-		bonusroll =	420, 									-- Focused War Effort
-		missions = { 42670, 42671 },						-- Rise, Champions
+		advancement = 42683, 									-- Demonic Improvements
+		artifact = 43878, 										-- Hitting the Books
+		armaments =	422, 										-- Fel Armaments
+		wqcomplete = { 421, 140158, L["Empowered Rift Core"] },	-- Fel Hammer's Wrath
+		--blessingorder = { 0, 0 },								-- N/A
+		bonusroll =	420, 										-- Focused War Effort
+		missions = { 42670, 42671 },							-- Rise, Champions
 	},
 };
 NS.sealOfBrokenFateQuests = { 43892, 43893, 43894, 43895, 43896, 43897 }; -- Sealing Fate quests in Dalaran
@@ -186,7 +199,7 @@ NS.DefaultSavedVariables = function()
 			"troop1",
 			"troop2",
 			"champion-armaments",
-			"world-quest-complete/bonus-roll",
+			"world-quest-complete/blessing-order/bonus-roll",
 			"troop3",
 			"troop4",
 		},
@@ -199,6 +212,7 @@ NS.DefaultSavedVariables = function()
 		["alertChampionArmaments"] = true,
 		["alertLegionCookingRecipes"] = true,
 		["alertInstantCompleteWorldQuest"] = true,
+		["alertBlessingOfTheOrder"] = true,
 		["alertBonusRollToken"] = true,
 		["alertDisableInInstances"] = true,
 	};
@@ -247,6 +261,15 @@ NS.Upgrade = function()
 	-- 1.06
 	if version < 1.06 then
 		NS.db["monitorColumn"] = vars["monitorColumn"];
+	end
+	-- 1.10
+	if version < 1.10 then
+		for i = 1, #NS.db["monitorColumn"] do
+			if NS.db["monitorColumn"][i] == "world-quest-complete/bonus-roll" then
+				NS.db["monitorColumn"][i] = "world-quest-complete/blessing-order/bonus-roll";
+			end
+		end
+		NS.db["alertBlessingOfTheOrder"] = vars["alertBlessingOfTheOrder"];
 	end
 	--
 	NS.db["version"] = NS.version;
@@ -655,6 +678,25 @@ NS.UpdateCharacter = function()
 				end
 				--NS.Print( "|T" .. texture .. ":16|t orders available = " .. available ); -- DEBUG
 			end
+			-- Blessing of the Order (Tier 5)
+			if NS.classRef[NS.currentCharacter.class].blessingorder and talentTiers[5] and not talentTiers[5].isBeingResearched and talentTiers[5].id == NS.classRef[NS.currentCharacter.class].blessingorder[1] then
+				local texture = GetItemIcon( NS.classRef[NS.currentCharacter.class].blessingorder[2] );
+				local capacity = 1;
+				local ordersKey = NS.FindKeyByField( NS.db["characters"][k]["orders"], "texture", texture );
+				local orders = ordersKey and NS.db["characters"][k]["orders"][ordersKey]["total"] or 0;
+				if orders == 0 then
+					table.insert( NS.db["characters"][k]["orders"], {
+						["name"] = GetItemInfo( NS.classRef[NS.currentCharacter.class].blessingorder[2] ) or NS.classRef[NS.currentCharacter.class].blessingorder[3],
+						["texture"] = texture,
+						["capacity"] = capacity,
+					} );
+					if NS.db["characters"][k]["monitor"][texture] == nil then
+						NS.db["characters"][k]["monitor"][texture] = true;
+					end
+					monitorable[texture] = true;
+				end
+				--NS.Print( "|T" .. texture .. ":16|t orders available = " .. available ); -- DEBUG
+			end
 			-- Bonus Roll (Tier 5)
 			if NS.classRef[NS.currentCharacter.class].bonusroll and talentTiers[5] and not talentTiers[5].isBeingResearched and talentTiers[5].id == NS.classRef[NS.currentCharacter.class].bonusroll then
 				local texture = 1604167;
@@ -973,6 +1015,7 @@ NS.UpdateCharacters = function()
 						   ( wo.texture == 975736 and NS.db["alertChampionArmaments"] ) or
 						   ( wo.texture == 134939 and NS.db["alertLegionCookingRecipes"] ) or
 						   ( ( wo.texture == 135705 or wo.texture == 341980 or wo.texture == 1411833 or wo.texture == 1033908 or wo.texture == 1367345 or wo.texture == 1135365 ) and NS.db["alertInstantCompleteWorldQuest"] ) or
+						   ( wo.texture == 135987 and NS.db["alertBlessingOfTheOrder"] ) or
 						   ( wo.texture == 1604167 and NS.db["alertBonusRollToken"] ) then
 							alertCurrentCharacter = ( not alertCurrentCharacter and char["name"] == NS.currentCharacter.name ) and true or alertCurrentCharacter; -- All characters
 							alertAnyCharacter = true; -- All characters
@@ -1004,9 +1047,11 @@ NS.UpdateCharacters = function()
 				elseif wo.texture == 134939 then
 					wo.monitorColumn = "cooking-recipes";
 				elseif ( wo.texture == 135705 or wo.texture == 341980 or wo.texture == 1411833 or wo.texture == 1033908 or wo.texture == 1367345 or wo.texture == 1135365 ) then
-					wo.monitorColumn = "world-quest-complete/bonus-roll";
+					wo.monitorColumn = "world-quest-complete/blessing-order/bonus-roll"; -- World Quest Complete
+				elseif wo.texture == 135987 then
+					wo.monitorColumn = "world-quest-complete/blessing-order/bonus-roll"; -- Blessing Order
 				elseif wo.texture == 1604167 then
-					wo.monitorColumn = "world-quest-complete/bonus-roll";
+					wo.monitorColumn = "world-quest-complete/blessing-order/bonus-roll"; -- Bonus Roll
 				end
 			end
 		end

@@ -1,3 +1,8 @@
+**1.10**
+
+- Release date: 04/09/2017
+- Bug fix, Priest's Blessing of the Order work orders were not working properly with the recently added columns of icons in v1.06.
+
 **1.09**
 
 - Release date: 04/09/2017

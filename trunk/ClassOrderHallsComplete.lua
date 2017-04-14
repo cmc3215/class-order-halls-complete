@@ -63,118 +63,118 @@ NS.classRef = {
 	-- advancement = "Order Advancement"										- questID
 	-- artifact = "Artifact Research Notes"										- questID
 	-- armaments = Champion Armaments or Equipment Work Orders Talent - Tier 3	- talent.id
-	-- wqcomplete = World Quest Complete Work Order Talent - Tier 5				- talent.id, itemID, itemName
+	-- wqcomplete = World Quest Complete Work Order Talent - Tier 5				- talent.id, itemID, itemName, spellID, spellTexture
 	-- blessingorder = Blessing of the Order Work Order Talent - Tier 5			- talent.id, itemID, itemName
 	-- bonusroll = Bonus Roll Work Order Talent - Tier 5						- talent.id
 	-- missions = "Missions"													- questID
 	--
 	["WARRIOR"] = {
-		advancement = 42611, 									-- Einar the Runecaster
-		artifact = 43888, 										-- Hitting the Books
-		armaments = 411, 										-- Heavenly Forge
-		wqcomplete = { 410, 140157, L["Horn of War"] },			-- Val'kyr Call
-		--blessingorder = { 0, 0 },								-- N/A
-		--bonusroll = 0,										-- N/A
-		missions = 42598,										-- Champions of Skyhold
+		advancement = 42611, 																					-- Einar the Runecaster
+		artifact = 43888, 																						-- Hitting the Books
+		armaments = 411, 																						-- Heavenly Forge
+		wqcomplete = { 410, 140157, L["Horn of War"], 221597, select( 3, GetSpellInfo( 221597 ) ) },			-- Val'kyr Call
+		--blessingorder = { 0, 0 },																				-- N/A
+		--bonusroll = 0,																						-- N/A
+		missions = 42598,																						-- Champions of Skyhold
 	},
 	["DEATHKNIGHT"] = {
-		advancement = 43268,									-- Tech It Up A Notch
-		artifact = 43877,										-- Hitting the Books
-		armaments = 433,										-- Brothers in Arms
-		wqcomplete = { 432, 139888, L["Frost Crux"] },			-- Frost Wyrm
-		--blessingorder = { 0, 0 },								-- N/A
-		--bonusroll = 0,										-- N/A
-		missions = 43264,										-- Rise, Champions
+		advancement = 43268,																					-- Tech It Up A Notch
+		artifact = 43877,																						-- Hitting the Books
+		armaments = 433,																						-- Brothers in Arms
+		wqcomplete = { 432, 139888, L["Frost Crux"], 221557, select( 3, GetSpellInfo( 221557 ) ) },				-- Frost Wyrm
+		--blessingorder = { 0, 0 },																				-- N/A
+		--bonusroll = 0,																						-- N/A
+		missions = 43264,																						-- Rise, Champions
 	},
 	["PALADIN"] = {
-		advancement = 42850, 									-- Tech It Up A Notch
-		artifact = 43883, 										-- Hitting the Books
-		armaments =	400, 										-- Plowshares to Swords
-		wqcomplete = { 399, 140155, L["Silver Hand Orders"] },	-- Grand Crusade
-		--blessingorder = { 0, 0 },								-- N/A
-		bonusroll = 398, 										-- Holy Purpose
-		missions = 42846,										-- The Blood Matriarch
+		advancement = 42850, 																					-- Tech It Up A Notch
+		artifact = 43883, 																						-- Hitting the Books
+		armaments =	400, 																						-- Plowshares to Swords
+		wqcomplete = { 399, 140155, L["Silver Hand Orders"], 221587, select( 3, GetSpellInfo( 221587 ) ) },		-- Grand Crusade
+		--blessingorder = { 0, 0 },																				-- N/A
+		bonusroll = 398, 																						-- Holy Purpose
+		missions = 42846,																						-- The Blood Matriarch
 	},
 	["MONK"] = {
-		advancement = 42191, 									-- Tech It Up A Notch
-		artifact = 43881, 										-- Hitting the Books
-		--armaments = 0, 										-- N/A
-		--wqcomplete = { 0, 0 },								-- N/A
-		--blessingorder = { 0, 0 },								-- N/A
-		bonusroll = 256, 										-- One with Destiny
-		missions = 42187,										-- Rise, Champions
+		advancement = 42191, 																					-- Tech It Up A Notch
+		artifact = 43881, 																						-- Hitting the Books
+		--armaments = 0, 																						-- N/A
+		--wqcomplete = { 0, 0 },																				-- N/A
+		--blessingorder = { 0, 0 },																				-- N/A
+		bonusroll = 256, 																						-- One with Destiny
+		missions = 42187,																						-- Rise, Champions
 	},
 	["PRIEST"] = {
-		advancement = 43277, 									-- Tech It Up A Notch
-		artifact = 43884, 										-- Hitting the Books
-		armaments =	455, 										-- Armaments of Light
-		--wqcomplete = { 0, 0 },								-- N/A
-		blessingorder = { 448, 140156, L["Blessing of the Order"] },-- Tithe
-		bonusroll = 454, 										-- Blessed Seals
-		missions = 43270,										-- Rise, Champions
+		advancement = 43277, 																					-- Tech It Up A Notch
+		artifact = 43884, 																						-- Hitting the Books
+		armaments =	455, 																						-- Armaments of Light
+		--wqcomplete = { 0, 0 },																				-- N/A
+		blessingorder = { 448, 140156, L["Blessing of the Order"] },											-- Tithe
+		bonusroll = 454, 																						-- Blessed Seals
+		missions = 43270,																						-- Rise, Champions
 	},
 	["SHAMAN"] = {
-		advancement = 41740, 									-- Tech It Up A Notch
-		artifact = 43886, 										-- Speaking to the Wind
-		--armaments = 0, 										-- N/A
-		--wqcomplete = { 0, 0 },								-- N/A
-		--blessingorder = { 0, 0 },								-- N/A
-		bonusroll = 49, 										-- Spirit Walk
-		missions = 42383,										-- Rise, Champions
+		advancement = 41740, 																					-- Tech It Up A Notch
+		artifact = 43886, 																						-- Speaking to the Wind
+		--armaments = 0, 																						-- N/A
+		--wqcomplete = { 0, 0 },																				-- N/A
+		--blessingorder = { 0, 0 },																				-- N/A
+		bonusroll = 49, 																						-- Spirit Walk
+		missions = 42383,																						-- Rise, Champions
 	},
 	["DRUID"] = {
-		advancement = 42588, 									-- Branching Out
-		artifact = 43879, 										-- Hitting the Books
-		--armaments = 0, 										-- N/A
-		--wqcomplete = { 0, 0 },								-- N/A
-		--blessingorder = { 0, 0 },								-- N/A
-		bonusroll = 355, 										-- Elune's Chosen
-		missions = 42583,										-- Rise, Champions
+		advancement = 42588, 																					-- Branching Out
+		artifact = 43879, 																						-- Hitting the Books
+		--armaments = 0, 																						-- N/A
+		--wqcomplete = { 0, 0 },																				-- N/A
+		--blessingorder = { 0, 0 },																				-- N/A
+		bonusroll = 355, 																						-- Elune's Chosen
+		missions = 42583,																						-- Rise, Champions
 	},
 	["ROGUE"] = {
-		advancement = 43015, 									-- What Winstone Suggests
-		artifact = 43885, 										-- Hitting the Books
-		armaments =	444, 										-- Weapons Smuggler
-		--wqcomplete = { 0, 0 },								-- N/A
-		--blessingorder = { 0, 0 },								-- N/A
-		bonusroll = 443, 										-- Plunder
-		missions = 42139,										-- Rise, Champions
+		advancement = 43015, 																					-- What Winstone Suggests
+		artifact = 43885, 																						-- Hitting the Books
+		armaments =	444, 																						-- Weapons Smuggler
+		--wqcomplete = { 0, 0 },																				-- N/A
+		--blessingorder = { 0, 0 },																				-- N/A
+		bonusroll = 443, 																						-- Plunder
+		missions = 42139,																						-- Rise, Champions
 	},
 	["MAGE"] = {
-		advancement = 42696, 									-- Tech It Up A Notch
-		artifact = 43749, 										-- Hitting the Books
-		armaments =	389, 										-- Arcane Armaments
-		wqcomplete = { 388, 140038, L["Focusing Crystal"] },	-- Might of Dalaran
-		--blessingorder = { 0, 0 },								-- N/A
-		bonusroll = 387, 										-- Arcane Divination
-		missions = 42663,										-- Rise, Champions
+		advancement = 42696, 																					-- Tech It Up A Notch
+		artifact = 43749, 																						-- Hitting the Books
+		armaments =	389, 																						-- Arcane Armaments
+		wqcomplete = { 388, 140038, L["Focusing Crystal"], 221602, select( 3, GetSpellInfo( 221602 ) ) },		-- Might of Dalaran
+		--blessingorder = { 0, 0 },																				-- N/A
+		bonusroll = 387, 																						-- Arcane Divination
+		missions = 42663,																						-- Rise, Champions
 	},
 	["WARLOCK"] = {
-		advancement = 42601, 									-- Tech It Up A Notch
-		artifact = 43887, 										-- Hitting the Books
-		armaments =	364, 										-- Shadow Pact
-		wqcomplete = { 367, 139892, L["Demonic Phylactery"] },	-- Unleash Infernal
-		--blessingorder = { 0, 0 },								-- N/A
-		--bonusroll = 0, -- N/A
-		missions = 42608,										-- Rise, Champions
+		advancement = 42601, 																					-- Tech It Up A Notch
+		artifact = 43887, 																						-- Hitting the Books
+		armaments =	364, 																						-- Shadow Pact
+		wqcomplete = { 367, 139892, L["Demonic Phylactery"], 219540, select( 3, GetSpellInfo( 219540 ) ) },		-- Unleash Infernal
+		--blessingorder = { 0, 0 },																				-- N/A
+		--bonusroll = 0,																						-- N/A
+		missions = 42608,																						-- Rise, Champions
 	},
 	["HUNTER"] = {
-		advancement = 42526, 									-- Tech It Up A Notch
-		artifact = 43880, 										-- Hitting the Books
-		armaments = 378, 										-- Fletchery
-		--wqcomplete = { 0, 0 },								-- N/A
-		--blessingorder = { 0, 0 },								-- N/A
-		bonusroll = 377, 										-- Unseen Path
-		missions = 42519,										-- Rise, Champions
+		advancement = 42526, 																					-- Tech It Up A Notch
+		artifact = 43880, 																						-- Hitting the Books
+		armaments = 378, 																						-- Fletchery
+		--wqcomplete = { 0, 0 },																				-- N/A
+		--blessingorder = { 0, 0 },																				-- N/A
+		bonusroll = 377, 																						-- Unseen Path
+		missions = 42519,																						-- Rise, Champions
 	},
 	["DEMONHUNTER"] = {
-		advancement = 42683, 									-- Demonic Improvements
-		artifact = 43878, 										-- Hitting the Books
-		armaments =	422, 										-- Fel Armaments
-		wqcomplete = { 421, 140158, L["Empowered Rift Core"] },	-- Fel Hammer's Wrath
-		--blessingorder = { 0, 0 },								-- N/A
-		bonusroll =	420, 										-- Focused War Effort
-		missions = { 42670, 42671 },							-- Rise, Champions
+		advancement = 42683, 																					-- Demonic Improvements
+		artifact = 43878, 																						-- Hitting the Books
+		armaments =	422, 																						-- Fel Armaments
+		wqcomplete = { 421, 140158, L["Empowered Rift Core"], 221561, select( 3, GetSpellInfo( 221561 ) ) },	-- Fel Hammer's Wrath
+		--blessingorder = { 0, 0 },																				-- N/A
+		bonusroll =	420, 																						-- Focused War Effort
+		missions = { 42670, 42671 },																			-- Rise, Champions
 	},
 };
 NS.sealOfBrokenFateQuests = { 43892, 43893, 43894, 43895, 43896, 43897 }; -- Sealing Fate quests in Dalaran
@@ -602,7 +602,7 @@ NS.UpdateCharacter = function()
 				monitorable[texture] = true;
 				--NS.Print( "|T" .. troops[i].icon .. ":16|t count = " .. troops[i].count ); -- DEBUG
 			end
-			NS.Sort( NS.db["characters"][k]["orders"], "capacity", "ASC" ); -- Order troops by capacity for a more consistent display
+			NS.Sort( NS.db["characters"][k]["orders"], "capacity", "DESC" ); -- Order troops by capacity for a more consistent display
 			-- Loose Shipments
 			local looseShipments = C_Garrison.GetLooseShipments( LE_GARRISON_TYPE_7_0 );
 			for i = 1, #looseShipments do
@@ -666,11 +666,26 @@ NS.UpdateCharacter = function()
 				local ordersKey = NS.FindKeyByField( NS.db["characters"][k]["orders"], "texture", texture );
 				local orders = ordersKey and NS.db["characters"][k]["orders"][ordersKey]["total"] or 0;
 				if orders == 0 then
-					table.insert( NS.db["characters"][k]["orders"], {
-						["name"] = GetItemInfo( NS.classRef[NS.currentCharacter.class].wqcomplete[2] ) or NS.classRef[NS.currentCharacter.class].wqcomplete[3],
-						["texture"] = texture,
-						["capacity"] = capacity,
-					} );
+					local start, duration = GetSpellCooldown( NS.classRef[NS.currentCharacter.class].wqcomplete[4] );
+					local gt = GetTime();
+					local spellCooldown = ( ( start == 0 or duration == 0 ) and 0 ) or ( gt > start and duration - ( gt - start ) ) or nil;
+					if spellCooldown then
+						-- Spell Cooldown
+						table.insert( NS.db["characters"][k]["orders"], {
+							["name"] = GetSpellInfo( NS.classRef[NS.currentCharacter.class].wqcomplete[4] ),
+							["texture"] = texture,
+							["capacity"] = capacity,
+							["spellCooldown"] = spellCooldown,
+							["spellTexture"] = NS.classRef[NS.currentCharacter.class].wqcomplete[5],
+						} );
+					else
+						-- Work Order Item
+						table.insert( NS.db["characters"][k]["orders"], {
+							["name"] = GetItemInfo( NS.classRef[NS.currentCharacter.class].wqcomplete[2] ) or NS.classRef[NS.currentCharacter.class].wqcomplete[3],
+							["texture"] = texture,
+							["capacity"] = capacity,
+						} );
+					end
 					if NS.db["characters"][k]["monitor"][texture] == nil then
 						NS.db["characters"][k]["monitor"][texture] = true;
 					end
@@ -982,6 +997,9 @@ NS.UpdateCharacters = function()
 				wo.texture = o.texture;
 				wo.text = o.name;
 				wo.troopCount = o.troopCount;
+				wo.spellCooldown = o.spellCooldown;
+				wo.spellTexture = o.spellTexture;
+				--wo.spellSeconds = ; -- Set below for Instant World Quest Complete with a spellCooldown
 				wo.capacity = o.capacity;
 				wo.total = o.total or 0; -- o.total is nil if no orders
 				wo.readyToStart = NS.OrdersReadyToStart( o.capacity, o.total, o.troopCount );
@@ -1000,7 +1018,7 @@ NS.UpdateCharacters = function()
 				if wo.troopCount then
 					wo.text = wo.text .. " - " .. wo.troopCount .. "/" .. wo.capacity;
 				end
-				if wo.readyToStart > 0 then
+				if wo.readyToStart > 0 and not wo.spellCooldown then
 					if wo.texture == 1604167 then -- Seal of Broken Fate
 						wo.lines[#wo.lines + 1] = seals[char["name"]].sealOfBrokenFate.lines;
 					else
@@ -1034,6 +1052,17 @@ NS.UpdateCharacters = function()
 						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. L["0 recruits remaining"] .. FONT_COLOR_CODE_CLOSE;
 					else
 						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. L["Unable to detect troop counts"] .. FONT_COLOR_CODE_CLOSE;
+					end
+				elseif wo.spellCooldown then
+					wo.spellSeconds = wo.spellCooldown > passedTime and ( wo.spellCooldown - passedTime ) or 0;
+					if wo.spellSeconds > 0 then
+						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["Cooldown remaining: %s"], SecondsToTime( wo.spellSeconds ) ) .. FONT_COLOR_CODE_CLOSE;
+					else
+						wo.lines[#wo.lines + 1] = GREEN_FONT_COLOR_CODE .. L["Ready"] .. FONT_COLOR_CODE_CLOSE;
+						if NS.db["alertInstantCompleteWorldQuest"] then
+							alertCurrentCharacter = ( not alertCurrentCharacter and char["name"] == NS.currentCharacter.name ) and true or alertCurrentCharacter; -- All characters
+							alertAnyCharacter = true; -- All characters
+						end
 					end
 				end
 				-- Monitor Column
@@ -1205,6 +1234,13 @@ NS.OnPlayerLogin = function( event ) -- PLAYER_LOGIN
 			GarrisonLandingPageMinimapButton:Hide();
 		end
 	end );
+	-- World Map Spell Tracking
+	WorldMapFrame:HookScript( "OnShow", function( self )
+		COHCEventsFrame:RegisterEvent( "UNIT_SPELLCAST_SUCCEEDED" );
+	end );
+	WorldMapFrame:HookScript( "OnHide", function( self )
+		COHCEventsFrame:UnregisterEvent( "UNIT_SPELLCAST_SUCCEEDED" );
+	end );
 end
 --
 NS.UpdateRequestHandler = function( event )
@@ -1254,7 +1290,14 @@ end
 NS.Frame( "COHCEventsFrame", UIParent, {
 	topLevel = true,
 	OnEvent = function ( self, event, ... )
-		if		event == "GARRISON_LANDINGPAGE_SHIPMENTS"		then
+		if		event == "UNIT_SPELLCAST_SUCCEEDED"				then
+			local unit,_,_,_,spellID = ...;
+			if unit == "player" and NS.classRef[NS.currentCharacter.class].wqcomplete and spellID == NS.classRef[NS.currentCharacter.class].wqcomplete[4] then
+				if NS.initialized then
+					NS.UpdateRequestHandler( event );
+				end
+			end
+		elseif	event == "GARRISON_LANDINGPAGE_SHIPMENTS"		then
 			--------------------------------------------------------------------------------------------------------------------------------
 			-- Work Orders {UPDATED}
 			--------------------------------------------------------------------------------------------------------------------------------

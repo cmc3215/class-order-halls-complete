@@ -1,3 +1,11 @@
+**1.12**
+
+- Release date: 04/13/2017
+- Minor fixes to Instant World Quest Complete spell cooldown tracking.
+- Fix #1: Work Order will now also show the spell cooldown remaining in the tooltip.
+- Fix #2: Cooldown remaining will continue being available after client computer restart.
+- Fix #3: Alert will be trigger based on which is being shown, the Work Order or Cooldown. This avoids an alert for the cooldown firing when the Work Order is still incomplete.
+
 **1.11**
 
 - Release date: 04/13/2017

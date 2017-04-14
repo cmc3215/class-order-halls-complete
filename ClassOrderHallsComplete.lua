@@ -444,7 +444,8 @@ NS.UpdateCharacter = function()
 			["orderResources"] = 0,										-- Reset below every update
 			["advancement"] = {},										-- Reset below every update
 			["orders"] = {},											-- Reset below every update
-			["troops"] = {},											-- Reset below every update if inOrderHall, otherwise reused
+			--["wqcomplete"] = 0,										-- Reset below every update, stores the spellCooldown
+			["troops"] = {},											-- Reset below based on event driven data collection
 			["missions"] = {},											-- Reset below every update
 			["seals"] = {},												-- Reset below every update
 			["monitor"] = {},											-- Set below for each item when first added
@@ -638,7 +639,6 @@ NS.UpdateCharacter = function()
 					end
 					monitorable[texture] = true;
 				end
-				--NS.Print( "|T" .. texture .. ":16|t orders available = " .. available ); -- DEBUG
 			end
 			-- Champion Armaments (Tier 3)
 			if talentTiers[3] and not talentTiers[3].isBeingResearched and talentTiers[3].id == NS.classRef[NS.currentCharacter.class].armaments then
@@ -665,33 +665,37 @@ NS.UpdateCharacter = function()
 				local capacity = 1;
 				local ordersKey = NS.FindKeyByField( NS.db["characters"][k]["orders"], "texture", texture );
 				local orders = ordersKey and NS.db["characters"][k]["orders"][ordersKey]["total"] or 0;
+				-- Spell
+				local start, duration = GetSpellCooldown( NS.classRef[NS.currentCharacter.class].wqcomplete[4] );
+				local gt = GetTime();
+				local spellCooldown = ( ( start == 0 or duration == 0 ) and 0 ) or ( gt > start and duration - ( gt - start ) ) or nil;
+				if not spellCooldown and NS.db["characters"][k]["wqcomplete"] then
+					spellCooldown = NS.db["characters"][k]["wqcomplete"] - ( currentTime - NS.db["characters"][k]["updateTime"] ); -- Use stored spellCooldown if no longer available (i.e. client has been restarted)
+					spellCooldown = spellCooldown < 0 and 0 or spellCooldown; -- Zero out negatives
+				end
+				if spellCooldown then
+					NS.db["characters"][k]["wqcomplete"] = spellCooldown; -- Add wqcomplete data
+				end
+				--
 				if orders == 0 then
-					local start, duration = GetSpellCooldown( NS.classRef[NS.currentCharacter.class].wqcomplete[4] );
-					local gt = GetTime();
-					local spellCooldown = ( ( start == 0 or duration == 0 ) and 0 ) or ( gt > start and duration - ( gt - start ) ) or nil;
-					if spellCooldown then
-						-- Spell Cooldown
-						table.insert( NS.db["characters"][k]["orders"], {
-							["name"] = GetSpellInfo( NS.classRef[NS.currentCharacter.class].wqcomplete[4] ),
-							["texture"] = texture,
-							["capacity"] = capacity,
-							["spellCooldown"] = spellCooldown,
-							["spellTexture"] = NS.classRef[NS.currentCharacter.class].wqcomplete[5],
-						} );
-					else
-						-- Work Order Item
-						table.insert( NS.db["characters"][k]["orders"], {
-							["name"] = GetItemInfo( NS.classRef[NS.currentCharacter.class].wqcomplete[2] ) or NS.classRef[NS.currentCharacter.class].wqcomplete[3],
-							["texture"] = texture,
-							["capacity"] = capacity,
-						} );
-					end
+					table.insert( NS.db["characters"][k]["orders"], {
+						["name"] = GetItemInfo( NS.classRef[NS.currentCharacter.class].wqcomplete[2] ) or NS.classRef[NS.currentCharacter.class].wqcomplete[3],
+						["texture"] = texture,
+						["capacity"] = capacity,
+					} );
 					if NS.db["characters"][k]["monitor"][texture] == nil then
 						NS.db["characters"][k]["monitor"][texture] = true;
 					end
 					monitorable[texture] = true;
 				end
-				--NS.Print( "|T" .. texture .. ":16|t orders available = " .. available ); -- DEBUG
+				if spellCooldown then
+					ordersKey = ordersKey or NS.FindKeyByField( NS.db["characters"][k]["orders"], "texture", texture );
+					NS.db["characters"][k]["orders"][ordersKey]["spellName"] = GetSpellInfo( NS.classRef[NS.currentCharacter.class].wqcomplete[4] );
+					NS.db["characters"][k]["orders"][ordersKey]["spellCooldown"] = spellCooldown;
+					NS.db["characters"][k]["orders"][ordersKey]["spellTexture"] = NS.classRef[NS.currentCharacter.class].wqcomplete[5];
+				end
+			else
+				NS.db["characters"][k]["wqcomplete"] = nil; -- Remove wqcomplete data
 			end
 			-- Blessing of the Order (Tier 5)
 			if NS.classRef[NS.currentCharacter.class].blessingorder and talentTiers[5] and not talentTiers[5].isBeingResearched and talentTiers[5].id == NS.classRef[NS.currentCharacter.class].blessingorder[1] then
@@ -997,6 +1001,8 @@ NS.UpdateCharacters = function()
 				wo.texture = o.texture;
 				wo.text = o.name;
 				wo.troopCount = o.troopCount;
+				wo.spellOnly = nil;
+				wo.spellName = o.spellName;
 				wo.spellCooldown = o.spellCooldown;
 				wo.spellTexture = o.spellTexture;
 				--wo.spellSeconds = ; -- Set below for Instant World Quest Complete with a spellCooldown
@@ -1054,12 +1060,13 @@ NS.UpdateCharacters = function()
 						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. L["Unable to detect troop counts"] .. FONT_COLOR_CODE_CLOSE;
 					end
 				elseif wo.spellCooldown then
+					wo.spellOnly = #wo.lines == 0 and true or nil; -- If no lines with Work Order info, spell only
 					wo.spellSeconds = wo.spellCooldown > passedTime and ( wo.spellCooldown - passedTime ) or 0;
 					if wo.spellSeconds > 0 then
 						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["Cooldown remaining: %s"], SecondsToTime( wo.spellSeconds ) ) .. FONT_COLOR_CODE_CLOSE;
 					else
-						wo.lines[#wo.lines + 1] = GREEN_FONT_COLOR_CODE .. L["Ready"] .. FONT_COLOR_CODE_CLOSE;
-						if NS.db["alertInstantCompleteWorldQuest"] then
+						wo.lines[#wo.lines + 1] = GREEN_FONT_COLOR_CODE .. L["Cooldown ready"] .. FONT_COLOR_CODE_CLOSE;
+						if wo.spellOnly and NS.db["alertInstantCompleteWorldQuest"] then
 							alertCurrentCharacter = ( not alertCurrentCharacter and char["name"] == NS.currentCharacter.name ) and true or alertCurrentCharacter; -- All characters
 							alertAnyCharacter = true; -- All characters
 						end

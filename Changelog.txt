@@ -1,3 +1,9 @@
+**1.11**
+
+- Release date: 04/13/2017
+- Instant World Quest Complete spells will now have their cooldowns shown when there is no work order active. Exisiting users, you must log into each character to record the require info.
+- Troops now sorted in descending order rather than ascending order (Troop #1, etc) for a more consistent looking display across multiple characters/classes, especially Druid.
+
 **1.10**
 
 - Release date: 04/09/2017

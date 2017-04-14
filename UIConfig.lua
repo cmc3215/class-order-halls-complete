@@ -235,12 +235,12 @@ NS.UI.cfg = {
 										if not monitorNum then
 											NS.Print( "Unexpected work order, please report to addon author on Curse: " .. orders[i].text .. " - " .. orders[i].texture );
 										else
-											_G[bn .. "Monitor" .. monitorNum]:SetNormalTexture( orders[i].texture );
+											_G[bn .. "Monitor" .. monitorNum]:SetNormalTexture( orders[i].spellTexture or orders[i].texture );
 											_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnEnter", function( self ) MonitorButton_OnEnter( self, orders[i].text, orders[i].lines ); end );
 											_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnLeave", OnLeave );
 											_G[bn .. "Monitor" .. monitorNum .. "TopRightText"]:SetText( orders[i].troopCount and orders[i].troopCount or "" );
-											local color = ( orders[i].total == 0 and "Gray" ) or ( orders[i].readyForPickup == 0 and "Red" ) or ( orders[i].readyForPickup < orders[i].total and "Yellow" ) or "Green";
-											_G[bn .. "Monitor" .. monitorNum .. "CenterText"]:SetText( ( color == "Gray" and "" ) or ( orders[i].readyForPickup .. "/" .. orders[i].total ) );
+											local color = ( not orders[i].spellSeconds and orders[i].total == 0 and "Gray" ) or ( ( ( orders[i].spellSeconds and orders[i].spellSeconds > 0 ) or ( not orders[i].spellSeconds and orders[i].readyForPickup == 0 ) ) and "Red" ) or ( orders[i].readyForPickup < orders[i].total and "Yellow" ) or "Green";
+											_G[bn .. "Monitor" .. monitorNum .. "CenterText"]:SetText( ( orders[i].spellSeconds and color == "Red" and SecondsToTime( orders[i].spellSeconds, false, false, 1 ) ) or ( ( orders[i].spellSeconds or color == "Gray" ) and "" ) or ( orders[i].readyForPickup .. "/" .. orders[i].total ) );
 											_G[bn .. "Monitor" .. monitorNum .. "Indicator"]:SetTexture( "Interface\\COMMON\\Indicator-" .. color );
 											if color == "Green" then
 												_G[bn .. "Monitor" .. monitorNum]:GetNormalTexture():SetVertexColor( 0.1, 1.0, 0.1 );
@@ -933,7 +933,7 @@ NS.UI.cfg = {
 				} );
 				NS.CheckButton( "AlertInstantCompleteWorldQuestCheckButton", SubFrame, L["Instant Complete World Quest"], {
 					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
-					tooltip = L["|cffffffffEnable Alert|r\nInstant Complete World Quest\n(e.g. Focusing Crystal) Work Order"],
+					tooltip = L["|cffffffffEnable Alert|r\nInstant Complete World Quest\n(e.g. Focusing Crystal) Work Order and Spell"],
 					OnClick = function( checked )
 						NS.UpdateAll( "forceUpdate" );
 					end,

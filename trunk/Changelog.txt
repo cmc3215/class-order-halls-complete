@@ -1,7 +1,18 @@
+**1.13**
+
+- Release date: 04/17/2017
+- In order to prevent LUA errors and misinformation after changes to "Instant Complete World Quest", the data for these Cooldowns/Work Orders will be wiped on upgrade. Existing users, you'll need to log into the character to repopulate this data.
+- Changes to Instant Complete World Quest:
+- Change #1: Cooldown icon/time is now shown at all times instead of only when the Work Order is inactive.
+- Change #2: Alert no longer applies to the 10 Min Work Order, only the 18 Hr Cooldown being Ready.
+- Change #3: Work Order status is now shown in the tooltip only.
+- Change #4: Work Order item count is now tracked and if you have one in your inventory it will say "1 Available" instead of "1 Ready to start".
+- Change #5: Cooldown will be set to the full duration of the spell's cooldown (i.e. 18 Hrs) if the actual cooldown is unavailable in the API due to a client computer restart after the spell's use before the addon was installed. Not a new issue, just handling it differently. The issue might affect new users but last for less than a day and this is simply a workaround to prevent errors, etc.
+
 **1.12**
 
 - Release date: 04/13/2017
-- Minor fixes to Instant World Quest Complete spell cooldown tracking.
+- Fixes to Instant Complete World Quest:
 - Fix #1: Work Order will now also show the spell cooldown remaining in the tooltip.
 - Fix #2: Cooldown remaining will continue being available after client computer restart.
 - Fix #3: Alert will be trigger based on which is being shown, the Work Order or Cooldown. This avoids an alert for the cooldown firing when the Work Order is still incomplete.

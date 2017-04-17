@@ -235,12 +235,12 @@ NS.UI.cfg = {
 										if not monitorNum then
 											NS.Print( "Unexpected work order, please report to addon author on Curse: " .. orders[i].text .. " - " .. orders[i].texture );
 										else
-											_G[bn .. "Monitor" .. monitorNum]:SetNormalTexture( orders[i].spellOnly and orders[i].spellTexture or orders[i].texture );
-											_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnEnter", function( self ) MonitorButton_OnEnter( self, ( orders[i].spellOnly and orders[i].spellName or orders[i].text ), orders[i].lines ); end );
+											_G[bn .. "Monitor" .. monitorNum]:SetNormalTexture( orders[i].spell and orders[i].spellTexture or orders[i].texture );
+											_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnEnter", function( self ) MonitorButton_OnEnter( self, ( orders[i].spell and orders[i].spellName or orders[i].text ), orders[i].lines ); end );
 											_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnLeave", OnLeave );
 											_G[bn .. "Monitor" .. monitorNum .. "TopRightText"]:SetText( orders[i].troopCount and orders[i].troopCount or "" );
-											local color = ( not orders[i].spellOnly and orders[i].total == 0 and "Gray" ) or ( ( ( orders[i].spellOnly and orders[i].spellSeconds > 0 ) or ( not orders[i].spellOnly and orders[i].readyForPickup == 0 ) ) and "Red" ) or ( orders[i].readyForPickup < orders[i].total and "Yellow" ) or "Green";
-											_G[bn .. "Monitor" .. monitorNum .. "CenterText"]:SetText( ( orders[i].spellOnly and color == "Red" and SecondsToTime( orders[i].spellSeconds, false, false, 1 ) ) or ( ( orders[i].spellOnly or color == "Gray" ) and "" ) or ( orders[i].readyForPickup .. "/" .. orders[i].total ) );
+											local color = ( not orders[i].spell and orders[i].total == 0 and "Gray" ) or ( ( ( orders[i].spell and orders[i].spellSeconds > 0 ) or ( not orders[i].spell and orders[i].readyForPickup == 0 ) ) and "Red" ) or ( orders[i].readyForPickup < orders[i].total and "Yellow" ) or "Green";
+											_G[bn .. "Monitor" .. monitorNum .. "CenterText"]:SetText( ( orders[i].spell and color == "Red" and SecondsToTime( orders[i].spellSeconds, false, false, 1 ) ) or ( ( orders[i].spell or color == "Gray" ) and "" ) or ( orders[i].readyForPickup .. "/" .. orders[i].total ) );
 											_G[bn .. "Monitor" .. monitorNum .. "Indicator"]:SetTexture( "Interface\\COMMON\\Indicator-" .. color );
 											if color == "Green" then
 												_G[bn .. "Monitor" .. monitorNum]:GetNormalTexture():SetVertexColor( 0.1, 1.0, 0.1 );
@@ -697,7 +697,7 @@ NS.UI.cfg = {
 				end
 				-- Work Orders
 				for i = 1, #char["orders"] do
-					table.insert( NS.charactersTabItems, { key = ( char["orders"][i].troop and char["orders"][i].troop or char["orders"][i].texture ), name = ( char["orders"][i].texture == 134939 and L["Legion Cooking Recipes"] or char["orders"][i].name ), icon = char["orders"][i].texture } );
+					table.insert( NS.charactersTabItems, { key = ( char["orders"][i].troop and char["orders"][i].troop or char["orders"][i].texture ), name = ( char["orders"][i].texture == 134939 and L["Legion Cooking Recipes"] or ( char["orders"][i].spellName or char["orders"][i].name ) ), icon = ( char["orders"][i].spellTexture or char["orders"][i].texture ) } );
 				end
 				--
 				_G[sfn .. "ScrollFrame"]:Reset();
@@ -819,7 +819,7 @@ NS.UI.cfg = {
 					["troop1"] = L["Troop #1"],
 					["troop2"] = L["Troop #2"],
 					["champion-armaments"] = L["Champion Armaments"],
-					["world-quest-complete/blessing-order/bonus-roll"] = L["Instant World Quest Complete / Blessing of the Order / Seal of Broken Fate"],
+					["world-quest-complete/blessing-order/bonus-roll"] = L["Instant Complete World Quest / Blessing of the Order / Seal of Broken Fate"],
 					["troop3"] = L["Troop #3"],
 					["troop4"] = L["Troop #4"],
 				};
@@ -933,7 +933,7 @@ NS.UI.cfg = {
 				} );
 				NS.CheckButton( "AlertInstantCompleteWorldQuestCheckButton", SubFrame, L["Instant Complete World Quest"], {
 					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
-					tooltip = L["|cffffffffEnable Alert|r\nInstant Complete World Quest\n(e.g. Focusing Crystal) Work Order or Cooldown"],
+					tooltip = L["|cffffffffEnable Alert|r\nInstant Complete World Quest\n(e.g. Call the Val'kyr) Spell Cooldown\n\nNo Alert for the 10 Min Work Order"],
 					OnClick = function( checked )
 						NS.UpdateAll( "forceUpdate" );
 					end,

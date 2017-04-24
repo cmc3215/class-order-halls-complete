@@ -732,7 +732,7 @@ NS.UpdateCharacter = function()
 			end
 			-- Bonus Roll (Tier 5)
 			if NS.classRef[NS.currentCharacter.class].bonusroll and talentTiers[5] and not talentTiers[5].isBeingResearched and talentTiers[5].id == NS.classRef[NS.currentCharacter.class].bonusroll then
-				local texture = 1604167;
+				local texture = 133858;
 				local capacity = 1;
 				local ordersKey = NS.FindKeyByField( NS.db["characters"][k]["orders"], "texture", texture );
 				local orders = ordersKey and NS.db["characters"][k]["orders"][ordersKey]["total"] or 0;
@@ -1057,7 +1057,7 @@ NS.UpdateCharacters = function()
 				end
 				--
 				if wo.readyToStart > 0 then
-					if wo.texture == 1604167 then -- Seal of Broken Fate
+					if wo.texture == 133858 then -- Seal of Broken Fate
 						wo.lines[#wo.lines + 1] = seals[char["name"]].sealOfBrokenFate.lines;
 					else
 						wo.lines[#wo.lines + 1] = GREEN_FONT_COLOR_CODE .. string.format( L["%d Ready to start"], wo.readyToStart ) .. FONT_COLOR_CODE_CLOSE;
@@ -1074,7 +1074,7 @@ NS.UpdateCharacters = function()
 						   ( wo.texture == 975736 and NS.db["alertChampionArmaments"] ) or
 						   ( wo.texture == 134939 and NS.db["alertLegionCookingRecipes"] ) or
 						   ( wo.texture == 135987 and NS.db["alertBlessingOfTheOrder"] ) or
-						   ( wo.texture == 1604167 and NS.db["alertBonusRollToken"] ) then
+						   ( wo.texture == 133858 and NS.db["alertBonusRollToken"] ) then
 							alertCurrentCharacter = ( not alertCurrentCharacter and char["name"] == NS.currentCharacter.name ) and true or alertCurrentCharacter; -- All characters
 							alertAnyCharacter = true; -- All characters
 						end
@@ -1109,7 +1109,7 @@ NS.UpdateCharacters = function()
 					wo.monitorColumn = "world-quest-complete/blessing-order/bonus-roll"; -- World Quest Complete
 				elseif wo.texture == 135987 then
 					wo.monitorColumn = "world-quest-complete/blessing-order/bonus-roll"; -- Blessing Order
-				elseif wo.texture == 1604167 then
+				elseif wo.texture == 133858 then
 					wo.monitorColumn = "world-quest-complete/blessing-order/bonus-roll"; -- Bonus Roll
 				end
 			end

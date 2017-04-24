@@ -1,3 +1,8 @@
+**1.14**
+
+- Release date: 04/24/2017
+- Bug fix, "Unexpected work order, please report to addon author on Curse: Seal of Broken Fate - 133858". Work Order icon updated to fix this issue. I'd updated this after patch 7.2 to match the new icon on the currency tab but I didn't realize the work order icon was actually still the old icon.
+
 **1.13**
 
 - Release date: 04/17/2017

@@ -1,3 +1,9 @@
+**1.15**
+
+- Release date: 06/13/2017
+- Order Hall talent detection updated for compatibility with patch 7.2.5 released today.
+
+
 **1.14**
 
 - Release date: 04/24/2017

@@ -523,10 +523,14 @@ NS.UpdateCharacter = function()
 				end
 				monitorable["advancement"] = true;
 				--
-				local talentTrees = C_Garrison.GetTalentTrees( LE_GARRISON_TYPE_7_0, NS.currentCharacter.classID );
+				local talentTreeIDs = C_Garrison.GetTalentTreeIDsByClassID( LE_GARRISON_TYPE_7_0, NS.currentCharacter.classID );
 				local completeTalentID = C_Garrison.GetCompleteTalent( LE_GARRISON_TYPE_7_0 );
-				if talentTrees and #talentTrees[1] > 0 then -- Talent trees and talents available
-					for _,talent in ipairs( talentTrees[1] ) do
+				if talentTreeIDs and talentTreeIDs[1] then -- Talent trees and first treeID available
+					local _,_,talentTree = C_Garrison.GetTalentTreeInfoForID( LE_GARRISON_TYPE_7_0, talentTreeIDs[1] );
+					if talentTree[1] and not talentTree[1].id then
+						talentTree = talentTree[1]; -- For some reason in patch 7.2.5 the talents are double packed in the first element of an otherwise empty table.
+					end
+					for _,talent in ipairs( talentTree ) do
 						talent.tier = talent.tier + 1; -- Fix tiers starting at 0
 						talent.uiOrder = talent.uiOrder + 1; -- Fix order starting at 0
 						if talent.selected then
@@ -543,7 +547,7 @@ NS.UpdateCharacter = function()
 						if #talentTiers == 0 or ( #talentTiers == 1 and NS.currentCharacter.level >= 105 ) or NS.currentCharacter.level >= 110 then
 							NS.db["characters"][k]["advancement"]["newTalentTier"] = {};
 							local newTier = #talentTiers + 1;
-							for _,talent in ipairs( talentTrees[1] ) do
+							for _,talent in ipairs( talentTree ) do
 								if talent.tier == newTier then
 									NS.db["characters"][k]["advancement"]["newTalentTier"][talent.uiOrder] = CopyTable( talent );
 								end

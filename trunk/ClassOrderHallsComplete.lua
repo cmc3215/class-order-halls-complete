@@ -3,6 +3,8 @@
 --------------------------------------------------------------------------------------------------------------------------------------------
 local NS = select( 2, ... );
 local L = NS.localization;
+NS.versionString = "1.16";
+NS.version = tonumber( NS.versionString );
 --
 NS.initialized = false;
 --
@@ -209,6 +211,7 @@ NS.DefaultSavedVariables = function()
 		["alertTroops"] = true,
 		["alertArtifactResearchNotes"] = true,
 		["alertAnyArtifactResearchNotes"] = true,
+		["alertChatArtifactResearchNotes"] = true,
 		["alertChampionArmaments"] = true,
 		["alertLegionCookingRecipes"] = true,
 		["alertInstantCompleteWorldQuest"] = true,
@@ -282,6 +285,10 @@ NS.Upgrade = function()
 			end
 		end
 	end
+	-- 1.16
+	if version < 1.16 then
+		NS.db["alertChatArtifactResearchNotes"] = vars["alertChatArtifactResearchNotes"];
+	end
 	--
 	NS.db["version"] = NS.version;
 end
@@ -296,7 +303,6 @@ NS.UpgradePerCharacter = function()
 	--
 	NS.dbpc["version"] = NS.version;
 end
-
 --------------------------------------------------------------------------------------------------------------------------------------------
 -- Misc
 --------------------------------------------------------------------------------------------------------------------------------------------
@@ -422,6 +428,16 @@ NS.ToggleAlert = function()
 		if not NS.alertFlashing then
 			NS.alertFlashing = true;
 			NS.minimapButtonFlash:Play();
+		end
+		-- Artifact Research Notes Chat Alert, 3 min = 180 sec
+		if NS.alertChatArtifactResearchNotes then
+			local currentTime = time();
+			NS.lastTimeAlertChatArtifactResearchNotes = NS.lastTimeAlertChatArtifactResearchNotes or ( currentTime - 180 );
+			if ( currentTime - NS.lastTimeAlertChatArtifactResearchNotes ) >= 180 then
+				NS.lastTimeAlertChatArtifactResearchNotes = currentTime;
+				NS.Print( NS.alertChatArtifactResearchNotes );
+				NS.alertChatArtifactResearchNotes = nil;
+			end
 		end
 	else
 		if NS.alertFlashing then
@@ -1070,6 +1086,10 @@ NS.UpdateCharacters = function()
 					wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["%d Available"], o.spellReagentCount ) .. FONT_COLOR_CODE_CLOSE;
 				end
 				--
+				if char["name"] == NS.currentCharacter.name then
+					NS.alertChatArtifactResearchNotes = nil; -- Reset each update before check below
+				end
+				--
 				if o.total and wo.total > 0 then
 					if wo.readyForPickup == wo.total then
 						wo.lines[#wo.lines + 1] = GREEN_FONT_COLOR_CODE .. string.format( L["%d Ready for pickup"], wo.readyForPickup ) .. FONT_COLOR_CODE_CLOSE;
@@ -1089,6 +1109,10 @@ NS.UpdateCharacters = function()
 							alertCurrentCharacter = ( not alertCurrentCharacter and char["name"] == NS.currentCharacter.name ) and true or alertCurrentCharacter; -- All characters
 							alertAnyCharacter = true; -- All characters
 						end
+					end
+					-- Alert: Chat Artifact Research Notes
+					if wo.texture == 237446 and wo.readyForPickup > 0 and char["name"] == NS.currentCharacter.name and NS.db["alertChatArtifactResearchNotes"] and NS.db["alertArtifactResearchNotes"] and ( NS.db["alertAnyArtifactResearchNotes"] or wo.readyForPickup == wo.total ) then
+						NS.alertChatArtifactResearchNotes = string.format( L["|T237446:0|t %sArtifact Research Notes|r"], ITEM_QUALITY_COLORS[6].hex ) .. " - " .. wo.lines[#wo.lines];
 					end
 				end
 				--

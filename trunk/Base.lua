@@ -4,8 +4,6 @@
 local NS = select( 2, ... );
 NS.addon = ...;
 NS.title = GetAddOnMetadata( NS.addon, "Title" );
-NS.versionString = GetAddOnMetadata( NS.addon, "Version" );
-NS.version = tonumber( NS.versionString );
 NS.UI = {};
 --------------------------------------------------------------------------------------------------------------------------------------------
 -- FRAME CREATION

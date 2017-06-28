@@ -915,6 +915,14 @@ NS.UI.cfg = {
 					end,
 					db = "alertAnyArtifactResearchNotes",
 				} );
+				NS.CheckButton( "AlertChatArtifactResearchNotesCheckButton", SubFrame, L["Print alert to chat every 3 min (Current Character Only)"], {
+					template = "InterfaceOptionsSmallCheckButtonTemplate",
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					OnClick = function()
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "alertChatArtifactResearchNotes",
+				} );
 				NS.CheckButton( "AlertChampionArmamentsCheckButton", SubFrame, L["Champion Armaments"], {
 					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", -24, -1 },
 					tooltip = L["|cffffffffEnable Alert|r\nChampion Armaments Work Orders"],
@@ -948,7 +956,7 @@ NS.UI.cfg = {
 					db = "alertBlessingOfTheOrder",
 				} );
 				NS.CheckButton( "AlertBonusRollTokenCheckButton", SubFrame, L["Seal of Broken Fate"], {
-					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					setPoint = { "LEFT", "$parentAlertMissionsCheckButton", "LEFT", ( ( NS.UI.cfg.mainFrame.width - 11 ) / 2 ), 0 },
 					tooltip = L["|cffffffffEnable Alert|r\nSeal of Broken Fate Work Order"],
 					OnClick = function( checked )
 						NS.UpdateAll( "forceUpdate" );
@@ -956,7 +964,7 @@ NS.UI.cfg = {
 					db = "alertBonusRollToken",
 				} );
 				NS.CheckButton( "AlertDisableInInstancesCheckButton", SubFrame, L["Disable in Instances"], {
-					setPoint = { "LEFT", "$parentAlertMissionsCheckButton", "LEFT", ( ( NS.UI.cfg.mainFrame.width - 11 ) / 2 ), 0 },
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
 					tooltip = L["|cffffffffDisable Alert|r\nIn Arenas, Dungeons,\nBattlegrounds, and Raids"],
 					OnClick = function( checked )
 						NS.UpdateAll( "forceUpdate" );
@@ -1028,6 +1036,7 @@ NS.UI.cfg = {
 				_G[sfn .. "AlertTroopsCheckButton"]:SetChecked( NS.db["alertTroops"] );
 				_G[sfn .. "AlertArtifactResearchNotesCheckButton"]:SetChecked( NS.db["alertArtifactResearchNotes"] );
 				_G[sfn .. "AlertAnyArtifactResearchNotesCheckButton"]:SetChecked( NS.db["alertAnyArtifactResearchNotes"] );
+				_G[sfn .. "AlertChatArtifactResearchNotesCheckButton"]:SetChecked( NS.db["alertChatArtifactResearchNotes"] );
 				_G[sfn .. "AlertChampionArmamentsCheckButton"]:SetChecked( NS.db["alertChampionArmaments"] );
 				_G[sfn .. "AlertLegionCookingRecipesCheckButton"]:SetChecked( NS.db["alertLegionCookingRecipes"] );
 				_G[sfn .. "AlertInstantCompleteWorldQuestCheckButton"]:SetChecked( NS.db["alertInstantCompleteWorldQuest"] );

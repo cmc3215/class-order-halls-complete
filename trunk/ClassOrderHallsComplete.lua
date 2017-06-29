@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------------------------------------------------------------------
 local NS = select( 2, ... );
 local L = NS.localization;
-NS.versionString = "1.16";
+NS.versionString = "1.17";
 NS.version = tonumber( NS.versionString );
 --
 NS.initialized = false;
@@ -1085,8 +1085,8 @@ NS.UpdateCharacters = function()
 				elseif o.spellReagentCount and o.spellReagentCount > 0 then
 					wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["%d Available"], o.spellReagentCount ) .. FONT_COLOR_CODE_CLOSE;
 				end
-				--
-				if char["name"] == NS.currentCharacter.name then
+				-- Alert: Chat Artifact Research Notes
+				if wo.texture == 237446 and char["name"] == NS.currentCharacter.name then
 					NS.alertChatArtifactResearchNotes = nil; -- Reset each update before check below
 				end
 				--

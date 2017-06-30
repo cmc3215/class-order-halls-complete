@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------------------------------------------------------------------
 local NS = select( 2, ... );
 local L = NS.localization;
-NS.versionString = "1.17";
+NS.versionString = "1.18";
 NS.version = tonumber( NS.versionString );
 --
 NS.initialized = false;
@@ -33,16 +33,19 @@ NS.allCharacters = {
 	missionsTotal = 0,
 	nextMissionTimeRemaining = nil,
 	allMissionsTimeRemaining = nil,
+	nextMissionCharName = "",
 	--
 	advancementsComplete = 0,
 	advancementsTotal = 0,
 	nextAdvancementTimeRemaining = nil,
 	allAdvancementsTimeRemaining = nil,
+	nextAdvancementCharName = "",
 	--
 	workOrdersReady = 0,
 	workOrdersTotal = 0,
 	nextWorkOrderTimeRemaining = nil,
 	allWorkOrdersTimeRemaining = nil,
+	nextWorkOrderCharName = "",
 	--
 	alertCurrentCharacter = false,
 	alertAnyCharacter = false,
@@ -640,6 +643,9 @@ NS.UpdateCharacter = function()
 			local looseShipments = C_Garrison.GetLooseShipments( LE_GARRISON_TYPE_7_0 );
 			for i = 1, #looseShipments do
 				local name,texture,shipmentCapacity,shipmentsReady,shipmentsTotal,creationTime,duration,timeleftString = C_Garrison.GetLandingPageShipmentInfoByContainerID( looseShipments[i] );
+				if texture == 237446 then
+					duration = 14400; -- Hard coded to match the hotfix reduction to 4 hours (14400 sec) from 5 days (432000 sec)
+				end
 				table.insert( NS.db["characters"][k]["orders"], {
 					["name"] = name,
 					["texture"] = texture,
@@ -884,16 +890,19 @@ NS.UpdateCharacters = function()
 	local missionsTotal = 0;
 	local nextMissionTimeRemaining = 0; -- Lowest time remaining for a mission to complete.
 	local allMissionsTimeRemaining = 0; -- Highest Time remaining for a mission to complete.
+	local nextMissionCharName = "";
 	--
 	local advancementsComplete = 0;
 	local advancementsTotal = 0;
 	local nextAdvancementTimeRemaining = 0; -- Lowest time remaining for an order advancement to complete.
 	local allAdvancementsTimeRemaining = 0; -- Highest time remaining for an order advancement to complete.
+	local nextAdvancementCharName = "";
 	--
 	local workOrdersReady = 0;
 	local workOrdersTotal = 0;
 	local nextWorkOrderTimeRemaining = 0; -- Lowest time remaining for a work order to complete.
 	local allWorkOrdersTimeRemaining = 0; -- Highest time remaining for a work order to complete.
+	local nextWorkOrderCharName = "";
 	--
 	local alertCurrentCharacter = false;
 	local alertAnyCharacter = false;
@@ -959,6 +968,7 @@ NS.UpdateCharacters = function()
 					mip.lines[#mip.lines + 1] = RED_FONT_COLOR_CODE .. SecondsToTime( timeLeftSeconds ) .. FONT_COLOR_CODE_CLOSE;
 					nextMissionTimeRemaining = nextMissionTimeRemaining == 0 and timeLeftSeconds or math.min( nextMissionTimeRemaining, timeLeftSeconds ); -- All characters
 					allMissionsTimeRemaining = allMissionsTimeRemaining == 0 and timeLeftSeconds or math.max( allMissionsTimeRemaining, timeLeftSeconds ); -- All characters
+					nextMissionCharName = nextMissionTimeRemaining == timeLeftSeconds and ( "|c" .. RAID_CLASS_COLORS[char["class"]].colorStr .. ( NS.db["showCharacterRealms"] and char["name"] or strsplit( "-", char["name"], 2 ) ) .. FONT_COLOR_CODE_CLOSE ) or nextMissionCharName;
 				end
 			end
 			if #mip.lines == 0 then
@@ -989,6 +999,7 @@ NS.UpdateCharacters = function()
 					oa.lines[#oa.lines + 1] = string.format( L["Time Remaining: %s"], HIGHLIGHT_FONT_COLOR_CODE .. SecondsToTime( oa.seconds ) ) .. FONT_COLOR_CODE_CLOSE;
 					nextAdvancementTimeRemaining = nextAdvancementTimeRemaining == 0 and oa.seconds or math.min( nextAdvancementTimeRemaining, oa.seconds ); -- All characters
 					allAdvancementsTimeRemaining = allAdvancementsTimeRemaining == 0 and oa.seconds or math.max( allAdvancementsTimeRemaining, oa.seconds ); -- All characters
+					nextAdvancementCharName = nextAdvancementTimeRemaining == oa.seconds and ( "|c" .. RAID_CLASS_COLORS[char["class"]].colorStr .. ( NS.db["showCharacterRealms"] and char["name"] or strsplit( "-", char["name"], 2 ) ) .. FONT_COLOR_CODE_CLOSE ) or nextAdvancementCharName;
 				else
 					advancementsComplete = advancementsComplete + 1; -- All characters
 					oa.lines[#oa.lines + 1] = GREEN_FONT_COLOR_CODE .. COMPLETE .. FONT_COLOR_CODE_CLOSE;
@@ -1053,6 +1064,7 @@ NS.UpdateCharacters = function()
 				if wo.nextSeconds > 0 then
 					nextWorkOrderTimeRemaining = nextWorkOrderTimeRemaining == 0 and wo.nextSeconds or math.min( nextWorkOrderTimeRemaining, wo.nextSeconds );
 					allWorkOrdersTimeRemaining = allWorkOrdersTimeRemaining == 0 and wo.allSeconds or math.max( allWorkOrdersTimeRemaining, wo.allSeconds );
+					nextWorkOrderCharName = nextWorkOrderTimeRemaining == wo.nextSeconds and ( "|c" .. RAID_CLASS_COLORS[char["class"]].colorStr .. ( NS.db["showCharacterRealms"] and char["name"] or strsplit( "-", char["name"], 2 ) ) .. FONT_COLOR_CODE_CLOSE ) or nextWorkOrderCharName;
 				end
 				--
 				wo.lines = {};
@@ -1155,16 +1167,19 @@ NS.UpdateCharacters = function()
 	NS.allCharacters.missionsTotal = missionsTotal;
 	NS.allCharacters.nextMissionTimeRemaining = nextMissionTimeRemaining;
 	NS.allCharacters.allMissionsTimeRemaining = allMissionsTimeRemaining;
+	NS.allCharacters.nextMissionCharName = nextMissionCharName;
 	--
 	NS.allCharacters.advancementsComplete = advancementsComplete;
 	NS.allCharacters.advancementsTotal = advancementsTotal;
 	NS.allCharacters.nextAdvancementTimeRemaining = nextAdvancementTimeRemaining;
 	NS.allCharacters.allAdvancementsTimeRemaining = allAdvancementsTimeRemaining;
+	NS.allCharacters.nextAdvancementCharName = nextAdvancementCharName;
 	--
 	NS.allCharacters.workOrdersReady = workOrdersReady;
 	NS.allCharacters.workOrdersTotal = workOrdersTotal;
 	NS.allCharacters.nextWorkOrderTimeRemaining = nextWorkOrderTimeRemaining;
 	NS.allCharacters.allWorkOrdersTimeRemaining = allWorkOrdersTimeRemaining;
+	NS.allCharacters.nextWorkOrderCharName = nextWorkOrderCharName;
 	--
 	NS.allCharacters.alertCurrentCharacter = alertCurrentCharacter;
 	NS.allCharacters.alertAnyCharacter = alertAnyCharacter;
@@ -1214,11 +1229,17 @@ NS.MinimapButton( "COHCMinimapButton", "Interface\\TargetingFrame\\UI-Classes-Ci
 	tooltip = function()
 		GameTooltip:SetText( HIGHLIGHT_FONT_COLOR_CODE .. NS.title .. FONT_COLOR_CODE_CLOSE );
 		GameTooltip:AddLine( L["Left-Click to open and close"] );
+		GameTooltip:AddLine( L["Right-Click to show the Class Hall Report"] );
 		GameTooltip:AddLine( L["Drag to move this button"] );
 		GameTooltip:Show();
 	end,
 	OnLeftClick = function( self )
 		NS.SlashCmdHandler();
+	end,
+	OnRightClick = function( self )
+		if C_Garrison.HasGarrison( LE_GARRISON_TYPE_7_0 ) then
+			GarrisonLandingPageMinimapButton_OnClick();
+		end
 	end,
 } );
 --------------------------------------------------------------------------------------------------------------------------------------------

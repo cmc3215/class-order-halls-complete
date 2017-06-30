@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------------------------------------------------------------------
 local NS = select( 2, ... );
 local L = NS.localization;
-NS.versionString = "1.18";
+NS.versionString = "1.19";
 NS.version = tonumber( NS.versionString );
 --
 NS.initialized = false;
@@ -644,7 +644,7 @@ NS.UpdateCharacter = function()
 			for i = 1, #looseShipments do
 				local name,texture,shipmentCapacity,shipmentsReady,shipmentsTotal,creationTime,duration,timeleftString = C_Garrison.GetLandingPageShipmentInfoByContainerID( looseShipments[i] );
 				if texture == 237446 then
-					duration = 14400; -- Hard coded to match the hotfix reduction to 4 hours (14400 sec) from 5 days (432000 sec)
+					duration = 12900; -- Hard coded to match the hotfix reduction to 3 hr 35 min hours (12900 sec) from 5 days (432000 sec)
 				end
 				table.insert( NS.db["characters"][k]["orders"], {
 					["name"] = name,

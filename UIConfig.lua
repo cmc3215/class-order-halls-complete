@@ -368,15 +368,15 @@ NS.UI.cfg = {
 				if NS.allCharacters.missionsTotal == 0 then
 					missionsCenterText = "";
 					missionsColor = "Gray";
-					missionsRightText = HIGHLIGHT_FONT_COLOR_CODE .. L["None in progress"] .. FONT_COLOR_CODE_CLOSE;
+					missionsRightText = HIGHLIGHT_FONT_COLOR_CODE .. L["None in progress"] .. "\n" .. FONT_COLOR_CODE_CLOSE;
 				elseif NS.allCharacters.missionsComplete == NS.allCharacters.missionsTotal then
 					missionsCenterText = HIGHLIGHT_FONT_COLOR_CODE .. NS.allCharacters.missionsComplete .. "/" .. NS.allCharacters.missionsTotal .. FONT_COLOR_CODE_CLOSE;
 					missionsColor = "Green";
-					missionsRightText = GREEN_FONT_COLOR_CODE .. COMPLETE .. FONT_COLOR_CODE_CLOSE;
+					missionsRightText = GREEN_FONT_COLOR_CODE .. COMPLETE .. "\n" .. FONT_COLOR_CODE_CLOSE;
 				else
 					missionsCenterText = HIGHLIGHT_FONT_COLOR_CODE .. NS.allCharacters.missionsComplete .. "/" .. NS.allCharacters.missionsTotal .. FONT_COLOR_CODE_CLOSE;
 					missionsColor = NS.allCharacters.missionsComplete > 0 and "Yellow" or "Red";
-					missionsRightText = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["(Next: %s)"], SecondsToTime( NS.allCharacters.nextMissionTimeRemaining ) ) .. FONT_COLOR_CODE_CLOSE;
+					missionsRightText = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["(Next: %s)"], SecondsToTime( NS.allCharacters.nextMissionTimeRemaining ) ) .. "\n" .. NS.allCharacters.nextMissionCharName .. FONT_COLOR_CODE_CLOSE;
 				end
 				-- Advancement
 				local abn = "FooterAdvancementsReportButton";
@@ -384,15 +384,15 @@ NS.UI.cfg = {
 				if NS.allCharacters.advancementsTotal == 0 then
 					advancementsCenterText = "";
 					advancementsColor = "Gray";
-					advancementsRightText = HIGHLIGHT_FONT_COLOR_CODE .. L["None in progress"] .. FONT_COLOR_CODE_CLOSE;
+					advancementsRightText = HIGHLIGHT_FONT_COLOR_CODE .. L["None in progress"] .. "\n" .. FONT_COLOR_CODE_CLOSE;
 				elseif NS.allCharacters.advancementsComplete == NS.allCharacters.advancementsTotal then
 					advancementsCenterText = HIGHLIGHT_FONT_COLOR_CODE .. NS.allCharacters.advancementsComplete .. "/" .. NS.allCharacters.advancementsTotal .. FONT_COLOR_CODE_CLOSE;
 					advancementsColor = "Green";
-					advancementsRightText = GREEN_FONT_COLOR_CODE .. COMPLETE .. FONT_COLOR_CODE_CLOSE;
+					advancementsRightText = GREEN_FONT_COLOR_CODE .. COMPLETE .. "\n" .. FONT_COLOR_CODE_CLOSE;
 				else
 					advancementsCenterText = HIGHLIGHT_FONT_COLOR_CODE .. NS.allCharacters.advancementsComplete .. "/" .. NS.allCharacters.advancementsTotal .. FONT_COLOR_CODE_CLOSE;
 					advancementsColor = NS.allCharacters.advancementsComplete > 0 and "Yellow" or "Red";
-					advancementsRightText = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["(Next: %s)"], SecondsToTime( NS.allCharacters.nextAdvancementTimeRemaining ) ) .. FONT_COLOR_CODE_CLOSE;
+					advancementsRightText = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["(Next: %s)"], SecondsToTime( NS.allCharacters.nextAdvancementTimeRemaining ) ) .. "\n" .. NS.allCharacters.nextAdvancementCharName .. FONT_COLOR_CODE_CLOSE;
 				end
 				-- Work Orders
 				local wbn = "FooterWorkOrdersReportButton";
@@ -400,15 +400,15 @@ NS.UI.cfg = {
 				if NS.allCharacters.workOrdersTotal == 0 then
 					workOrdersCenterText = "";
 					workOrdersColor = "Gray";
-					workOrdersRightText = HIGHLIGHT_FONT_COLOR_CODE .. L["None in progress"] .. FONT_COLOR_CODE_CLOSE;
+					workOrdersRightText = HIGHLIGHT_FONT_COLOR_CODE .. L["None in progress"] .. "\n" .. FONT_COLOR_CODE_CLOSE;
 				elseif NS.allCharacters.workOrdersReady == NS.allCharacters.workOrdersTotal then
 					workOrdersCenterText = HIGHLIGHT_FONT_COLOR_CODE .. NS.allCharacters.workOrdersReady .. "/" .. NS.allCharacters.workOrdersTotal .. FONT_COLOR_CODE_CLOSE;
 					workOrdersColor = "Green";
-					workOrdersRightText = GREEN_FONT_COLOR_CODE .. L["Ready for pickup"] .. FONT_COLOR_CODE_CLOSE;
+					workOrdersRightText = GREEN_FONT_COLOR_CODE .. L["Ready for pickup"] .. "\n" .. FONT_COLOR_CODE_CLOSE;
 				else
 					workOrdersCenterText = HIGHLIGHT_FONT_COLOR_CODE .. NS.allCharacters.workOrdersReady .. "/" .. NS.allCharacters.workOrdersTotal .. FONT_COLOR_CODE_CLOSE;
 					workOrdersColor = NS.allCharacters.workOrdersReady > 0 and "Yellow" or "Red";
-					workOrdersRightText = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["(Next: %s)"], SecondsToTime( NS.allCharacters.nextWorkOrderTimeRemaining ) ) .. FONT_COLOR_CODE_CLOSE;
+					workOrdersRightText = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["(Next: %s)"], SecondsToTime( NS.allCharacters.nextWorkOrderTimeRemaining ) ) .. "\n" .. NS.allCharacters.nextWorkOrderCharName .. FONT_COLOR_CODE_CLOSE;
 				end
 				--
 				_G[sfn .. mbn .. "CenterText"]:SetText( missionsCenterText );

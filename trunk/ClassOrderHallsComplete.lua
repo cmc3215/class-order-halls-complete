@@ -643,17 +643,14 @@ NS.UpdateCharacter = function()
 			local looseShipments = C_Garrison.GetLooseShipments( LE_GARRISON_TYPE_7_0 );
 			for i = 1, #looseShipments do
 				local name,texture,shipmentCapacity,shipmentsReady,shipmentsTotal,creationTime,duration,timeleftString = C_Garrison.GetLandingPageShipmentInfoByContainerID( looseShipments[i] );
-				if texture == 237446 then
-					duration = 12900; -- Hard coded to match the hotfix reduction to 3 hr 35 min hours (12900 sec) from 5 days (432000 sec)
-				end
 				table.insert( NS.db["characters"][k]["orders"], {
 					["name"] = name,
 					["texture"] = texture,
 					["capacity"] = shipmentCapacity,
 					["ready"] = shipmentsReady,
 					["total"] = shipmentsTotal,
-					["duration"] = duration,
-					["nextSeconds"] = NS.OrdersOrigNextSeconds( duration, creationTime, currentTime ),
+					["duration"] = ( texture == 237446 and 12900 or duration ), -- Hard coded to match the hotfix reduction to 3 hr 35 min hours (12900 sec) from 5 days (432000 sec)
+					["nextSeconds"] = NS.OrdersOrigNextSeconds( duration, creationTime, currentTime ), -- Do not adjust duration here because creationTime has been set in the past by the API
 				} );
 				if NS.db["characters"][k]["monitor"][texture] == nil then
 					NS.db["characters"][k]["monitor"][texture] = true;

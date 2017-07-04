@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------------------------------------------------------------------
 local NS = select( 2, ... );
 local L = NS.localization;
-NS.versionString = "1.19";
+NS.versionString = "1.20";
 NS.version = tonumber( NS.versionString );
 --
 NS.initialized = false;
@@ -183,6 +183,8 @@ NS.classRef = {
 	},
 };
 NS.sealOfBrokenFateQuests = { 43892, 43893, 43894, 43895, 43896, 43897 }; -- Sealing Fate quests in Dalaran
+NS.artifactKnowledgeLevelStage1Max = 25;
+NS.artifactKnowledgeLevelStage2Max = 40;
 --------------------------------------------------------------------------------------------------------------------------------------------
 -- SavedVariables(PerCharacter)
 --------------------------------------------------------------------------------------------------------------------------------------------
@@ -291,6 +293,19 @@ NS.Upgrade = function()
 	-- 1.16
 	if version < 1.16 then
 		NS.db["alertChatArtifactResearchNotes"] = vars["alertChatArtifactResearchNotes"];
+	end
+	-- 1.20
+	if version < 1.20 then
+		for ck,c in ipairs( NS.db["characters"] ) do
+			for ok,o in ipairs( c["orders"] ) do
+				if o.texture == 237446 then
+					if o.duration then
+						NS.db["characters"][ck]["orders"][ok]["duration"] = 12960;
+					end
+					break;
+				end
+			end
+		end
 	end
 	--
 	NS.db["version"] = NS.version;
@@ -405,8 +420,8 @@ NS.OrdersNextSeconds = function( allSeconds, duration )
 end
 --
 NS.OrdersOrigNextSeconds = function( duration, creationTime, currentTime )
-	if not creationTime then return 0 end
-	return ( duration - ( currentTime - creationTime ) );
+	if not creationTime or duration == 0 or creationTime == 0 then return 0 end
+	return math.max( duration - ( currentTime - creationTime ), 0 ); -- Prevent negatives, possible with hotfixed duration/creationTime
 end
 --
 NS.ToggleAlert = function()
@@ -633,7 +648,7 @@ NS.UpdateCharacter = function()
 					} );
 				end
 				if NS.db["characters"][k]["monitor"][texture] == nil then
-					NS.db["characters"][k]["monitor"][texture] = true;			-- Monitored by default
+					NS.db["characters"][k]["monitor"][texture] = true; -- Monitored by default
 				end
 				monitorable[texture] = true;
 				--NS.Print( "|T" .. troops[i].icon .. ":16|t count = " .. troops[i].count ); -- DEBUG
@@ -643,13 +658,19 @@ NS.UpdateCharacter = function()
 			local looseShipments = C_Garrison.GetLooseShipments( LE_GARRISON_TYPE_7_0 );
 			for i = 1, #looseShipments do
 				local name,texture,shipmentCapacity,shipmentsReady,shipmentsTotal,creationTime,duration,timeleftString = C_Garrison.GetLandingPageShipmentInfoByContainerID( looseShipments[i] );
+				if texture == 237446 then
+					local nextSeconds = NS.OrdersOrigNextSeconds( duration, creationTime, currentTime );
+					if nextSeconds > 12960 then
+						duration = duration - ( nextSeconds - 12960 ); -- Artifact Research Notes hotfix sometimes causes seconds remaining to be more than new duration 12960 sec
+					end
+				end
 				table.insert( NS.db["characters"][k]["orders"], {
 					["name"] = name,
 					["texture"] = texture,
 					["capacity"] = shipmentCapacity,
 					["ready"] = shipmentsReady,
 					["total"] = shipmentsTotal,
-					["duration"] = ( texture == 237446 and 12900 or duration ), -- Hard coded to match the hotfix reduction to 3 hr 35 min hours (12900 sec) from 5 days (432000 sec)
+					["duration"] = ( texture == 237446 and 12960 or duration ), -- Hard code Artifact Research Notes duration to hotfix duration 12960 sec, normally 432000 sec
 					["nextSeconds"] = NS.OrdersOrigNextSeconds( duration, creationTime, currentTime ), -- Do not adjust duration here because creationTime has been set in the past by the API
 				} );
 				if NS.db["characters"][k]["monitor"][texture] == nil then
@@ -659,6 +680,10 @@ NS.UpdateCharacter = function()
 			end
 			-- Artifact Research Notes
 			if IsQuestFlaggedCompleted( NS.classRef[NS.currentCharacter.class].artifact ) then
+				-- Artifact Knowledge Level
+				NS.db["characters"][k]["artifactKnowledgeLevel"] = select( 2, GetCurrencyInfo( 1171 ) );
+				NS.db["characters"][k]["artifactKnowledgeStage2Unlocked"] = NS.db["characters"][k]["artifactKnowledgeLevel"] > 25 and true or IsQuestFlaggedCompleted( 46809 ); -- Quest: Delivering Lost Knowledge
+				--
 				local texture = 237446;
 				local capacity = 2;
 				local ordersKey = NS.FindKeyByField( NS.db["characters"][k]["orders"], "texture", texture );
@@ -692,7 +717,6 @@ NS.UpdateCharacter = function()
 					end
 					monitorable[texture] = true;
 				end
-				--NS.Print( "|T" .. texture .. ":16|t orders available = " .. available ); -- DEBUG
 			end
 			-- World Quest Complete (Tier 5)
 			if NS.classRef[NS.currentCharacter.class].wqcomplete and talentTiers[5] and not talentTiers[5].isBeingResearched and talentTiers[5].id == NS.classRef[NS.currentCharacter.class].wqcomplete[1] then
@@ -751,7 +775,6 @@ NS.UpdateCharacter = function()
 					end
 					monitorable[texture] = true;
 				end
-				--NS.Print( "|T" .. texture .. ":16|t orders available = " .. available ); -- DEBUG
 			end
 			-- Bonus Roll (Tier 5)
 			if NS.classRef[NS.currentCharacter.class].bonusroll and talentTiers[5] and not talentTiers[5].isBeingResearched and talentTiers[5].id == NS.classRef[NS.currentCharacter.class].bonusroll then
@@ -770,7 +793,6 @@ NS.UpdateCharacter = function()
 					end
 					monitorable[texture] = true;
 				end
-				--NS.Print( "|T" .. texture .. ":16|t orders available = " .. available ); -- DEBUG
 			end
 			-- Cooking Recipes
 			if IsQuestFlaggedCompleted( 40991 ) then
@@ -789,7 +811,6 @@ NS.UpdateCharacter = function()
 					end
 					monitorable[texture] = true;
 				end
-				--NS.Print( "|T" .. texture .. ":16|t orders available = " .. available ); -- DEBUG
 			end
 			--------------------------------------------------------------------------------------------------------------------------------------------
 			-- Missions
@@ -828,7 +849,7 @@ NS.UpdateCharacter = function()
 					end
 				end
 				if NS.db["characters"][k]["monitor"]["missions"] == nil then
-					NS.db["characters"][k]["monitor"]["missions"] = true;			-- Monitored by default
+					NS.db["characters"][k]["monitor"]["missions"] = true; -- Monitored by default
 				end
 				monitorable["missions"] = true;
 			end
@@ -1043,25 +1064,28 @@ NS.UpdateCharacters = function()
 				wo.texture = o.texture;
 				wo.text = o.name;
 				wo.troopCount = o.troopCount;
-				wo.spell = nil;
+				wo.artifactKnowledgeLevel = wo.texture == 237446 and ( char["artifactKnowledgeLevel"] or "?" ) or nil;
+				wo.spell = false;
 				wo.spellName = o.spellName;
-				wo.spellCooldown = o.spellCooldown;
 				wo.spellTexture = o.spellTexture;
-				--o.spellReagentCount;
 				wo.spellSeconds = nil;
-				wo.capacity = o.capacity;
+				--o.spellCooldown;
+				--o.spellReagentCount;
+				local artifactKnowledgeLevelMax = type( wo.artifactKnowledgeLevel ) == "number" and math.max( char["artifactKnowledgeLevel"], ( char["artifactKnowledgeStage2Unlocked"] and NS.artifactKnowledgeLevelStage2Max or NS.artifactKnowledgeLevelStage1Max ) ) or NS.artifactKnowledgeLevelStage2Max;
+				local artifactKnowledgeTextInfo = nil;
+				wo.capacity = wo.texture == 237446 and char["artifactKnowledgeLevel"] and ( math.min( o.capacity, artifactKnowledgeLevelMax - char["artifactKnowledgeLevel"] ) ) or o.capacity;
 				wo.total = o.total or 0; -- o.total is nil if no orders
-				wo.readyToStart = NS.OrdersReadyToStart( o.capacity, o.total, o.troopCount, o.spellReagentCount );
 				wo.readyForPickup = NS.OrdersReadyToPickup( o.ready, o.total, o.duration, o.nextSeconds, char["updateTime"], currentTime );
-				wo.allSeconds = NS.OrdersAllSeconds( o.duration, o.total, o.ready, o.nextSeconds, char["updateTime"], currentTime );
-				wo.nextSeconds = NS.OrdersNextSeconds( wo.allSeconds, o.duration );
+				local readyToStart = NS.OrdersReadyToStart( wo.capacity, o.total, o.troopCount, o.spellReagentCount );
+				local allSeconds = NS.OrdersAllSeconds( o.duration, o.total, o.ready, o.nextSeconds, char["updateTime"], currentTime );
+				local nextSeconds = NS.OrdersNextSeconds( allSeconds, o.duration );
 				--
 				workOrdersReady = workOrdersReady + wo.readyForPickup; -- All characters
 				workOrdersTotal = workOrdersTotal + wo.total; -- All characters
-				if wo.nextSeconds > 0 then
-					nextWorkOrderTimeRemaining = nextWorkOrderTimeRemaining == 0 and wo.nextSeconds or math.min( nextWorkOrderTimeRemaining, wo.nextSeconds );
-					allWorkOrdersTimeRemaining = allWorkOrdersTimeRemaining == 0 and wo.allSeconds or math.max( allWorkOrdersTimeRemaining, wo.allSeconds );
-					nextWorkOrderCharName = nextWorkOrderTimeRemaining == wo.nextSeconds and ( "|c" .. RAID_CLASS_COLORS[char["class"]].colorStr .. ( NS.db["showCharacterRealms"] and char["name"] or strsplit( "-", char["name"], 2 ) ) .. FONT_COLOR_CODE_CLOSE ) or nextWorkOrderCharName;
+				if nextSeconds > 0 then
+					nextWorkOrderTimeRemaining = nextWorkOrderTimeRemaining == 0 and nextSeconds or math.min( nextWorkOrderTimeRemaining, nextSeconds );
+					allWorkOrdersTimeRemaining = allWorkOrdersTimeRemaining == 0 and allSeconds or math.max( allWorkOrdersTimeRemaining, allSeconds );
+					nextWorkOrderCharName = nextWorkOrderTimeRemaining == nextSeconds and ( "|c" .. RAID_CLASS_COLORS[char["class"]].colorStr .. ( NS.db["showCharacterRealms"] and char["name"] or strsplit( "-", char["name"], 2 ) ) .. FONT_COLOR_CODE_CLOSE ) or nextWorkOrderCharName;
 				end
 				--
 				wo.lines = {};
@@ -1069,9 +1093,13 @@ NS.UpdateCharacters = function()
 					wo.text = wo.text .. " - " .. wo.troopCount .. "/" .. wo.capacity;
 				end
 				--
-				if wo.spellCooldown then
+				if wo.artifactKnowledgeLevel then
+					wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["Artifact Knowledge Level: %s"], ( wo.artifactKnowledgeLevel == "?" and L["Unknown"] or wo.artifactKnowledgeLevel ) ) .. FONT_COLOR_CODE_CLOSE;
+				end
+				--
+				if o.spellCooldown then
 					wo.spell = true;
-					wo.spellSeconds = wo.spellCooldown > passedTime and ( wo.spellCooldown - passedTime ) or 0;
+					wo.spellSeconds = o.spellCooldown > passedTime and ( o.spellCooldown - passedTime ) or 0;
 					if wo.spellSeconds > 0 then
 						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["Cooldown remaining: %s"], SecondsToTime( wo.spellSeconds ) ) .. FONT_COLOR_CODE_CLOSE;
 					else
@@ -1085,11 +1113,31 @@ NS.UpdateCharacters = function()
 					wo.lines[#wo.lines + 1] = ITEM_QUALITY_COLORS[3].hex .. o.name .. FONT_COLOR_CODE_CLOSE;
 				end
 				--
-				if wo.readyToStart > 0 then
+				if readyToStart > 0 then
 					if wo.texture == 133858 then -- Seal of Broken Fate
 						wo.lines[#wo.lines + 1] = seals[char["name"]].sealOfBrokenFate.lines;
 					else
-						wo.lines[#wo.lines + 1] = GREEN_FONT_COLOR_CODE .. string.format( L["%d Ready to start"], wo.readyToStart ) .. FONT_COLOR_CODE_CLOSE;
+						wo.lines[#wo.lines + 1] = GREEN_FONT_COLOR_CODE .. string.format( L["%d Ready to start"], readyToStart ) .. FONT_COLOR_CODE_CLOSE;
+						if wo.artifactKnowledgeLevel and wo.artifactKnowledgeLevel ~= "?" then
+							local quest = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["Obtain Artifact Research Notes instantly\nusing Order Resources by completing the\nquest \"Knowledge is Power\" in your Class\nOrder Hall up to Artifact Knowledge Level %d"], NS.artifactKnowledgeLevelStage1Max ) .. FONT_COLOR_CODE_CLOSE;
+							local compendium = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["An often cheaper option is to purchase an\n|r%sArtifact Research Compendium|r %susing a more\nadvanced alt to progress several levels instantly."], ITEM_QUALITY_COLORS[6].hex, HIGHLIGHT_FONT_COLOR_CODE ) .. FONT_COLOR_CODE_CLOSE;
+							-- Artifact Knowledge Level in Stage 1 but not maxed
+							if wo.artifactKnowledgeLevel < NS.artifactKnowledgeLevelStage1Max then
+								wo.lines[#wo.lines] = nil; -- Removes %d Ready to start
+								artifactKnowledgeTextInfo = quest .. "\n\n" .. compendium;
+							-- Artifact Knowledge Level in Stage 2 but not maxed
+							elseif wo.artifactKnowledgeLevel >= NS.artifactKnowledgeLevelStage1Max then
+								artifactKnowledgeTextInfo = compendium;
+							end
+						end
+					end
+				elseif wo.artifactKnowledgeLevel then
+					-- Artifact Knowledge Level stuck at Stage 1 max
+					if wo.artifactKnowledgeLevel == NS.artifactKnowledgeLevelStage1Max then
+						artifactKnowledgeTextInfo = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["Archmage Khadgar has a lead on how\nyou can continue your artifact knowledge\nresearch. Seek him out at Deliverance\nPoint on the Broken Shore.\n\nAn often cheaper option is to purchase an\n|r%sArtifact Research Compendium|r %susing a more\nadvanced alt to progress several levels instantly."], ITEM_QUALITY_COLORS[6].hex, HIGHLIGHT_FONT_COLOR_CODE ) .. FONT_COLOR_CODE_CLOSE;
+					-- Artifact Knowledge Level stuck at Stage 2 max
+					elseif wo.artifactKnowledgeLevel == NS.artifactKnowledgeLevelStage2Max then
+						artifactKnowledgeTextInfo = HIGHLIGHT_FONT_COLOR_CODE .. L["You have reached the maximum Artifact\nKnowledge available to you at this time."] .. FONT_COLOR_CODE_CLOSE;
 					end
 				elseif o.spellReagentCount and o.spellReagentCount > 0 then
 					wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["%d Available"], o.spellReagentCount ) .. FONT_COLOR_CODE_CLOSE;
@@ -1112,7 +1160,7 @@ NS.UpdateCharacters = function()
 							alertAnyCharacter = true; -- All characters
 						end
 					else
-						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["%d/%d Ready for pickup %s"], wo.readyForPickup, o.total, string.format( L["(Next: %s)"], SecondsToTime( wo.nextSeconds ) ) ) .. FONT_COLOR_CODE_CLOSE;
+						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["%d/%d Ready for pickup %s"], wo.readyForPickup, o.total, string.format( L["(Next: %s)"], SecondsToTime( nextSeconds ) ) ) .. FONT_COLOR_CODE_CLOSE;
 						-- Alert: Any Artifact Research Notes
 						if wo.texture == 237446 and wo.readyForPickup > 0 and NS.db["alertArtifactResearchNotes"] and NS.db["alertAnyArtifactResearchNotes"] then
 							alertCurrentCharacter = ( not alertCurrentCharacter and char["name"] == NS.currentCharacter.name ) and true or alertCurrentCharacter; -- All characters
@@ -1125,8 +1173,13 @@ NS.UpdateCharacters = function()
 					end
 				end
 				--
+				if artifactKnowledgeTextInfo then
+					wo.lines[#wo.lines + 1] = " ";
+					wo.lines[#wo.lines + 1] = artifactKnowledgeTextInfo;
+				end
+				--
 				if wo.troopCount and #wo.lines == 0 then
-					if wo.troopCount == wo.capacity then
+					if wo.troopCount >= wo.capacity then
 						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. L["0 recruits remaining"] .. FONT_COLOR_CODE_CLOSE;
 					else
 						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. L["Unable to detect troop counts"] .. FONT_COLOR_CODE_CLOSE;
@@ -1203,9 +1256,23 @@ NS.UpdateAll = function( forceUpdate )
 	if not NS.initialized then
 		NS.currentCharacter.key = NS.FindKeyByField( NS.db["characters"], "name", NS.currentCharacter.name ); -- Set key here after UpdateCharacter() because new characters will cause a characters sort
 		NS.selectedCharacterKey = NS.currentCharacter.key; -- Sets selected character in Characters tab
-		--
-		COHCEventsFrame:RegisterEvent( "CHAT_MSG_CURRENCY" ); -- Fires when looting currency other than money
-		COHCEventsFrame:RegisterEvent( "BONUS_ROLL_RESULT" ); -- Fires when bonus roll is used
+		-- Events (Misc)
+		WorldMapFrame:HookScript( "OnShow", function( self )
+			COHCEventsFrame:RegisterEvent( "UNIT_SPELLCAST_SUCCEEDED" ); -- Fires when casting spells with the World Map shown
+		end );
+		WorldMapFrame:HookScript( "OnHide", function( self )
+			COHCEventsFrame:UnregisterEvent( "UNIT_SPELLCAST_SUCCEEDED" ); -- Ignore casting spells with the World Map hidden
+		end );
+		COHCEventsFrame:RegisterEvent( "CHAT_MSG_CURRENCY" ); -- Fires when Order Resources are looted
+		COHCEventsFrame:RegisterEvent( "BONUS_ROLL_RESULT" ); -- Fires when bonus rolls are used
+		COHCEventsFrame:RegisterEvent( "CURRENCY_DISPLAY_UPDATE" ); -- Fires when Artifact Research Notes/Compendium are used
+		-- Events (Troops)
+		COHCEventsFrame:RegisterEvent( "GARRISON_FOLLOWER_CATEGORIES_UPDATED" );
+		COHCEventsFrame:RegisterEvent( "GARRISON_FOLLOWER_ADDED" );
+		COHCEventsFrame:RegisterEvent( "GARRISON_FOLLOWER_REMOVED" );
+		COHCEventsFrame:RegisterEvent( "GARRISON_TALENT_COMPLETE" );
+		COHCEventsFrame:RegisterEvent( "GARRISON_TALENT_UPDATE" );
+		COHCEventsFrame:RegisterEvent( "GARRISON_SHOW_LANDING_PAGE" );
 		--
 		NS.initialized = true;
 	end
@@ -1265,60 +1332,8 @@ SLASH_CLASSORDERHALLSCOMPLETE1 = "/classorderhallscomplete";
 SLASH_CLASSORDERHALLSCOMPLETE2 = "/cohc";
 SlashCmdList["CLASSORDERHALLSCOMPLETE"] = function( msg ) NS.SlashCmdHandler( msg ) end;
 --------------------------------------------------------------------------------------------------------------------------------------------
--- Event/Hook Handlers
+-- Update Request Handler
 --------------------------------------------------------------------------------------------------------------------------------------------
-NS.OnAddonLoaded = function( event ) -- ADDON_LOADED
-	if IsAddOnLoaded( NS.addon ) and not NS.db then
-		COHCEventsFrame:UnregisterEvent( event );
-		-- SavedVariables
-		if not CLASSORDERHALLSCOMPLETE_SAVEDVARIABLES then
-			CLASSORDERHALLSCOMPLETE_SAVEDVARIABLES = NS.DefaultSavedVariables();
-		end
-		-- SavedVariablesPerCharacter
-		if not CLASSORDERHALLSCOMPLETE_SAVEDVARIABLESPERCHARACTER then
-			CLASSORDERHALLSCOMPLETE_SAVEDVARIABLESPERCHARACTER = NS.DefaultSavedVariablesPerCharacter();
-		end
-		-- Localize SavedVariables
-		NS.db = CLASSORDERHALLSCOMPLETE_SAVEDVARIABLES;
-		NS.dbpc = CLASSORDERHALLSCOMPLETE_SAVEDVARIABLESPERCHARACTER;
-		-- Upgrade db
-		if NS.db["version"] < NS.version then
-			NS.Upgrade();
-		end
-		-- Upgrade dbpc
-		if NS.dbpc["version"] < NS.version then
-			NS.UpgradePerCharacter();
-		end
-	end
-end
---
-NS.OnPlayerLogin = function( event ) -- PLAYER_LOGIN
-	COHCEventsFrame:UnregisterEvent( event );
-	SetMapToCurrentZone(); -- Force map to current zone because standing by Nomi in Dalaran (Legion) was returning mapID 1115 on login/reload, which is Karazhan
-	NS.UpdateRequestHandler( event ); -- Initial update request
-	NS.UpdateRequestHandler(); -- Start handler/ticker
-	-- COHC Minimap Button
-	COHCMinimapButton.docked = NS.dbpc["dockMinimapButton"];
-	COHCMinimapButton:UpdateSize( NS.dbpc["largeMinimapButton"] );
-	COHCMinimapButton:UpdatePos(); -- Reset to last drag position
-	if not NS.dbpc["showMinimapButton"] then
-		COHCMinimapButton:Hide(); -- Hide if unchecked in options
-	end
-	-- Class Hall Report Minimap Button
-	GarrisonLandingPageMinimapButton:HookScript( "OnShow", function()
-		if not NS.dbpc["showClassHallReportMinimapButton"] and C_Garrison.HasGarrison( LE_GARRISON_TYPE_7_0 ) then
-			GarrisonLandingPageMinimapButton:Hide();
-		end
-	end );
-	-- World Map Spell Tracking
-	WorldMapFrame:HookScript( "OnShow", function( self )
-		COHCEventsFrame:RegisterEvent( "UNIT_SPELLCAST_SUCCEEDED" );
-	end );
-	WorldMapFrame:HookScript( "OnHide", function( self )
-		COHCEventsFrame:UnregisterEvent( "UNIT_SPELLCAST_SUCCEEDED" );
-	end );
-end
---
 NS.UpdateRequestHandler = function( event )
 	local currentTime = time();
 	-- Ticker
@@ -1352,14 +1367,6 @@ NS.UpdateRequestHandler = function( event )
 		NS.lastTimeUpdateRequest = currentTime;
 	end
 end
---
-NS.OnChatMsgCurrency = function( event )
-	NS.db["characters"][NS.currentCharacter.key]["orderResources"] = select( 2, GetCurrencyInfo( 1220 ) );
-end
---
-NS.OnBonusRollResult = function( event )
-	NS.db["characters"][NS.currentCharacter.key]["sealOfBrokenFate"] = select( 2, GetCurrencyInfo( 1273 ) );
-end
 --------------------------------------------------------------------------------------------------------------------------------------------
 -- COHCEventsFrame
 --------------------------------------------------------------------------------------------------------------------------------------------
@@ -1367,12 +1374,14 @@ NS.Frame( "COHCEventsFrame", UIParent, {
 	topLevel = true,
 	OnEvent = function ( self, event, ... )
 		if		event == "UNIT_SPELLCAST_SUCCEEDED"				then
+			--------------------------------------------------------------------------------------------------------------------------------
+			-- Instant Complete World Quest (World Map Shown)
+			--------------------------------------------------------------------------------------------------------------------------------
 			local unit,_,_,_,spellID = ...;
 			if unit == "player" and NS.classRef[NS.currentCharacter.class].wqcomplete and spellID == NS.classRef[NS.currentCharacter.class].wqcomplete[4] then
-				if NS.initialized then
-					NS.UpdateRequestHandler( event );
-				end
+				NS.UpdateRequestHandler( event );
 			end
+			--------------------------------------------------------------------------------------------------------------------------------
 		elseif	event == "GARRISON_LANDINGPAGE_SHIPMENTS"		then
 			--------------------------------------------------------------------------------------------------------------------------------
 			-- Work Orders {UPDATED}
@@ -1387,17 +1396,81 @@ NS.Frame( "COHCEventsFrame", UIParent, {
 			local troops = C_Garrison.GetClassSpecCategoryInfo( LE_FOLLOWER_TYPE_GARRISON_7_0 );
 			if troops and #troops > 0 then
 				NS.currentCharacter.troops = troops;
-				if NS.initialized then
-					-- RequestLandingPageShipmentInfo() followed by NS.UpdateAll
-					-- Only required and effective OUTSIDE event zone or period
-					NS.UpdateRequestHandler( event );
+				-- RequestLandingPageShipmentInfo() followed by NS.UpdateAll
+				-- Only required and effective OUTSIDE event zone or period
+				NS.UpdateRequestHandler( event );
+			end
+			--------------------------------------------------------------------------------------------------------------------------------
+		elseif	event == "CHAT_MSG_CURRENCY"					then
+			--------------------------------------------------------------------------------------------------------------------------------
+			-- Order Resources {UPDATED}
+			--------------------------------------------------------------------------------------------------------------------------------
+			NS.db["characters"][NS.currentCharacter.key]["orderResources"] = select( 2, GetCurrencyInfo( 1220 ) );
+			--------------------------------------------------------------------------------------------------------------------------------
+		elseif	event == "BONUS_ROLL_RESULT"					then
+			--------------------------------------------------------------------------------------------------------------------------------
+			-- Seal of Broken Fate {UPDATED}
+			--------------------------------------------------------------------------------------------------------------------------------
+			NS.db["characters"][NS.currentCharacter.key]["sealOfBrokenFate"] = select( 2, GetCurrencyInfo( 1273 ) );
+			--------------------------------------------------------------------------------------------------------------------------------
+		elseif	event == "CURRENCY_DISPLAY_UPDATE"				then
+			--------------------------------------------------------------------------------------------------------------------------------
+			-- Artifact Knowledge Level {UPDATED}
+			--------------------------------------------------------------------------------------------------------------------------------
+			local arg1, arg2 = ...;
+			if arg1 == 1171 and type( arg2 ) == "number" then
+				NS.db["characters"][NS.currentCharacter.key]["artifactKnowledgeLevel"] = select( 2, GetCurrencyInfo( 1171 ) );
+			end
+			--------------------------------------------------------------------------------------------------------------------------------
+		elseif	event == "ADDON_LOADED"							then
+			--------------------------------------------------------------------------------------------------------------------------------
+			-- ADDON_LOADED
+			--------------------------------------------------------------------------------------------------------------------------------
+			if IsAddOnLoaded( NS.addon ) and not NS.db then
+				self:UnregisterEvent( event );
+				-- SavedVariables
+				if not CLASSORDERHALLSCOMPLETE_SAVEDVARIABLES then
+					CLASSORDERHALLSCOMPLETE_SAVEDVARIABLES = NS.DefaultSavedVariables();
+				end
+				-- SavedVariablesPerCharacter
+				if not CLASSORDERHALLSCOMPLETE_SAVEDVARIABLESPERCHARACTER then
+					CLASSORDERHALLSCOMPLETE_SAVEDVARIABLESPERCHARACTER = NS.DefaultSavedVariablesPerCharacter();
+				end
+				-- Localize SavedVariables
+				NS.db = CLASSORDERHALLSCOMPLETE_SAVEDVARIABLES;
+				NS.dbpc = CLASSORDERHALLSCOMPLETE_SAVEDVARIABLESPERCHARACTER;
+				-- Upgrade db
+				if NS.db["version"] < NS.version then
+					NS.Upgrade();
+				end
+				-- Upgrade dbpc
+				if NS.dbpc["version"] < NS.version then
+					NS.UpgradePerCharacter();
 				end
 			end
 			--------------------------------------------------------------------------------------------------------------------------------
-		elseif	event == "CHAT_MSG_CURRENCY"					then	NS.OnChatMsgCurrency( event );
-		elseif	event == "BONUS_ROLL_RESULT"					then	NS.OnBonusRollResult( event );
-		elseif	event == "ADDON_LOADED"							then	NS.OnAddonLoaded( event );
-		elseif	event == "PLAYER_LOGIN"							then	NS.OnPlayerLogin( event );
+		elseif	event == "PLAYER_LOGIN"							then
+			--------------------------------------------------------------------------------------------------------------------------------
+			-- PLAYER_LOGIN
+			--------------------------------------------------------------------------------------------------------------------------------
+			self:UnregisterEvent( event );
+			SetMapToCurrentZone(); -- Force map to current zone because standing by Nomi in Dalaran (Legion) was returning mapID 1115 on login/reload, which is Karazhan
+			NS.UpdateRequestHandler( event ); -- Initial update request
+			NS.UpdateRequestHandler(); -- Start handler/ticker
+			-- COHC Minimap Button
+			COHCMinimapButton.docked = NS.dbpc["dockMinimapButton"];
+			COHCMinimapButton:UpdateSize( NS.dbpc["largeMinimapButton"] );
+			COHCMinimapButton:UpdatePos(); -- Reset to last drag position
+			if not NS.dbpc["showMinimapButton"] then
+				COHCMinimapButton:Hide(); -- Hide if unchecked in options
+			end
+			-- Class Hall Report Minimap Button
+			GarrisonLandingPageMinimapButton:HookScript( "OnShow", function()
+				if not NS.dbpc["showClassHallReportMinimapButton"] and C_Garrison.HasGarrison( LE_GARRISON_TYPE_7_0 ) then
+					GarrisonLandingPageMinimapButton:Hide();
+				end
+			end );
+			--------------------------------------------------------------------------------------------------------------------------------
 		else
 			--------------------------------------------------------------------------------------------------------------------------------
 			-- Troops {REQUEST}
@@ -1411,12 +1484,5 @@ NS.Frame( "COHCEventsFrame", UIParent, {
 	OnLoad = function( self )
 		self:RegisterEvent( "ADDON_LOADED" );
 		self:RegisterEvent( "PLAYER_LOGIN" );
-		-- Troops
-		self:RegisterEvent( "GARRISON_FOLLOWER_CATEGORIES_UPDATED" );
-		self:RegisterEvent( "GARRISON_FOLLOWER_ADDED" );
-		self:RegisterEvent( "GARRISON_FOLLOWER_REMOVED" );
-		self:RegisterEvent( "GARRISON_TALENT_COMPLETE" );
-		self:RegisterEvent( "GARRISON_TALENT_UPDATE" );
-		self:RegisterEvent( "GARRISON_SHOW_LANDING_PAGE" );
 	end,
 } );

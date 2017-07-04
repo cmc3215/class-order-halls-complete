@@ -1,3 +1,11 @@
+**1.20**
+
+- Release date: 07/04/2017
+- Artifact Research Notes on the Monitor tab now show the player's Artifact Knowledge Level in the top right corner.
+- The tooltip for Artifact Research Notes has been made smarter and will now provide information like Artifact Knowledge Level and how to continue research or that you've reached the max instead of just saying "2 Ready to start".
+- Bug fix: Artifact Research Notes duration updated to 3 hr 36 min from 3 hr 35 min
+- Bug fix: Since the hotfix of Artifact Research Notes the Work Order API sometimes returns times that caused the remaining time to appear greater than the duration. This was resulting in unexpected behavior such as negative completed Work Orders, etc.
+
 **1.19**
 
 - Release date: 06/30/2017

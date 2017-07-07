@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------------------------------------------------------------------
 local NS = select( 2, ... );
 local L = NS.localization;
-NS.versionString = "1.20";
+NS.versionString = "1.21";
 NS.version = tonumber( NS.versionString );
 --
 NS.initialized = false;
@@ -1079,6 +1079,7 @@ NS.UpdateCharacters = function()
 				local readyToStart = NS.OrdersReadyToStart( wo.capacity, o.total, o.troopCount, o.spellReagentCount );
 				local allSeconds = NS.OrdersAllSeconds( o.duration, o.total, o.ready, o.nextSeconds, char["updateTime"], currentTime );
 				local nextSeconds = NS.OrdersNextSeconds( allSeconds, o.duration );
+				wo.topRightText = nil;
 				--
 				workOrdersReady = workOrdersReady + wo.readyForPickup; -- All characters
 				workOrdersTotal = workOrdersTotal + wo.total; -- All characters
@@ -1091,10 +1092,12 @@ NS.UpdateCharacters = function()
 				wo.lines = {};
 				if wo.troopCount then
 					wo.text = wo.text .. " - " .. wo.troopCount .. "/" .. wo.capacity;
+					wo.topRightText = readyToStart > 0 and ( ORANGE_FONT_COLOR_CODE .. wo.troopCount .. FONT_COLOR_CODE_CLOSE ) or wo.troopCount;
 				end
 				--
 				if wo.artifactKnowledgeLevel then
 					wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["Artifact Knowledge Level: %s"], ( wo.artifactKnowledgeLevel == "?" and L["Unknown"] or wo.artifactKnowledgeLevel ) ) .. FONT_COLOR_CODE_CLOSE;
+					wo.topRightText = wo.artifactKnowledgeLevel;
 				end
 				--
 				if o.spellCooldown then
@@ -1179,7 +1182,7 @@ NS.UpdateCharacters = function()
 				end
 				--
 				if wo.troopCount and #wo.lines == 0 then
-					if wo.troopCount >= wo.capacity then
+					if wo.troopCount == wo.capacity or ( type( wo.troopCount ) == "number" and wo.troopCount > wo.capacity ) then
 						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. L["0 recruits remaining"] .. FONT_COLOR_CODE_CLOSE;
 					else
 						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. L["Unable to detect troop counts"] .. FONT_COLOR_CODE_CLOSE;
@@ -1256,25 +1259,13 @@ NS.UpdateAll = function( forceUpdate )
 	if not NS.initialized then
 		NS.currentCharacter.key = NS.FindKeyByField( NS.db["characters"], "name", NS.currentCharacter.name ); -- Set key here after UpdateCharacter() because new characters will cause a characters sort
 		NS.selectedCharacterKey = NS.currentCharacter.key; -- Sets selected character in Characters tab
-		-- Events (Misc)
-		WorldMapFrame:HookScript( "OnShow", function( self )
-			COHCEventsFrame:RegisterEvent( "UNIT_SPELLCAST_SUCCEEDED" ); -- Fires when casting spells with the World Map shown
-		end );
-		WorldMapFrame:HookScript( "OnHide", function( self )
-			COHCEventsFrame:UnregisterEvent( "UNIT_SPELLCAST_SUCCEEDED" ); -- Ignore casting spells with the World Map hidden
-		end );
+		NS.initialized = true;
+		-- Events (continued from COHCEventsFrame > OnLoad)
+		WorldMapFrame:HookScript( "OnShow", function( self ) COHCEventsFrame:RegisterEvent( "UNIT_SPELLCAST_SUCCEEDED" ); end ); -- Fires when casting spells with the World Map shown
+		WorldMapFrame:HookScript( "OnHide", function( self ) COHCEventsFrame:UnregisterEvent( "UNIT_SPELLCAST_SUCCEEDED" ); end ); -- Ignore casting spells with the World Map hidden
 		COHCEventsFrame:RegisterEvent( "CHAT_MSG_CURRENCY" ); -- Fires when Order Resources are looted
 		COHCEventsFrame:RegisterEvent( "BONUS_ROLL_RESULT" ); -- Fires when bonus rolls are used
 		COHCEventsFrame:RegisterEvent( "CURRENCY_DISPLAY_UPDATE" ); -- Fires when Artifact Research Notes/Compendium are used
-		-- Events (Troops)
-		COHCEventsFrame:RegisterEvent( "GARRISON_FOLLOWER_CATEGORIES_UPDATED" );
-		COHCEventsFrame:RegisterEvent( "GARRISON_FOLLOWER_ADDED" );
-		COHCEventsFrame:RegisterEvent( "GARRISON_FOLLOWER_REMOVED" );
-		COHCEventsFrame:RegisterEvent( "GARRISON_TALENT_COMPLETE" );
-		COHCEventsFrame:RegisterEvent( "GARRISON_TALENT_UPDATE" );
-		COHCEventsFrame:RegisterEvent( "GARRISON_SHOW_LANDING_PAGE" );
-		--
-		NS.initialized = true;
 	end
 	-- Alert
 	NS.ToggleAlert(); -- Always attempt to turn on/off alerts after updating
@@ -1396,9 +1387,11 @@ NS.Frame( "COHCEventsFrame", UIParent, {
 			local troops = C_Garrison.GetClassSpecCategoryInfo( LE_FOLLOWER_TYPE_GARRISON_7_0 );
 			if troops and #troops > 0 then
 				NS.currentCharacter.troops = troops;
-				-- RequestLandingPageShipmentInfo() followed by NS.UpdateAll
-				-- Only required and effective OUTSIDE event zone or period
-				NS.UpdateRequestHandler( event );
+				if NS.initialized then
+					-- RequestLandingPageShipmentInfo() followed by NS.UpdateAll
+					-- Only required and effective OUTSIDE event zone or period
+					NS.UpdateRequestHandler( event );
+				end
 			end
 			--------------------------------------------------------------------------------------------------------------------------------
 		elseif	event == "CHAT_MSG_CURRENCY"					then
@@ -1482,7 +1475,15 @@ NS.Frame( "COHCEventsFrame", UIParent, {
 		end
 	end,
 	OnLoad = function( self )
+		-- Events (continues in NS.UpdateAll after NS.initialized)
 		self:RegisterEvent( "ADDON_LOADED" );
 		self:RegisterEvent( "PLAYER_LOGIN" );
+		-- Troops (register before NS.initialized because they happen at log in very quickly and info doesn't last long)
+		self:RegisterEvent( "GARRISON_FOLLOWER_CATEGORIES_UPDATED" );
+		self:RegisterEvent( "GARRISON_FOLLOWER_ADDED" );
+		self:RegisterEvent( "GARRISON_FOLLOWER_REMOVED" );
+		self:RegisterEvent( "GARRISON_TALENT_COMPLETE" );
+		self:RegisterEvent( "GARRISON_TALENT_UPDATE" );
+		self:RegisterEvent( "GARRISON_SHOW_LANDING_PAGE" );
 	end,
 } );

@@ -1,3 +1,9 @@
+**1.21**
+
+- Release date: 07/07/2017
+- Bug fix: Reverted recent troop detection event changes, in some situations it was causing troops to not appear in the addon.
+- Added orange font color to troop count numbers on their icons to indicate that troop has recruits that are "Ready to start".
+
 **1.20**
 
 - Release date: 07/04/2017

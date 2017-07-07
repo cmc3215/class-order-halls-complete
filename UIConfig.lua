@@ -238,7 +238,7 @@ NS.UI.cfg = {
 											_G[bn .. "Monitor" .. monitorNum]:SetNormalTexture( orders[i].spell and orders[i].spellTexture or orders[i].texture );
 											_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnEnter", function( self ) MonitorButton_OnEnter( self, ( orders[i].spell and orders[i].spellName or orders[i].text ), orders[i].lines ); end );
 											_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnLeave", OnLeave );
-											_G[bn .. "Monitor" .. monitorNum .. "TopRightText"]:SetText( ( orders[i].troopCount and orders[i].troopCount ) or ( orders[i].artifactKnowledgeLevel and orders[i].artifactKnowledgeLevel ) or "" );
+											_G[bn .. "Monitor" .. monitorNum .. "TopRightText"]:SetText( orders[i].topRightText and orders[i].topRightText or "" );
 											local color = ( not orders[i].spell and orders[i].total == 0 and "Gray" ) or ( ( ( orders[i].spell and orders[i].spellSeconds > 0 ) or ( not orders[i].spell and orders[i].readyForPickup == 0 ) ) and "Red" ) or ( orders[i].readyForPickup < orders[i].total and "Yellow" ) or "Green";
 											_G[bn .. "Monitor" .. monitorNum .. "CenterText"]:SetText( ( orders[i].spell and color == "Red" and SecondsToTime( orders[i].spellSeconds, false, false, 1 ) ) or ( ( orders[i].spell or color == "Gray" ) and "" ) or ( orders[i].readyForPickup .. "/" .. orders[i].total ) );
 											_G[bn .. "Monitor" .. monitorNum .. "Indicator"]:SetTexture( "Interface\\COMMON\\Indicator-" .. color );
@@ -1102,6 +1102,20 @@ NS.UI.cfg = {
 				NS.TextFrame( "IndicatorsGreen", SubFrame, L["|TInterface\\COMMON\\Indicator-Green:20:20|t All complete"], {
 					setPoint = {
 						{ "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, 0 },
+						{ "RIGHT", -8 },
+					},
+					fontObject = "GameFontHighlight",
+				} );
+				NS.TextFrame( "FontColorHeader", SubFrame, string.format( L["%sFont Color|r"], BATTLENET_FONT_COLOR_CODE ), {
+					setPoint = {
+						{ "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -18 },
+						{ "RIGHT", -8 },
+					},
+					fontObject = "GameFontNormalLarge",
+				} );
+				NS.TextFrame( "FontColorOrange", SubFrame, string.format( L["%s1 2 3 4|r  Troop has recruits that are %s\"Ready to start\"|r"], ORANGE_FONT_COLOR_CODE, GREEN_FONT_COLOR_CODE ), {
+					setPoint = {
+						{ "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -8 },
 						{ "RIGHT", -8 },
 					},
 					fontObject = "GameFontHighlight",

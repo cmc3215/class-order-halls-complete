@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------------------------------------------------------------------
 local NS = select( 2, ... );
 local L = NS.localization;
-NS.versionString = "1.21";
+NS.versionString = "1.22";
 NS.version = tonumber( NS.versionString );
 --
 NS.initialized = false;
@@ -625,33 +625,35 @@ NS.UpdateCharacter = function()
 			end
 			local troops = NS.db["characters"][k]["troops"];
 			for i = 1, #troops do
-				local ordersKey = NS.FindKeyByField( NS.db["characters"][k]["orders"], "texture", troops[i].icon ) or NS.FindKeyByField( NS.db["characters"][k]["orders"], "name", troops[i].name );
-				local texture;
-				if ordersKey then
-					-- Fix orders texture to match troop icon, most will already match, this just catches the outliers.
-					texture = NS.db["characters"][k]["orders"][ordersKey]["texture"];
-					if troops[i].icon ~= texture then
-						monitorable[texture] = nil; -- Removes old texture from monitor
+				if troops[i].icon ~= 1551342 then -- Grimtotem Warrior has an item to instantly summon 1 active troop (Shaman with champion "Magatha")
+					local ordersKey = NS.FindKeyByField( NS.db["characters"][k]["orders"], "texture", troops[i].icon ) or NS.FindKeyByField( NS.db["characters"][k]["orders"], "name", troops[i].name );
+					local texture;
+					if ordersKey then
+						-- Fix orders texture to match troop icon, most will already match, this just catches the outliers.
+						texture = NS.db["characters"][k]["orders"][ordersKey]["texture"];
+						if troops[i].icon ~= texture then
+							monitorable[texture] = nil; -- Removes old texture from monitor
+							texture = troops[i].icon;
+							NS.db["characters"][k]["orders"][ordersKey]["texture"] = texture;
+						end
+						--
+						NS.db["characters"][k]["orders"][ordersKey]["capacity"] = troops[i].limit;
+						NS.db["characters"][k]["orders"][ordersKey]["troopCount"] = troops[i].count;
+					else
 						texture = troops[i].icon;
-						NS.db["characters"][k]["orders"][ordersKey]["texture"] = texture;
+						table.insert( NS.db["characters"][k]["orders"], {
+							["name"] = troops[i].name,
+							["texture"] = texture,
+							["capacity"] = troops[i].limit,
+							["troopCount"] = troops[i].count,
+						} );
 					end
-					--
-					NS.db["characters"][k]["orders"][ordersKey]["capacity"] = troops[i].limit;
-					NS.db["characters"][k]["orders"][ordersKey]["troopCount"] = troops[i].count;
-				else
-					texture = troops[i].icon;
-					table.insert( NS.db["characters"][k]["orders"], {
-						["name"] = troops[i].name,
-						["texture"] = texture,
-						["capacity"] = troops[i].limit,
-						["troopCount"] = troops[i].count,
-					} );
+					if NS.db["characters"][k]["monitor"][texture] == nil then
+						NS.db["characters"][k]["monitor"][texture] = true; -- Monitored by default
+					end
+					monitorable[texture] = true;
+					--NS.Print( "|T" .. troops[i].icon .. ":16|t count = " .. troops[i].count ); -- DEBUG
 				end
-				if NS.db["characters"][k]["monitor"][texture] == nil then
-					NS.db["characters"][k]["monitor"][texture] = true; -- Monitored by default
-				end
-				monitorable[texture] = true;
-				--NS.Print( "|T" .. troops[i].icon .. ":16|t count = " .. troops[i].count ); -- DEBUG
 			end
 			NS.Sort( NS.db["characters"][k]["orders"], "capacity", "DESC" ); -- Order troops by capacity for a more consistent display
 			-- Loose Shipments

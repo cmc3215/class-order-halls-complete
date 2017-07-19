@@ -1,3 +1,8 @@
+**1.22**
+
+- Release date: 07/19/2017
+- Prevents tracking of Shaman troop Grimtotem Warrior which has no Work Order and is instead summoned with an item obtained by chance when completing missions using the champion Magatha.
+
 **1.21**
 
 - Release date: 07/07/2017

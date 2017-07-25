@@ -9,7 +9,7 @@ local L = NS.localization;
 NS.UI.cfg = {
 	--
 	mainFrame = {
-		width		= 733,
+		width		= 785,
 		height		= 548,
 		portrait	= true,
 		frameStrata	= "MEDIUM",
@@ -21,13 +21,13 @@ NS.UI.cfg = {
 		end,
 		OnShow		= function( MainFrame )
 			MainFrame:Reposition();
-			PlaySound( "UI_Garrison_GarrisonReport_Open" );
+			PlaySound( "UI_Garrison_GarrisonReport_Open" ); -- id:44298 for patch 7.3
 		end,
 		OnHide		= function( MainFrame )
 			StaticPopup_Hide( "COHC_CHARACTER_DELETE" );
 			StaticPopup_Hide( "COHC_CHARACTER_ORDER" );
 			StaticPopup_Hide( "COHC_MONITOR_COLUMN" );
-			PlaySound( "UI_Garrison_GarrisonReport_Close" );
+			PlaySound( "UI_Garrison_GarrisonReport_Close" ); -- id:44299 for patch 7.3
 			local point, relativeTo, relativePoint, xOffset, yOffset = MainFrame:GetPoint( 1 );
 			NS.db["dragPosition"] = ( point and point == relativePoint and xOffset and yOffset ) and { point, xOffset, yOffset } or nil;
 		end,
@@ -51,7 +51,7 @@ NS.UI.cfg = {
 				} );
 				NS.Button( "ButtonsColumnHeaderButton", SubFrame, "" .. L["Missions, Class Hall Upgrades, Work Orders"], {
 					template = "COHCColumnHeaderButtonTemplate",
-					size = { 530, 19 },
+					size = { 582, 19 },
 					setPoint = { "TOPLEFT", "#sibling", "TOPRIGHT", -2, 0 },
 				} );
 				NS.Button( "RefreshButton", SubFrame, L["Refresh"], {
@@ -70,7 +70,7 @@ NS.UI.cfg = {
 					justifyH = "CENTER",
 				} );
 				NS.ScrollFrame( "ScrollFrame", SubFrame, {
-					size = { 686, ( 50 * NS.db["monitorRows"] - 5 ) },
+					size = { 738, ( 50 * NS.db["monitorRows"] - 5 ) },
 					setPoint = { "TOPLEFT", "$parentNameColumnHeaderButton", "BOTTOMLEFT", 1, -3 },
 					buttonTemplate = "COHCMonitorTabScrollFrameButtonTemplate",
 					udpate = {
@@ -78,7 +78,7 @@ NS.UI.cfg = {
 						buttonHeight = 50,
 						alwaysShowScrollBar = true,
 						UpdateFunction = function( sf )
-							local monitorMax = 10; -- Number of monitor buttons in XML template
+							local monitorMax = 11; -- Number of monitor buttons in XML template
 							local currentTime = time(); -- Time used in status calculation
 							--------------------------------------------------------------------------------------------------------------------------------------------
 							-- Add characters monitoring at least one into items for ScrollFrame
@@ -139,7 +139,17 @@ NS.UI.cfg = {
 									local SealButton_OnEnter = function( self, text, lines )
 										GameTooltip:SetOwner( self, "ANCHOR_RIGHT" );
 										GameTooltip:SetText( text );
-										GameTooltip:AddLine( lines );
+										if type( lines ) == "table" then
+											for i = 1, #lines do
+												if type( lines[i] ) == "table" then
+													GameTooltip:AddLine( lines[i][1], lines[i][2], lines[i][3],  lines[i][4], lines[i][5] );
+												else
+													GameTooltip:AddLine( lines[i] );
+												end
+											end
+										elseif lines then
+											GameTooltip:AddLine( lines );
+										end
 										GameTooltip:Show();
 										b:LockHighlight();
 									end
@@ -275,7 +285,7 @@ NS.UI.cfg = {
 					justifyV = "CENTER",
 				} );
 				local FooterFrame = NS.Frame( "Footer", SubFrame, {
-					size = { 714, 60 },
+					size = { 766, 60 },
 					setPoint = { "BOTTOM", "$parent", "BOTTOM", 0, 0 },
 					bg = { "Interface\\Garrison\\GarrisonMissionUIInfoBoxBackgroundTile", true, true },
 					bgSetAllPoints = true,
@@ -287,11 +297,11 @@ NS.UI.cfg = {
 				} );
 				local AdvancementsReportFrame = NS.Frame( "AdvancementsReport", FooterFrame, {
 					size = { 227, 44 },
-					setPoint = { "LEFT", "#sibling", "RIGHT", 8, 0 },
+					setPoint = { "LEFT", "#sibling", "RIGHT", ( 8 + 27 ), 0 },
 				} );
 				local WorkOrdersReportFrame = NS.Frame( "WorkOrdersReport", FooterFrame, {
 					size = { 227, 44 },
-					setPoint = { "LEFT", "#sibling", "RIGHT", 9, 0 },
+					setPoint = { "LEFT", "#sibling", "RIGHT", ( 9 + 25 ), 0 },
 				} );
 				--
 				local MissionsReportButton = NS.Button( "Button", MissionsReportFrame, nil, {
@@ -697,7 +707,7 @@ NS.UI.cfg = {
 				end
 				-- Work Orders
 				for i = 1, #char["orders"] do
-					table.insert( NS.charactersTabItems, { key = ( char["orders"][i].troop and char["orders"][i].troop or char["orders"][i].texture ), name = ( char["orders"][i].texture == 134939 and L["Legion Cooking Recipes"] or ( char["orders"][i].spellName or char["orders"][i].name ) ), icon = ( char["orders"][i].spellTexture or char["orders"][i].texture ) } );
+					table.insert( NS.charactersTabItems, { key = char["orders"][i].texture, name = ( char["orders"][i].texture == 134939 and L["Legion Cooking Recipes"] or ( char["orders"][i].spellName or char["orders"][i].name ) ), icon = ( char["orders"][i].spellTexture or char["orders"][i].texture ) } );
 				end
 				--
 				_G[sfn .. "ScrollFrame"]:Reset();
@@ -822,6 +832,7 @@ NS.UI.cfg = {
 					["world-quest-complete/blessing-order/bonus-roll"] = L["Instant Complete World Quest / Blessing of the Order / Seal of Broken Fate"],
 					["troop3"] = L["Troop #3"],
 					["troop4"] = L["Troop #4"],
+					["troop5"] = L["Troop #5"],
 				};
 				NS.DropDownMenu( "MonitorColumnsDropDownMenu", SubFrame, {
 					setPoint = { "TOPLEFT", "$parentMonitorRowsDropDownMenu", "BOTTOMLEFT", 0, -1 },
@@ -1113,7 +1124,7 @@ NS.UI.cfg = {
 					},
 					fontObject = "GameFontNormalLarge",
 				} );
-				NS.TextFrame( "FontColorOrange", SubFrame, string.format( L["%s1 2 3 4|r  Troop has recruits that are %s\"Ready to start\"|r"], ORANGE_FONT_COLOR_CODE, GREEN_FONT_COLOR_CODE ), {
+				NS.TextFrame( "FontColorOrange", SubFrame, string.format( L["%s0 1 2 3 4|r  Troop has recruits that are %s\"Ready to start\"|r or %s\"Ready to summon\"|r"], ORANGE_FONT_COLOR_CODE, GREEN_FONT_COLOR_CODE, GREEN_FONT_COLOR_CODE ), {
 					setPoint = {
 						{ "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -8 },
 						{ "RIGHT", -8 },
@@ -1147,9 +1158,8 @@ NS.UI.cfg = {
 					fontObject = "GameFontNormalLarge",
 				} );
 				NS.TextFrame( "NeedMoreHelp", SubFrame, string.format(
-						L["%sQuestions, comments, and suggestions can be made on Curse.\nPlease submit bug reports on CurseForge.|r\n\n" ..
-						"https://mods.curse.com/addons/wow/254300-class-order-halls-complete\n" ..
-						"https://wow.curseforge.com/projects/class-order-halls-complete/issues"],
+						L["%sQuestions, Comments, Bugs and Suggestions|r\n\n" ..
+						"https://mods.curse.com/addons/wow/254300-class-order-halls-complete"],
 						NORMAL_FONT_COLOR_CODE
 					), {
 					setPoint = {

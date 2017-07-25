@@ -1,3 +1,15 @@
+**1.23**
+
+- Release date: 07/25/2017
+- New 11th Monitor Column (up from 10) added for Troop #5 to add support for Grimtotem Warrior and Coilskar Brute. This new column will likely be removed at patch 7.3 because Artifact Research Notes will no longer exist.
+- Tooltip unique for Grimtotem Warrior (Shaman) and Coilskar Brute (Demon Hunter) because they are not recruited by Work Order but by item instead.
+- Seal of Broken Fate Work Order (Order Advancement Talent) is now tracked and included in your 3 weekly seals.
+- Seal of Broken Fate currency tooltip updated.
+- Sealing Fate Quests in Dalaran have been updated to include the patch 7.2.5 Mark of Honor options.
+- Bug fix: Sometimes immediately after starting a Work Order the (Next: x hr, x min) would display (Next: ) for a couple seconds.
+- Characters with troops from much older versions of this addon with a "?" on their icon will be removed. Log into that character to update troops.
+- Minor updates to Help tab.
+
 **1.22**
 
 - Release date: 07/19/2017

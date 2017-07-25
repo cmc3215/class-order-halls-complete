@@ -3,8 +3,9 @@
 --------------------------------------------------------------------------------------------------------------------------------------------
 local NS = select( 2, ... );
 local L = NS.localization;
-NS.versionString = "1.22";
+NS.versionString = "1.23";
 NS.version = tonumber( NS.versionString );
+NS.debug = false;
 --
 NS.initialized = false;
 --
@@ -78,8 +79,6 @@ NS.classRef = {
 		artifact = 43888, 																						-- Hitting the Books
 		armaments = 411, 																						-- Heavenly Forge
 		wqcomplete = { 410, 140157, L["Horn of War"], 221597, select( 3, GetSpellInfo( 221597 ) ) },			-- Val'kyr Call
-		--blessingorder = { 0, 0 },																				-- N/A
-		--bonusroll = 0,																						-- N/A
 		missions = 42598,																						-- Champions of Skyhold
 	},
 	["DEATHKNIGHT"] = {
@@ -87,8 +86,6 @@ NS.classRef = {
 		artifact = 43877,																						-- Hitting the Books
 		armaments = 433,																						-- Brothers in Arms
 		wqcomplete = { 432, 139888, L["Frost Crux"], 221557, select( 3, GetSpellInfo( 221557 ) ) },				-- Frost Wyrm
-		--blessingorder = { 0, 0 },																				-- N/A
-		--bonusroll = 0,																						-- N/A
 		missions = 43264,																						-- Rise, Champions
 	},
 	["PALADIN"] = {
@@ -96,16 +93,12 @@ NS.classRef = {
 		artifact = 43883, 																						-- Hitting the Books
 		armaments =	400, 																						-- Plowshares to Swords
 		wqcomplete = { 399, 140155, L["Silver Hand Orders"], 221587, select( 3, GetSpellInfo( 221587 ) ) },		-- Grand Crusade
-		--blessingorder = { 0, 0 },																				-- N/A
 		bonusroll = 398, 																						-- Holy Purpose
 		missions = 42846,																						-- The Blood Matriarch
 	},
 	["MONK"] = {
 		advancement = 42191, 																					-- Tech It Up A Notch
 		artifact = 43881, 																						-- Hitting the Books
-		--armaments = 0, 																						-- N/A
-		--wqcomplete = { 0, 0 },																				-- N/A
-		--blessingorder = { 0, 0 },																				-- N/A
 		bonusroll = 256, 																						-- One with Destiny
 		missions = 42187,																						-- Rise, Champions
 	},
@@ -113,7 +106,6 @@ NS.classRef = {
 		advancement = 43277, 																					-- Tech It Up A Notch
 		artifact = 43884, 																						-- Hitting the Books
 		armaments =	455, 																						-- Armaments of Light
-		--wqcomplete = { 0, 0 },																				-- N/A
 		blessingorder = { 448, 140156, L["Blessing of the Order"] },											-- Tithe
 		bonusroll = 454, 																						-- Blessed Seals
 		missions = 43270,																						-- Rise, Champions
@@ -121,18 +113,12 @@ NS.classRef = {
 	["SHAMAN"] = {
 		advancement = 41740, 																					-- Tech It Up A Notch
 		artifact = 43886, 																						-- Speaking to the Wind
-		--armaments = 0, 																						-- N/A
-		--wqcomplete = { 0, 0 },																				-- N/A
-		--blessingorder = { 0, 0 },																				-- N/A
 		bonusroll = 49, 																						-- Spirit Walk
 		missions = 42383,																						-- Rise, Champions
 	},
 	["DRUID"] = {
 		advancement = 42588, 																					-- Branching Out
 		artifact = 43879, 																						-- Hitting the Books
-		--armaments = 0, 																						-- N/A
-		--wqcomplete = { 0, 0 },																				-- N/A
-		--blessingorder = { 0, 0 },																				-- N/A
 		bonusroll = 355, 																						-- Elune's Chosen
 		missions = 42583,																						-- Rise, Champions
 	},
@@ -140,8 +126,6 @@ NS.classRef = {
 		advancement = 43015, 																					-- What Winstone Suggests
 		artifact = 43885, 																						-- Hitting the Books
 		armaments =	444, 																						-- Weapons Smuggler
-		--wqcomplete = { 0, 0 },																				-- N/A
-		--blessingorder = { 0, 0 },																				-- N/A
 		bonusroll = 443, 																						-- Plunder
 		missions = 42139,																						-- Rise, Champions
 	},
@@ -150,7 +134,6 @@ NS.classRef = {
 		artifact = 43749, 																						-- Hitting the Books
 		armaments =	389, 																						-- Arcane Armaments
 		wqcomplete = { 388, 140038, L["Focusing Crystal"], 221602, select( 3, GetSpellInfo( 221602 ) ) },		-- Might of Dalaran
-		--blessingorder = { 0, 0 },																				-- N/A
 		bonusroll = 387, 																						-- Arcane Divination
 		missions = 42663,																						-- Rise, Champions
 	},
@@ -159,16 +142,12 @@ NS.classRef = {
 		artifact = 43887, 																						-- Hitting the Books
 		armaments =	364, 																						-- Shadow Pact
 		wqcomplete = { 367, 139892, L["Demonic Phylactery"], 219540, select( 3, GetSpellInfo( 219540 ) ) },		-- Unleash Infernal
-		--blessingorder = { 0, 0 },																				-- N/A
-		--bonusroll = 0,																						-- N/A
 		missions = 42608,																						-- Rise, Champions
 	},
 	["HUNTER"] = {
 		advancement = 42526, 																					-- Tech It Up A Notch
 		artifact = 43880, 																						-- Hitting the Books
 		armaments = 378, 																						-- Fletchery
-		--wqcomplete = { 0, 0 },																				-- N/A
-		--blessingorder = { 0, 0 },																				-- N/A
 		bonusroll = 377, 																						-- Unseen Path
 		missions = 42519,																						-- Rise, Champions
 	},
@@ -177,12 +156,27 @@ NS.classRef = {
 		artifact = 43878, 																						-- Hitting the Books
 		armaments =	422, 																						-- Fel Armaments
 		wqcomplete = { 421, 140158, L["Empowered Rift Core"], 221561, select( 3, GetSpellInfo( 221561 ) ) },	-- Fel Hammer's Wrath
-		--blessingorder = { 0, 0 },																				-- N/A
 		bonusroll =	420, 																						-- Focused War Effort
 		missions = { 42670, 42671 },																			-- Rise, Champions
 	},
 };
-NS.sealOfBrokenFateQuests = { 43892, 43893, 43894, 43895, 43896, 43897 }; -- Sealing Fate quests in Dalaran
+NS.sealingFateQuests = { 43892, 43893, 43894, 43895, 43896, 43897, 47851, 47864, 47865 };
+-- Sealing Fate Quests in Dalaran
+--
+-- 43892 = Sealing Fate: Order Resources (1000)
+-- 43893 = Sealing Fate: Stashed Order Resources (2000)
+-- 43894 = Sealing Fate: Extraneous Order Resources (4000)
+--
+-- 43895 = Sealing Fate: Gold (1000)
+-- 43896 = Sealing Fate: Piles of Gold (2000)
+-- 43897 = Sealing Fate: Immense Fortune of Gold (4000)
+--
+-- 47851 = Sealing Fate: Marks of Honor (5)
+-- 47864 = Sealing Fate: Additional Marks of Honor (10)
+-- 47865 = Sealing Fate: Piles of Marks of Honor (20)
+--
+NS.sealofBrokenFateMax = 6;
+NS.sealofBrokenFateWeeklyMax = 3;
 NS.artifactKnowledgeLevelStage1Max = 25;
 NS.artifactKnowledgeLevelStage2Max = 40;
 --------------------------------------------------------------------------------------------------------------------------------------------
@@ -209,6 +203,7 @@ NS.DefaultSavedVariables = function()
 			"world-quest-complete/blessing-order/bonus-roll",
 			"troop3",
 			"troop4",
+			"troop5",
 		},
 		["alert"] = "current",
 		["alertMissions"] = true,
@@ -272,22 +267,21 @@ NS.Upgrade = function()
 	end
 	-- 1.10
 	if version < 1.10 then
-		for i = 1, #NS.db["monitorColumn"] do
-			if NS.db["monitorColumn"][i] == "world-quest-complete/bonus-roll" then
-				NS.db["monitorColumn"][i] = "world-quest-complete/blessing-order/bonus-roll";
-			end
+		local mck = NS.FindKeyByValue( NS.db["monitorColumn"], "world-quest-complete/bonus-roll" );
+		if mck then
+			NS.db["monitorColumn"][mck] = "world-quest-complete/blessing-order/bonus-roll";
 		end
 		NS.db["alertBlessingOfTheOrder"] = vars["alertBlessingOfTheOrder"];
 	end
 	-- 1.13
 	if version < 1.13 then
 		for ck,c in ipairs( NS.db["characters"] ) do
-			for ok,o in ipairs( c["orders"] ) do
+			NS.RemoveKeysByFunction( c["orders"], function( o )
 				if ( o.texture == 135705 or o.texture == 341980 or o.texture == 1411833 or o.texture == 1033908 or o.texture == 1367345 or o.texture == 1135365 ) then
-					table.remove( NS.db["characters"][ck]["orders"], ok );
 					NS.db["characters"][ck]["monitor"][o.texture] = nil;
+					return true;
 				end
-			end
+			end );
 		end
 	end
 	-- 1.16
@@ -305,6 +299,34 @@ NS.Upgrade = function()
 					break;
 				end
 			end
+		end
+	end
+	-- 1.23
+	if version < 1.23 then
+		local itemSummonTroops = { 1551342, 1551349 }; -- Grimtotem Warrior and Coilskar Brute
+		--
+		for ck,c in ipairs( NS.db["characters"] ) do
+			NS.RemoveKeysByFunction( c["orders"], function( o )
+				if o.troopCount == "?" then
+					NS.db["characters"][ck]["monitor"][o.texture] = nil;
+					return true;
+				end
+			end );
+			--
+			for i = 1, #itemSummonTroops do
+				local ok = NS.FindKeyByField( c["orders"], "texture", itemSummonTroops[i] );
+				if ok then
+					NS.db["characters"][ck]["orders"][ok]["troopSummonItemCount"] = 0;
+				end
+			end
+			--
+			NS.db["characters"][ck]["seals"]["sealingFateQuestsCompleted"] = NS.db["characters"][ck]["seals"]["sealOfBrokenFate"] or nil;
+			NS.db["characters"][ck]["seals"]["sealOfBrokenFate"] = nil;
+		end
+		--
+		local mck = NS.FindKeyByValue( NS.db["monitorColumn"], "troop5" );
+		if not mck then
+			table.insert( NS.db["monitorColumn"], "troop5" );
 		end
 	end
 	--
@@ -396,12 +418,16 @@ end
 NS.OrdersReadyToPickup = function( ready, total, duration, nextSeconds, updateTime, currentTime )
 	-- Calculate how many orders could have completed in the time past, which could not be larger than the
 	-- amount of orders in progress ( i.e. total - ready ), then we just add the orders that were already ready
-	if not total then return 0 end
-	return math.min( math.floor( ( currentTime - updateTime + ( duration - nextSeconds ) ) / duration ), ( total - ready ) ) + ready;
+	if not total then
+		return 0;
+	elseif duration == 0 then
+		return total;
+	else
+		return math.min( math.floor( ( currentTime - updateTime + ( duration - nextSeconds ) ) / duration ), ( total - ready ) ) + ready;
+	end
 end
 --
 NS.OrdersReadyToStart = function( capacity, total, troopCount, spellReagentCount )
-	if troopCount == "?" then return 0 end
 	total = total and total or 0;
 	troopCount = troopCount and troopCount or 0;
 	spellReagentCount = spellReagentCount and spellReagentCount or 0;
@@ -409,19 +435,30 @@ NS.OrdersReadyToStart = function( capacity, total, troopCount, spellReagentCount
 end
 --
 NS.OrdersAllSeconds = function( duration, total, ready, nextSeconds, updateTime, currentTime )
-	if not total then return 0 end
-	local seconds = duration * ( total - ready ) - ( duration - ( nextSeconds - ( currentTime - updateTime ) ) );
-	return seconds > 0 and seconds or 0;
+	if not total or duration == 0 then
+		return 0;
+	else
+		local seconds = duration * ( total - ready ) - ( duration - ( nextSeconds - ( currentTime - updateTime ) ) );
+		return math.max( seconds, 0 );
+	end
 end
 --
 NS.OrdersNextSeconds = function( allSeconds, duration )
-	if allSeconds == 0 then return 0 end
-	return allSeconds % duration;
+	if allSeconds == 0 then
+		return 0;
+	elseif allSeconds == duration then
+		return duration;
+	else
+		return allSeconds % duration;
+	end
 end
 --
 NS.OrdersOrigNextSeconds = function( duration, creationTime, currentTime )
-	if not creationTime or duration == 0 or creationTime == 0 then return 0 end
-	return math.max( duration - ( currentTime - creationTime ), 0 ); -- Prevent negatives, possible with hotfixed duration/creationTime
+	if not creationTime or duration == 0 or creationTime == 0 then
+		return 0;
+	else
+		return math.max( duration - ( currentTime - creationTime ), 0 );
+	end
 end
 --
 NS.ToggleAlert = function()
@@ -505,7 +542,6 @@ NS.UpdateCharacter = function()
 	-- Class Order Hall ?
 	--------------------------------------------------------------------------------------------------------------------------------------------
 	local hasOrderHall = C_Garrison.HasGarrison( LE_GARRISON_TYPE_7_0 );
-	local inOrderHall = C_Garrison.IsPlayerInGarrison( LE_GARRISON_TYPE_7_0 );
 	if hasOrderHall then
 		--------------------------------------------------------------------------------------------------------------------------------------------
 		-- Shipment Confirm: Avoids incomplete and inaccurate data being recorded following login, reloads, and pickups
@@ -609,62 +645,59 @@ NS.UpdateCharacter = function()
 					["total"] = shipmentsTotal,
 					["duration"] = duration,
 					["nextSeconds"] = NS.OrdersOrigNextSeconds( duration, creationTime, currentTime ),
-					["troopCount"] = "?",
 				} );
-				if NS.db["characters"][k]["monitor"][texture] == nil then
-					NS.db["characters"][k]["monitor"][texture] = true;
-				end
-				monitorable[texture] = true;
 			end
-			--------------------------------------------------------------------------------------------------------------------------------------------
 			-- Troops => Follower Shipments
-			--------------------------------------------------------------------------------------------------------------------------------------------
 			if NS.currentCharacter.troops then
 				NS.db["characters"][k]["troops"] = CopyTable( NS.currentCharacter.troops );
 				NS.currentCharacter.troops = nil;
 			end
 			local troops = NS.db["characters"][k]["troops"];
 			for i = 1, #troops do
-				if troops[i].icon ~= 1551342 then -- Grimtotem Warrior has an item to instantly summon 1 active troop (Shaman with champion "Magatha")
-					local ordersKey = NS.FindKeyByField( NS.db["characters"][k]["orders"], "texture", troops[i].icon ) or NS.FindKeyByField( NS.db["characters"][k]["orders"], "name", troops[i].name );
-					local texture;
-					if ordersKey then
-						-- Fix orders texture to match troop icon, most will already match, this just catches the outliers.
-						texture = NS.db["characters"][k]["orders"][ordersKey]["texture"];
-						if troops[i].icon ~= texture then
-							monitorable[texture] = nil; -- Removes old texture from monitor
-							texture = troops[i].icon;
-							NS.db["characters"][k]["orders"][ordersKey]["texture"] = texture;
-						end
-						--
-						NS.db["characters"][k]["orders"][ordersKey]["capacity"] = troops[i].limit;
-						NS.db["characters"][k]["orders"][ordersKey]["troopCount"] = troops[i].count;
-					else
+				local ordersKey = NS.FindKeyByField( NS.db["characters"][k]["orders"], "texture", troops[i].icon ) or NS.FindKeyByField( NS.db["characters"][k]["orders"], "name", troops[i].name );
+				local texture;
+				if ordersKey then
+					-- Troop order FOUND
+					local order = NS.db["characters"][k]["orders"][ordersKey];
+					texture = order["texture"];
+					if troops[i].icon ~= texture then
 						texture = troops[i].icon;
-						table.insert( NS.db["characters"][k]["orders"], {
-							["name"] = troops[i].name,
-							["texture"] = texture,
-							["capacity"] = troops[i].limit,
-							["troopCount"] = troops[i].count,
-						} );
+						order["texture"] = texture;
 					end
-					if NS.db["characters"][k]["monitor"][texture] == nil then
-						NS.db["characters"][k]["monitor"][texture] = true; -- Monitored by default
+					--
+					order["capacity"] = troops[i].limit;
+					order["troopCount"] = troops[i].count;
+				else
+					-- Troop order NOT FOUND
+					texture = troops[i].icon;
+					table.insert( NS.db["characters"][k]["orders"], {
+						["name"] = troops[i].name,
+						["texture"] = texture,
+						["capacity"] = troops[i].limit,
+						["troopCount"] = troops[i].count,
+					} );
+					-- Troop not gained thru an order but instead thru an item:
+					-- Grimtotem Warrior (1551342:Shaman) and Coilskar Brute (1551349:Demon Hunter)
+					local troopSummonItem = ( texture == 1551342 and 143850 ) or ( texture == 1551349 and 143849 ) or nil;
+					if troopSummonItem then
+						local ordersKey = #NS.db["characters"][k]["orders"]; -- Last order inserted
+						NS.db["characters"][k]["orders"][ordersKey]["troopSummonItemCount"] = GetItemCount( troopSummonItem, true );
 					end
-					monitorable[texture] = true;
-					--NS.Print( "|T" .. troops[i].icon .. ":16|t count = " .. troops[i].count ); -- DEBUG
 				end
+				if NS.db["characters"][k]["monitor"][texture] == nil then
+					NS.db["characters"][k]["monitor"][texture] = true; -- Monitored by default
+				end
+				monitorable[texture] = true;
 			end
+			NS.RemoveKeysByFunction( NS.db["characters"][k]["orders"], function( order ) if not order.troopCount then return true end end ); -- Remove unexpected followerShipments without a matching troop
 			NS.Sort( NS.db["characters"][k]["orders"], "capacity", "DESC" ); -- Order troops by capacity for a more consistent display
 			-- Loose Shipments
 			local looseShipments = C_Garrison.GetLooseShipments( LE_GARRISON_TYPE_7_0 );
 			for i = 1, #looseShipments do
 				local name,texture,shipmentCapacity,shipmentsReady,shipmentsTotal,creationTime,duration,timeleftString = C_Garrison.GetLandingPageShipmentInfoByContainerID( looseShipments[i] );
-				if texture == 237446 then
-					local nextSeconds = NS.OrdersOrigNextSeconds( duration, creationTime, currentTime );
-					if nextSeconds > 12960 then
-						duration = duration - ( nextSeconds - 12960 ); -- Artifact Research Notes hotfix sometimes causes seconds remaining to be more than new duration 12960 sec
-					end
+				if texture == 237446 then -- Hotfixed Artifact Research Notes duration is 12960 sec, formerly 432000 sec
+					duration = duration == 0 and 0 or 12960; -- 12960 sec / 3 hr 36 min
+					creationTime = ( not creationTime or creationTime == 0 ) and 0 or math.min( currentTime, ( creationTime + 432000 - duration ) ); -- Readjust the adjusted creationTime forward 432000 sec then back the actual 12960 sec ago and never let it exceed the currentTime (be created in the future)
 				end
 				table.insert( NS.db["characters"][k]["orders"], {
 					["name"] = name,
@@ -672,13 +705,14 @@ NS.UpdateCharacter = function()
 					["capacity"] = shipmentCapacity,
 					["ready"] = shipmentsReady,
 					["total"] = shipmentsTotal,
-					["duration"] = ( texture == 237446 and 12960 or duration ), -- Hard code Artifact Research Notes duration to hotfix duration 12960 sec, normally 432000 sec
-					["nextSeconds"] = NS.OrdersOrigNextSeconds( duration, creationTime, currentTime ), -- Do not adjust duration here because creationTime has been set in the past by the API
+					["duration"] = duration,
+					["nextSeconds"] = NS.OrdersOrigNextSeconds( duration, creationTime, currentTime ),
 				} );
 				if NS.db["characters"][k]["monitor"][texture] == nil then
 					NS.db["characters"][k]["monitor"][texture] = true;
 				end
 				monitorable[texture] = true;
+				--NS.Debug( "Name=" .. name .. ", Texture=" .. texture .. ", Capacity=" .. ( shipmentCapacity or "nil" ) .. ", Ready=" .. ( shipmentsReady or "nil" ) .. ", Total=" .. ( shipmentsTotal or "nil" ) .. ", Duration=" .. ( duration or "nil" ) .. ", CreationTime=" .. ( creationTime or "nil" ) .. ", CurrentTime=" .. currentTime .. ", NextSeconds=" .. ( NS.OrdersOrigNextSeconds( duration, creationTime, currentTime ) ) );
 			end
 			-- Artifact Research Notes
 			if IsQuestFlaggedCompleted( NS.classRef[NS.currentCharacter.class].artifact ) then
@@ -750,7 +784,7 @@ NS.UpdateCharacter = function()
 					end
 					monitorable[texture] = true;
 				end
-				ordersKey = ordersKey or NS.FindKeyByField( NS.db["characters"][k]["orders"], "texture", texture );
+				ordersKey = ordersKey or #NS.db["characters"][k]["orders"];
 				NS.db["characters"][k]["orders"][ordersKey]["spellName"] = GetSpellInfo( NS.classRef[NS.currentCharacter.class].wqcomplete[4] );
 				NS.db["characters"][k]["orders"][ordersKey]["spellTexture"] = NS.classRef[NS.currentCharacter.class].wqcomplete[5];
 				NS.db["characters"][k]["orders"][ordersKey]["spellCooldown"] = spellCooldown;
@@ -860,14 +894,18 @@ NS.UpdateCharacter = function()
 			--------------------------------------------------------------------------------------------------------------------------------------------
 			wipe( NS.db["characters"][k]["seals"] );
 			if NS.currentCharacter.level >= 110 then
-				-- Seal of Broken Fate
-				local thisWeek = 0;
-				for i = 1, #NS.sealOfBrokenFateQuests do
-					if IsQuestFlaggedCompleted( NS.sealOfBrokenFateQuests[i] ) then -- Sealing Fate quests in Dalaran
-						thisWeek = thisWeek + 1;
+				-- Bonus Roll Work Order (Talent)
+				if NS.classRef[NS.currentCharacter.class].bonusroll and talentTiers[5] then
+					NS.db["characters"][k]["seals"]["bonusRollWorkOrderCompleted"] = IsQuestFlaggedCompleted( 43510 ); -- 43510 = Seal of Fate: Class Hall
+				end
+				-- Sealing Fate Quests (Dalaran)
+				local sealingFateQuestsCompleted = 0;
+				for i = 1, #NS.sealingFateQuests do
+					if IsQuestFlaggedCompleted( NS.sealingFateQuests[i] ) then
+						sealingFateQuestsCompleted = sealingFateQuestsCompleted + 1;
 					end
 				end
-				NS.db["characters"][k]["seals"]["sealOfBrokenFate"] = thisWeek;
+				NS.db["characters"][k]["seals"]["sealingFateQuestsCompleted"] = sealingFateQuestsCompleted;
 			end
 			--------------------------------------------------------------------------------------------------------------------------------------------
 			-- Update Time / Monitor Clean Up
@@ -936,20 +974,29 @@ NS.UpdateCharacters = function()
 		-- Seals
 		--
 		seals[char["name"]] = {};
-		if char["seals"]["sealOfBrokenFate"] then
+		if char["seals"]["sealingFateQuestsCompleted"] then
 			local s = seals[char["name"]];
 			s.sealOfBrokenFate = {
-				text = string.format( L["Seal of Broken Fate - %d/6"], char["sealOfBrokenFate"] ),
-				thisWeek = currentTime > char["weeklyResetTime"] and 0 or char["seals"]["sealOfBrokenFate"],
+				text = string.format( L["Seal of Broken Fate - %d/%d"], char["sealOfBrokenFate"], NS.sealofBrokenFateMax ),
+				lines = {},
+				thisWeekQuests = 0,
+				thisWeekWorkOrder = 0,
+				thisWeek = 0,
 			};
-			if s.sealOfBrokenFate.thisWeek == 3 then
-				s.sealOfBrokenFate.lines = string.format( L["%sTotal Weekly:|r %s3/3|r"], NORMAL_FONT_COLOR_CODE, RED_FONT_COLOR_CODE );
-			elseif char["sealOfBrokenFate"] == 6 then
-				s.sealOfBrokenFate.text = L["Seal of Broken Fate"];
-				s.sealOfBrokenFate.lines = string.format( L["%sTotal Maximum:|r %s6/6|r"], NORMAL_FONT_COLOR_CODE, RED_FONT_COLOR_CODE );
-			else
-				s.sealOfBrokenFate.lines = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["%d/%d obtained from \"Sealing Fate\" quests in Dalaran"], s.sealOfBrokenFate.thisWeek, 3 ) .. FONT_COLOR_CODE_CLOSE;
+			--
+			local sealsThisWeekQuests,sealsThisWeekWorkOrder,sealsThisWeek = 0,0,0;
+			if currentTime <= char["weeklyResetTime"] then
+				s.sealOfBrokenFate.thisWeekWorkOrder = char["seals"]["bonusRollWorkOrderCompleted"] and 1 or 0;
+				s.sealOfBrokenFate.thisWeekQuests = char["seals"]["sealingFateQuestsCompleted"];
+				s.sealOfBrokenFate.thisWeek = s.sealOfBrokenFate.thisWeekWorkOrder + s.sealOfBrokenFate.thisWeekQuests;
 			end
+			--
+			if char["seals"]["bonusRollWorkOrderCompleted"] ~= nil then
+				s.sealOfBrokenFate.lines[1] = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["%d/%d - This week's \"Seal of Broken Fate\" Work Order"], s.sealOfBrokenFate.thisWeekWorkOrder, 1 ) .. FONT_COLOR_CODE_CLOSE;
+			end
+			s.sealOfBrokenFate.lines[#s.sealOfBrokenFate.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["%d/%d - This week's \"Sealing Fate\" Quests in Dalaran"], s.sealOfBrokenFate.thisWeekQuests, ( NS.sealofBrokenFateWeeklyMax - s.sealOfBrokenFate.thisWeekWorkOrder ) ) .. FONT_COLOR_CODE_CLOSE;
+			s.sealOfBrokenFate.lines[#s.sealOfBrokenFate.lines + 1] = " ";
+			s.sealOfBrokenFate.lines[#s.sealOfBrokenFate.lines + 1] = string.format( L["%sTotal Weekly:|r %s%d/%d|r"], NORMAL_FONT_COLOR_CODE, ( s.sealOfBrokenFate.thisWeek == NS.sealofBrokenFateWeeklyMax and RED_FONT_COLOR_CODE or HIGHLIGHT_FONT_COLOR_CODE ), s.sealOfBrokenFate.thisWeek, NS.sealofBrokenFateWeeklyMax );
 		end
 		--
 		-- Missions
@@ -1065,20 +1112,21 @@ NS.UpdateCharacters = function()
 				local wo = orders[char["name"]][#orders[char["name"]]];
 				wo.texture = o.texture;
 				wo.text = o.name;
-				wo.troopCount = o.troopCount;
-				wo.artifactKnowledgeLevel = wo.texture == 237446 and ( char["artifactKnowledgeLevel"] or "?" ) or nil;
+				--o.troopCount;
+				--o.troopSummonItemCount;
+				local artifactKnowledgeLevel = wo.texture == 237446 and ( char["artifactKnowledgeLevel"] or "?" ) or nil;
 				wo.spell = false;
 				wo.spellName = o.spellName;
 				wo.spellTexture = o.spellTexture;
 				wo.spellSeconds = nil;
 				--o.spellCooldown;
 				--o.spellReagentCount;
-				local artifactKnowledgeLevelMax = type( wo.artifactKnowledgeLevel ) == "number" and math.max( char["artifactKnowledgeLevel"], ( char["artifactKnowledgeStage2Unlocked"] and NS.artifactKnowledgeLevelStage2Max or NS.artifactKnowledgeLevelStage1Max ) ) or NS.artifactKnowledgeLevelStage2Max;
+				local artifactKnowledgeLevelMax = type( artifactKnowledgeLevel ) == "number" and math.max( char["artifactKnowledgeLevel"], ( char["artifactKnowledgeStage2Unlocked"] and NS.artifactKnowledgeLevelStage2Max or NS.artifactKnowledgeLevelStage1Max ) ) or NS.artifactKnowledgeLevelStage2Max;
 				local artifactKnowledgeTextInfo = nil;
-				wo.capacity = wo.texture == 237446 and char["artifactKnowledgeLevel"] and ( math.min( o.capacity, artifactKnowledgeLevelMax - char["artifactKnowledgeLevel"] ) ) or o.capacity;
+				local capacity = wo.texture == 237446 and char["artifactKnowledgeLevel"] and ( math.min( o.capacity, artifactKnowledgeLevelMax - char["artifactKnowledgeLevel"] ) ) or o.capacity;
 				wo.total = o.total or 0; -- o.total is nil if no orders
 				wo.readyForPickup = NS.OrdersReadyToPickup( o.ready, o.total, o.duration, o.nextSeconds, char["updateTime"], currentTime );
-				local readyToStart = NS.OrdersReadyToStart( wo.capacity, o.total, o.troopCount, o.spellReagentCount );
+				local readyToStart = NS.OrdersReadyToStart( capacity, o.total, o.troopCount, o.spellReagentCount );
 				local allSeconds = NS.OrdersAllSeconds( o.duration, o.total, o.ready, o.nextSeconds, char["updateTime"], currentTime );
 				local nextSeconds = NS.OrdersNextSeconds( allSeconds, o.duration );
 				wo.topRightText = nil;
@@ -1092,16 +1140,16 @@ NS.UpdateCharacters = function()
 				end
 				--
 				wo.lines = {};
-				if wo.troopCount then
-					wo.text = wo.text .. " - " .. wo.troopCount .. "/" .. wo.capacity;
-					wo.topRightText = readyToStart > 0 and ( ORANGE_FONT_COLOR_CODE .. wo.troopCount .. FONT_COLOR_CODE_CLOSE ) or wo.troopCount;
+				if o.troopCount then
+					wo.text = wo.text .. " - " .. o.troopCount .. "/" .. capacity;
+					wo.topRightText = ( readyToStart > 0 and ( not o.troopSummonItemCount or o.troopSummonItemCount > 0 ) ) and ( ORANGE_FONT_COLOR_CODE .. o.troopCount .. FONT_COLOR_CODE_CLOSE ) or o.troopCount;
 				end
 				--
-				if wo.artifactKnowledgeLevel then
-					wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["Artifact Knowledge Level: %s"], ( wo.artifactKnowledgeLevel == "?" and L["Unknown"] or wo.artifactKnowledgeLevel ) ) .. FONT_COLOR_CODE_CLOSE;
-					wo.topRightText = wo.artifactKnowledgeLevel;
+				if artifactKnowledgeLevel then
+					wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["Artifact Knowledge Level: %s"], ( artifactKnowledgeLevel == "?" and L["Unknown"] or artifactKnowledgeLevel ) ) .. FONT_COLOR_CODE_CLOSE;
+					wo.topRightText = artifactKnowledgeLevel;
 				end
-				--
+				-- Instant Complete World Quest
 				if o.spellCooldown then
 					wo.spell = true;
 					wo.spellSeconds = o.spellCooldown > passedTime and ( o.spellCooldown - passedTime ) or 0;
@@ -1117,31 +1165,45 @@ NS.UpdateCharacters = function()
 					wo.lines[#wo.lines + 1] = " ";
 					wo.lines[#wo.lines + 1] = ITEM_QUALITY_COLORS[3].hex .. o.name .. FONT_COLOR_CODE_CLOSE;
 				end
-				--
-				if readyToStart > 0 then
-					if wo.texture == 133858 then -- Seal of Broken Fate
-						wo.lines[#wo.lines + 1] = seals[char["name"]].sealOfBrokenFate.lines;
+				-- Seal of Broken Fate
+				if wo.texture == 133858 then
+					wo.spell = true;
+					wo.spellSeconds = ( seals[char["name"]].sealOfBrokenFate.thisWeekWorkOrder == 0 and seals[char["name"]].sealOfBrokenFate.thisWeek < NS.sealofBrokenFateWeeklyMax ) and 0 or ( char["weeklyResetTime"] - currentTime );
+					if wo.spellSeconds > 0 then
+						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["Weekly Reset: %s"], SecondsToTime( wo.spellSeconds ) ) .. FONT_COLOR_CODE_CLOSE;
 					else
-						wo.lines[#wo.lines + 1] = GREEN_FONT_COLOR_CODE .. string.format( L["%d Ready to start"], readyToStart ) .. FONT_COLOR_CODE_CLOSE;
-						if wo.artifactKnowledgeLevel and wo.artifactKnowledgeLevel ~= "?" then
-							local quest = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["Obtain Artifact Research Notes instantly\nusing Order Resources by completing the\nquest \"Knowledge is Power\" in your Class\nOrder Hall up to Artifact Knowledge Level %d"], NS.artifactKnowledgeLevelStage1Max ) .. FONT_COLOR_CODE_CLOSE;
-							local compendium = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["An often cheaper option is to purchase an\n|r%sArtifact Research Compendium|r %susing a more\nadvanced alt to progress several levels instantly."], ITEM_QUALITY_COLORS[6].hex, HIGHLIGHT_FONT_COLOR_CODE ) .. FONT_COLOR_CODE_CLOSE;
-							-- Artifact Knowledge Level in Stage 1 but not maxed
-							if wo.artifactKnowledgeLevel < NS.artifactKnowledgeLevelStage1Max then
-								wo.lines[#wo.lines] = nil; -- Removes %d Ready to start
-								artifactKnowledgeTextInfo = quest .. "\n\n" .. compendium;
-							-- Artifact Knowledge Level in Stage 2 but not maxed
-							elseif wo.artifactKnowledgeLevel >= NS.artifactKnowledgeLevelStage1Max then
-								artifactKnowledgeTextInfo = compendium;
-							end
+						if NS.db["alertBonusRollToken"] then
+							alertCurrentCharacter = ( not alertCurrentCharacter and char["name"] == NS.currentCharacter.name ) and true or alertCurrentCharacter; -- All characters
+							alertAnyCharacter = true; -- All characters
 						end
 					end
-				elseif wo.artifactKnowledgeLevel then
+				end
+				--
+				if readyToStart > 0 then
+					if o.troopCount and ( wo.texture == 1551342 or wo.texture == 1551349 ) then -- Grimtotem Warrior (1551342) and Coilskar Brute (1551349)
+						wo.lines[#wo.lines + 1] = ( o.troopSummonItemCount > 0 and GREEN_FONT_COLOR_CODE or RED_FONT_COLOR_CODE ) .. string.format( L["%d Ready to summon"], math.min( o.troopSummonItemCount, readyToStart ) ) .. FONT_COLOR_CODE_CLOSE;
+					elseif wo.texture ~= 133858 or wo.spellSeconds == 0 then -- Ignore Seal of Broken Fate unless not completed this week
+						wo.lines[#wo.lines + 1] = GREEN_FONT_COLOR_CODE .. string.format( L["%d Ready to start"], readyToStart ) .. FONT_COLOR_CODE_CLOSE;
+					end
+					--
+					if artifactKnowledgeLevel and artifactKnowledgeLevel ~= "?" then
+						local quest = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["Obtain Artifact Research Notes instantly\nusing Order Resources by completing the\nquest \"Knowledge is Power\" in your Class\nOrder Hall up to Artifact Knowledge Level %d"], NS.artifactKnowledgeLevelStage1Max ) .. FONT_COLOR_CODE_CLOSE;
+						local compendium = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["An often cheaper option is to purchase an\n|r%sArtifact Research Compendium|r %susing a more\nadvanced alt to progress several levels instantly."], ITEM_QUALITY_COLORS[6].hex, HIGHLIGHT_FONT_COLOR_CODE ) .. FONT_COLOR_CODE_CLOSE;
+						-- Artifact Knowledge Level in Stage 1 but not maxed
+						if artifactKnowledgeLevel < NS.artifactKnowledgeLevelStage1Max then
+							wo.lines[#wo.lines] = nil; -- Removes %d Ready to start
+							artifactKnowledgeTextInfo = quest .. "\n\n" .. compendium;
+						-- Artifact Knowledge Level in Stage 2 but not maxed
+						elseif artifactKnowledgeLevel >= NS.artifactKnowledgeLevelStage1Max then
+							artifactKnowledgeTextInfo = compendium;
+						end
+					end
+				elseif artifactKnowledgeLevel then
 					-- Artifact Knowledge Level stuck at Stage 1 max
-					if wo.artifactKnowledgeLevel == NS.artifactKnowledgeLevelStage1Max then
+					if artifactKnowledgeLevel == NS.artifactKnowledgeLevelStage1Max then
 						artifactKnowledgeTextInfo = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["Archmage Khadgar has a lead on how\nyou can continue your artifact knowledge\nresearch. Seek him out at Deliverance\nPoint on the Broken Shore.\n\nAn often cheaper option is to purchase an\n|r%sArtifact Research Compendium|r %susing a more\nadvanced alt to progress several levels instantly."], ITEM_QUALITY_COLORS[6].hex, HIGHLIGHT_FONT_COLOR_CODE ) .. FONT_COLOR_CODE_CLOSE;
 					-- Artifact Knowledge Level stuck at Stage 2 max
-					elseif wo.artifactKnowledgeLevel == NS.artifactKnowledgeLevelStage2Max then
+					elseif artifactKnowledgeLevel == NS.artifactKnowledgeLevelStage2Max then
 						artifactKnowledgeTextInfo = HIGHLIGHT_FONT_COLOR_CODE .. L["You have reached the maximum Artifact\nKnowledge available to you at this time."] .. FONT_COLOR_CODE_CLOSE;
 					end
 				elseif o.spellReagentCount and o.spellReagentCount > 0 then
@@ -1152,10 +1214,10 @@ NS.UpdateCharacters = function()
 					NS.alertChatArtifactResearchNotes = nil; -- Reset each update before check below
 				end
 				--
-				if o.total and wo.total > 0 then
+				if wo.total > 0 then
 					if wo.readyForPickup == wo.total then
 						wo.lines[#wo.lines + 1] = GREEN_FONT_COLOR_CODE .. string.format( L["%d Ready for pickup"], wo.readyForPickup ) .. FONT_COLOR_CODE_CLOSE;
-						if ( wo.troopCount and NS.db["alertTroops"] ) or
+						if ( o.troopCount and NS.db["alertTroops"] ) or
 						   ( wo.texture == 237446 and NS.db["alertArtifactResearchNotes"] ) or
 						   ( wo.texture == 975736 and NS.db["alertChampionArmaments"] ) or
 						   ( wo.texture == 134939 and NS.db["alertLegionCookingRecipes"] ) or
@@ -1183,15 +1245,15 @@ NS.UpdateCharacters = function()
 					wo.lines[#wo.lines + 1] = artifactKnowledgeTextInfo;
 				end
 				--
-				if wo.troopCount and #wo.lines == 0 then
-					if wo.troopCount == wo.capacity or ( type( wo.troopCount ) == "number" and wo.troopCount > wo.capacity ) then
+				if o.troopCount and #wo.lines == 0 then
+					if o.troopCount >= capacity then
 						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. L["0 recruits remaining"] .. FONT_COLOR_CODE_CLOSE;
 					else
 						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. L["Unable to detect troop counts"] .. FONT_COLOR_CODE_CLOSE;
 					end
 				end
 				-- Monitor Column
-				if wo.troopCount then
+				if o.troopCount then
 					troopNum = troopNum + 1;
 					wo.monitorColumn = "troop" .. troopNum;
 				elseif wo.texture == 237446 then
@@ -1266,7 +1328,7 @@ NS.UpdateAll = function( forceUpdate )
 		WorldMapFrame:HookScript( "OnShow", function( self ) COHCEventsFrame:RegisterEvent( "UNIT_SPELLCAST_SUCCEEDED" ); end ); -- Fires when casting spells with the World Map shown
 		WorldMapFrame:HookScript( "OnHide", function( self ) COHCEventsFrame:UnregisterEvent( "UNIT_SPELLCAST_SUCCEEDED" ); end ); -- Ignore casting spells with the World Map hidden
 		COHCEventsFrame:RegisterEvent( "CHAT_MSG_CURRENCY" ); -- Fires when Order Resources are looted
-		COHCEventsFrame:RegisterEvent( "BONUS_ROLL_RESULT" ); -- Fires when bonus rolls are used
+		COHCEventsFrame:RegisterEvent( "BONUS_ROLL_RESULT" ); -- Fires when Bonus Rolls are used
 		COHCEventsFrame:RegisterEvent( "CURRENCY_DISPLAY_UPDATE" ); -- Fires when Artifact Research Notes/Compendium are used
 	end
 	-- Alert

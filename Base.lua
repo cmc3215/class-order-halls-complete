@@ -566,6 +566,11 @@ NS.Print = function( msg )
 	print( ORANGE_FONT_COLOR_CODE .. "<|r" .. NORMAL_FONT_COLOR_CODE .. NS.addon .. "|r" .. ORANGE_FONT_COLOR_CODE .. ">|r " .. msg );
 end
 --
+NS.Debug = function( msg )
+	if not NS.debug then return end
+	NS.Print( "DEBUG: " .. msg );
+end
+--
 NS.SecondsToStrTime = function( seconds, colorCode )
 	-- Seconds In Min, Hour, Day
     local secondsInAMinute = 60;
@@ -672,6 +677,19 @@ NS.FindKeyByValue = function( t, v )
 	return nil;
 end
 --
+NS.RemoveKeysByFunction = function( t, func )
+	local k, r = 1, 0;
+	while k <= #t do
+		if func( t[k] ) then
+			table.remove( t, k );
+			r = r + 1;
+		else
+			k = k + 1;
+		end
+	end
+	return r;
+end
+--
 NS.Sort = function( t, k, order )
 	table.sort ( t,
 		function ( e1, e2 )
@@ -706,7 +724,7 @@ end
 --
 NS.GetWeeklyQuestResetTime = function()
 	local TUE,WED,THU = 2, 3, 4;
-	local resetWeekdays = { ["US"] = TUE, ["EU"] = WED, ["CN"] = THU, ["KR"] = THU, ["TW"] = THU };
+	local resetWeekdays = { ["BETA"] = TUE, ["US"] = TUE, ["EU"] = WED, ["CN"] = THU, ["KR"] = THU, ["TW"] = THU };
 	local resetWeekday = resetWeekdays[GetCVar( "portal" ):upper()];
 	local resetTime = time() + GetQuestResetTime();
 	while tonumber( date( "%w", resetTime ) ) ~= resetWeekday do

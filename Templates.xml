@@ -476,7 +476,7 @@
 	<!-- Template -->
 	<Button name="COHCCharactersTabScrollFrameButtonTemplate" hidden="false" virtual="true">
 		<Size>
-			<AbsDimension x="686" y="40"/><!-- Width is LESS THAN all elements combined w/offsets -->
+			<AbsDimension x="738" y="40"/><!-- Width is LESS THAN all elements combined w/offsets -->
 		</Size>
 		<!-- Frames -->
 		<Frames>
@@ -519,7 +519,7 @@
 				<Anchors>
 					<Anchor point="LEFT" relativeTo="$parent_Name" relativePoint="RIGHT">
 						<Offset>
-							<AbsDimension x="112" y="0"/>
+							<AbsDimension x="164" y="0"/>
 						</Offset>
 					</Anchor>
 				</Anchors>

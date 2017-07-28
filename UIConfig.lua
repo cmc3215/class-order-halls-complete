@@ -490,7 +490,7 @@ NS.UI.cfg = {
 					db = "orderCharactersAutomatically",
 				} );
 				NS.TextFrame( "MonitoredNum", SubFrame, "", {
-					size = { 386, 20 },
+					size = { 438, 20 },
 					setPoint = { "LEFT", "$parentCharacterDropDownMenu", "RIGHT", -6, 0 },
 					fontObject = "GameFontHighlight",
 					justifyH = "RIGHT",
@@ -506,7 +506,7 @@ NS.UI.cfg = {
 					return numMonitored,numTotal;
 				end
 				NS.ScrollFrame( "ScrollFrame", SubFrame, {
-					size = { 686, ( 40 * 10 - 5 ) },
+					size = { 738, ( 40 * 10 - 5 ) },
 					setPoint = { "TOPLEFT", "$parent", "TOPLEFT", -1, -37 },
 					buttonTemplate = "COHCCharactersTabScrollFrameButtonTemplate",
 					udpate = {

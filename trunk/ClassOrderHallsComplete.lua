@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------------------------------------------------------------------
 local NS = select( 2, ... );
 local L = NS.localization;
-NS.versionString = "1.23";
+NS.versionString = "1.24";
 NS.version = tonumber( NS.versionString );
 NS.debug = false;
 --
@@ -524,6 +524,7 @@ NS.UpdateCharacter = function()
 			["name"] = NS.currentCharacter.name,						-- Permanent
 			["realm"] = GetRealmName(),									-- Permanent
 			["class"] = NS.currentCharacter.class,						-- Permanent
+			["level"] = 0,												-- Reset below every update
 			["orderResources"] = 0,										-- Reset below every update
 			["advancement"] = {},										-- Reset below every update
 			["orders"] = {},											-- Reset below every update
@@ -536,6 +537,7 @@ NS.UpdateCharacter = function()
 	end
 	--------------------------------------------------------------------------------------------------------------------------------------------
 	NS.currentCharacter.level = UnitLevel( "player" );
+	NS.db["characters"][k]["level"] = NS.currentCharacter.level;
 	NS.db["characters"][k]["orderResources"] = select( 2, GetCurrencyInfo( 1220 ) );
 	NS.db["characters"][k]["sealOfBrokenFate"] = select( 2, GetCurrencyInfo( 1273 ) );
 	--------------------------------------------------------------------------------------------------------------------------------------------
@@ -614,16 +616,14 @@ NS.UpdateCharacter = function()
 					end
 					-- Talent Tier Available?
 					if ( not NS.db["characters"][k]["advancement"]["talentBeingResearched"] and #talentTiers < 8 ) then
-						if #talentTiers == 0 or ( #talentTiers == 1 and NS.currentCharacter.level >= 105 ) or NS.currentCharacter.level >= 110 then
-							NS.db["characters"][k]["advancement"]["newTalentTier"] = {};
-							local newTier = #talentTiers + 1;
-							for _,talent in ipairs( talentTree ) do
-								if talent.tier == newTier then
-									NS.db["characters"][k]["advancement"]["newTalentTier"][talent.uiOrder] = CopyTable( talent );
-								end
+						NS.db["characters"][k]["advancement"]["newTalentTier"] = {};
+						local newTier = #talentTiers + 1;
+						for _,talent in ipairs( talentTree ) do
+							if talent.tier == newTier then
+								NS.db["characters"][k]["advancement"]["newTalentTier"][talent.uiOrder] = CopyTable( talent );
 							end
-							--NS.Print( "Talent tier available = " .. newTier ); -- DEBUG
 						end
+						--NS.Print( "Talent tier available = " .. newTier ); -- DEBUG
 					end
 				end
 				--
@@ -1092,6 +1092,12 @@ NS.UpdateCharacters = function()
 					oa.lines[#oa.lines + 1] = " ";
 					oa.lines[#oa.lines + 1] = string.format( L["Research Time: %s"], HIGHLIGHT_FONT_COLOR_CODE .. SecondsToTime( talent.researchDuration ) ) .. FONT_COLOR_CODE_CLOSE;
 					oa.lines[#oa.lines + 1] = string.format( L["Cost: %s"], HIGHLIGHT_FONT_COLOR_CODE .. BreakUpLargeNumbers( talent.researchCost ) .. FONT_COLOR_CODE_CLOSE .. "|T".. 1397630 ..":0:0:2:0|t" );
+					--
+					if char["advancement"]["numTalents"] == 1 and char["level"] and char["level"] < 105 then
+						oa.lines[#oa.lines + 1] = RED_FONT_COLOR_CODE .. L["You need to be level 105 to research."] .. FONT_COLOR_CODE_CLOSE;
+					elseif char["advancement"]["numTalents"] == 2 and char["level"] and char["level"] < 110 then
+						oa.lines[#oa.lines + 1] = RED_FONT_COLOR_CODE .. L["You need to be level 110 to research."] .. FONT_COLOR_CODE_CLOSE;
+					end
 				end
 				oa.status = "available";
 			elseif char["advancement"]["numTalents"] == 8 then

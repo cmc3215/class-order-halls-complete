@@ -1,3 +1,9 @@
+**1.24**
+
+- Release date: 07/28/2017
+- Class Hall Upgrades available will now be shown even when the player's level is too low (i.e. Less than 105 for tier 2 and less than 110 for tier 3+). This prevents having an empty monitor column with no information at some levels. The message "You need to be level {105 or 110} to research." will be shown in red under each talent description in this situation.
+- Fixed misaligned scrollbar, checkboxes, and "Monitor x/x" text on the Characters tab following the previous update's UI width increase.
+
 **1.23**
 
 - Release date: 07/25/2017

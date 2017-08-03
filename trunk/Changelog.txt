@@ -1,3 +1,12 @@
+**1.25**
+
+- Release date: 08/03/2017
+- Support added for Death Knight troop: Abomination.
+- Bug fix: Troops not appearing due to combination of icon mismatched and name misspelled have been fixed: Mage - Tirisguarde Apprentices and Monk - Tiger Initiates
+- Bug fix: Work Order momentarily shows -1/1 Ready for pickup in rare situations.
+- Major breaking fixes made to API calls for upcoming patch 7.3.0.
+- Support added for 3 new troops coming in patch 7.3.0: Krokul Ridgestalker, Void-Purged Krokul, Lightforged Bulwark
+
 **1.24**
 
 - Release date: 07/28/2017

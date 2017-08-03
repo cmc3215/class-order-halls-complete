@@ -4,6 +4,7 @@
 local NS = select( 2, ... );
 NS.addon = ...;
 NS.title = GetAddOnMetadata( NS.addon, "Title" );
+NS.patch = GetBuildInfo();
 NS.UI = {};
 --------------------------------------------------------------------------------------------------------------------------------------------
 -- FRAME CREATION

@@ -3,9 +3,8 @@
 --------------------------------------------------------------------------------------------------------------------------------------------
 local NS = select( 2, ... );
 local L = NS.localization;
-NS.versionString = "1.24";
+NS.versionString = "1.25";
 NS.version = tonumber( NS.versionString );
-NS.debug = false;
 --
 NS.initialized = false;
 --
@@ -160,21 +159,44 @@ NS.classRef = {
 		missions = { 42670, 42671 },																			-- Rise, Champions
 	},
 };
-NS.sealingFateQuests = { 43892, 43893, 43894, 43895, 43896, 43897, 47851, 47864, 47865 };
+NS.troopTextureRef = {
+	--
+	-- Troop Texture Reference
+	--
+	-- Some troops have Work Orders that use a different icon than the Order Hall Command Bar.
+	-- In some cases the Work Order name may be misspelled or simply doesn't match the troop.
+	-- This reference table matches troops to work orders when icon and name both fail.
+	--
+	-- [OrderHallCommandBarTexture] = <WorkOrderTexture>, -- <Class: Troop>
+	--
+	[1396706] = 1452569, -- Monk: Tiger Initiates
+	[1396702] = 1489388, -- Paladin: Shieldbearer Phalanx
+	[1396703] = 1489392, -- Paladin: Silver Hand Knights
+	[1396691] = 1489422, -- Warlock: Black Harvest Acolytes
+	[1401874] = 1489383, -- Warrior: Valkyra Shieldmaidens
+	[1396696] = 1489377, -- Mage: Tirisguarde Apprentices
+	[1401852] = 1452570, -- Mage: Arcane Golems
+	[1401889] = 1489438, -- Demon Hunter: Naga Myrmidons
+	[1401892] = 1489385, -- Rogue: Defias Thieves
+	[1401894] = 1489411, -- Rogue: Crew of Pirates
+	[1066217] = 1452631, -- Priest: Netherlight Paragons
+	[1066169] = 1452634, -- Priest: Band of Zealots
+	[1401884] = 1489417, -- Shaman: Earthen Ring Geomancers
+	[1396660] = 1396659, -- Shaman: Ascendants
+	[1396686] = 1452562, -- Druid: Daughters of Cenarius
+	[1396668] = 1489448, -- Druid: Druids of the Claw
+};
 -- Sealing Fate Quests in Dalaran
---
 -- 43892 = Sealing Fate: Order Resources (1000)
 -- 43893 = Sealing Fate: Stashed Order Resources (2000)
 -- 43894 = Sealing Fate: Extraneous Order Resources (4000)
---
 -- 43895 = Sealing Fate: Gold (1000)
 -- 43896 = Sealing Fate: Piles of Gold (2000)
 -- 43897 = Sealing Fate: Immense Fortune of Gold (4000)
---
 -- 47851 = Sealing Fate: Marks of Honor (5)
 -- 47864 = Sealing Fate: Additional Marks of Honor (10)
 -- 47865 = Sealing Fate: Piles of Marks of Honor (20)
---
+NS.sealingFateQuests = { 43892, 43893, 43894, 43895, 43896, 43897, 47851, 47864, 47865 };
 NS.sealofBrokenFateMax = 6;
 NS.sealofBrokenFateWeeklyMax = 3;
 NS.artifactKnowledgeLevelStage1Max = 25;
@@ -415,15 +437,15 @@ NS.ResetCharactersOrderPositions = function()
 	end
 end
 --
-NS.OrdersReadyToPickup = function( ready, total, duration, nextSeconds, updateTime, currentTime )
-	-- Calculate how many orders could have completed in the time past, which could not be larger than the
+NS.OrdersReadyForPickup = function( ready, total, duration, nextSeconds, passedTime )
+	-- Calculate how many orders could have completed in the time passed, which could not be larger than the
 	-- amount of orders in progress ( i.e. total - ready ), then we just add the orders that were already ready
 	if not total then
 		return 0;
 	elseif duration == 0 then
 		return total;
 	else
-		return math.min( math.floor( ( currentTime - updateTime + ( duration - nextSeconds ) ) / duration ), ( total - ready ) ) + ready;
+		return math.min( math.floor( ( passedTime + ( duration - nextSeconds ) ) / duration ), ( total - ready ) ) + ready;
 	end
 end
 --
@@ -434,11 +456,11 @@ NS.OrdersReadyToStart = function( capacity, total, troopCount, spellReagentCount
 	return ( capacity - ( total + troopCount + spellReagentCount ) );
 end
 --
-NS.OrdersAllSeconds = function( duration, total, ready, nextSeconds, updateTime, currentTime )
+NS.OrdersAllSeconds = function( duration, total, ready, nextSeconds, passedTime )
 	if not total or duration == 0 then
 		return 0;
 	else
-		local seconds = duration * ( total - ready ) - ( duration - ( nextSeconds - ( currentTime - updateTime ) ) );
+		local seconds = duration * ( total - ready ) - ( duration - ( nextSeconds - passedTime ) );
 		return math.max( seconds, 0 );
 	end
 end
@@ -457,7 +479,8 @@ NS.OrdersOrigNextSeconds = function( duration, creationTime, currentTime )
 	if not creationTime or duration == 0 or creationTime == 0 then
 		return 0;
 	else
-		return math.max( duration - ( currentTime - creationTime ), 0 );
+		local passedTime = math.max( ( currentTime - creationTime ), 0 );
+		return ( duration - passedTime );
 	end
 end
 --
@@ -598,9 +621,14 @@ NS.UpdateCharacter = function()
 				local talentTreeIDs = C_Garrison.GetTalentTreeIDsByClassID( LE_GARRISON_TYPE_7_0, NS.currentCharacter.classID );
 				local completeTalentID = C_Garrison.GetCompleteTalent( LE_GARRISON_TYPE_7_0 );
 				if talentTreeIDs and talentTreeIDs[1] then -- Talent trees and first treeID available
-					local _,_,talentTree = C_Garrison.GetTalentTreeInfoForID( LE_GARRISON_TYPE_7_0, talentTreeIDs[1] );
+					local talentTree;
+					if NS.patch == "7.2.5" then
+						talentTree = select( 3, C_Garrison.GetTalentTreeInfoForID( LE_GARRISON_TYPE_7_0, talentTreeIDs[1] ) );
+					else
+						talentTree = select( 3, C_Garrison.GetTalentTreeInfoForID( talentTreeIDs[1] ) );
+					end
 					if talentTree[1] and not talentTree[1].id then
-						talentTree = talentTree[1]; -- For some reason in patch 7.2.5 the talents are double packed in the first element of an otherwise empty table.
+						talentTree = talentTree[1]; -- For some reason in patch 7.2.5+ the talents are double packed in the first element of an otherwise empty table.
 					end
 					for _,talent in ipairs( talentTree ) do
 						talent.tier = talent.tier + 1; -- Fix tiers starting at 0
@@ -636,16 +664,17 @@ NS.UpdateCharacter = function()
 			-- Follower Shipments
 			local followerShipments = C_Garrison.GetFollowerShipments( LE_GARRISON_TYPE_7_0 );
 			for i = 1, #followerShipments do
-				local name,texture,shipmentCapacity,shipmentsReady,shipmentsTotal,creationTime,duration,timeleftString = C_Garrison.GetLandingPageShipmentInfoByContainerID( followerShipments[i] );
+				local name,texture,capacity,ready,total,creationTime,duration = C_Garrison.GetLandingPageShipmentInfoByContainerID( followerShipments[i] );
 				table.insert( NS.db["characters"][k]["orders"], {
 					["name"] = name,
 					["texture"] = texture,
-					["capacity"] = shipmentCapacity,
-					["ready"] = shipmentsReady,
-					["total"] = shipmentsTotal,
+					["capacity"] = capacity,
+					["ready"] = ready,
+					["total"] = total,
 					["duration"] = duration,
 					["nextSeconds"] = NS.OrdersOrigNextSeconds( duration, creationTime, currentTime ),
 				} );
+				--NS.Print( texture .. ":" .. name ); -- DEBUG
 			end
 			-- Troops => Follower Shipments
 			if NS.currentCharacter.troops then
@@ -654,14 +683,16 @@ NS.UpdateCharacter = function()
 			end
 			local troops = NS.db["characters"][k]["troops"];
 			for i = 1, #troops do
-				local ordersKey = NS.FindKeyByField( NS.db["characters"][k]["orders"], "texture", troops[i].icon ) or NS.FindKeyByField( NS.db["characters"][k]["orders"], "name", troops[i].name );
+				local ordersKey = NS.FindKeyByField( NS.db["characters"][k]["orders"], "texture", troops[i].icon ) or NS.FindKeyByField( NS.db["characters"][k]["orders"], "name", troops[i].name ) or NS.FindKeyByField( NS.db["characters"][k]["orders"], "texture", NS.troopTextureRef[troops[i].icon] );
 				local texture;
 				if ordersKey then
 					-- Troop order FOUND
 					local order = NS.db["characters"][k]["orders"][ordersKey];
 					texture = order["texture"];
+					-- Texture Fix
 					if troops[i].icon ~= texture then
 						texture = troops[i].icon;
+						order["name"] = troops[i].name; -- Fix name too since it may not have matched.
 						order["texture"] = texture;
 					end
 					--
@@ -677,11 +708,17 @@ NS.UpdateCharacter = function()
 						["troopCount"] = troops[i].count,
 					} );
 					-- Troop not gained thru an order but instead thru an item:
-					-- Grimtotem Warrior (1551342:Shaman) and Coilskar Brute (1551349:Demon Hunter)
-					local troopSummonItem = ( texture == 1551342 and 143850 ) or ( texture == 1551349 and 143849 ) or nil;
+					-- Abomination (1401851:Death Knight:7.0)
+					-- Grimtotem Warrior (1551342:Shaman:7.2)
+					-- Coilskar Brute (1551349:Demon Hunter:7.2)
+					-- Krokul Ridgestalker (1712229:All:7.3)
+					-- Void-Purged Krokul (1712228:All:7.3)
+					-- Lightforged Bulwark (1694048:All:7.3)
+					local troopSummonItem = ( texture == 1401851 and 140767 ) or ( texture == 1551342 and 143850 ) or ( texture == 1551349 and 143849 ) or ( texture == 1712229 and 152095 ) or ( texture == 1712228 and 152096 ) or ( texture == 1694048 and 152097 ) or nil;
 					if troopSummonItem then
 						local ordersKey = #NS.db["characters"][k]["orders"]; -- Last order inserted
-						NS.db["characters"][k]["orders"][ordersKey]["troopSummonItemCount"] = GetItemCount( troopSummonItem, true );
+						local troopSummonItemCount = GetItemCount( troopSummonItem, true );
+						NS.db["characters"][k]["orders"][ordersKey]["troopSummonItemCount"] = texture == 1401851 and ( troopSummonItemCount < 5 and 0 or 1 ) or troopSummonItemCount; -- Death Knight: Abomination - Combine (5) Piles of Bits and Bones
 					end
 				end
 				if NS.db["characters"][k]["monitor"][texture] == nil then
@@ -694,17 +731,17 @@ NS.UpdateCharacter = function()
 			-- Loose Shipments
 			local looseShipments = C_Garrison.GetLooseShipments( LE_GARRISON_TYPE_7_0 );
 			for i = 1, #looseShipments do
-				local name,texture,shipmentCapacity,shipmentsReady,shipmentsTotal,creationTime,duration,timeleftString = C_Garrison.GetLandingPageShipmentInfoByContainerID( looseShipments[i] );
+				local name,texture,capacity,ready,total,creationTime,duration = C_Garrison.GetLandingPageShipmentInfoByContainerID( looseShipments[i] );
 				if texture == 237446 then -- Hotfixed Artifact Research Notes duration is 12960 sec, formerly 432000 sec
 					duration = duration == 0 and 0 or 12960; -- 12960 sec / 3 hr 36 min
-					creationTime = ( not creationTime or creationTime == 0 ) and 0 or math.min( currentTime, ( creationTime + 432000 - duration ) ); -- Readjust the adjusted creationTime forward 432000 sec then back the actual 12960 sec ago and never let it exceed the currentTime (be created in the future)
+					creationTime = ( not creationTime or creationTime == 0 ) and 0 or ( creationTime + 432000 - duration ); -- Readjust the adjusted creationTime forward 432000 sec then back the actual 12960 sec ago
 				end
 				table.insert( NS.db["characters"][k]["orders"], {
 					["name"] = name,
 					["texture"] = texture,
-					["capacity"] = shipmentCapacity,
-					["ready"] = shipmentsReady,
-					["total"] = shipmentsTotal,
+					["capacity"] = capacity,
+					["ready"] = ready,
+					["total"] = total,
 					["duration"] = duration,
 					["nextSeconds"] = NS.OrdersOrigNextSeconds( duration, creationTime, currentTime ),
 				} );
@@ -712,7 +749,6 @@ NS.UpdateCharacter = function()
 					NS.db["characters"][k]["monitor"][texture] = true;
 				end
 				monitorable[texture] = true;
-				--NS.Debug( "Name=" .. name .. ", Texture=" .. texture .. ", Capacity=" .. ( shipmentCapacity or "nil" ) .. ", Ready=" .. ( shipmentsReady or "nil" ) .. ", Total=" .. ( shipmentsTotal or "nil" ) .. ", Duration=" .. ( duration or "nil" ) .. ", CreationTime=" .. ( creationTime or "nil" ) .. ", CurrentTime=" .. currentTime .. ", NextSeconds=" .. ( NS.OrdersOrigNextSeconds( duration, creationTime, currentTime ) ) );
 			end
 			-- Artifact Research Notes
 			if IsQuestFlaggedCompleted( NS.classRef[NS.currentCharacter.class].artifact ) then
@@ -969,7 +1005,7 @@ NS.UpdateCharacters = function()
 	--
 	local currentTime = time();
 	for ck,char in ipairs( NS.db["characters"] ) do
-		local passedTime = char["updateTime"] and ( currentTime - char["updateTime"] ) or nil; -- Characters without Class Order Hall info will not have an updateTime
+		local passedTime = char["updateTime"] and ( currentTime > char["updateTime"] and ( currentTime - char["updateTime"] ) or 0 ) or nil; -- Characters without Class Order Hall info will not have an updateTime
 		--
 		-- Seals
 		--
@@ -1131,9 +1167,9 @@ NS.UpdateCharacters = function()
 				local artifactKnowledgeTextInfo = nil;
 				local capacity = wo.texture == 237446 and char["artifactKnowledgeLevel"] and ( math.min( o.capacity, artifactKnowledgeLevelMax - char["artifactKnowledgeLevel"] ) ) or o.capacity;
 				wo.total = o.total or 0; -- o.total is nil if no orders
-				wo.readyForPickup = NS.OrdersReadyToPickup( o.ready, o.total, o.duration, o.nextSeconds, char["updateTime"], currentTime );
+				wo.readyForPickup = NS.OrdersReadyForPickup( o.ready, o.total, o.duration, o.nextSeconds, passedTime );
 				local readyToStart = NS.OrdersReadyToStart( capacity, o.total, o.troopCount, o.spellReagentCount );
-				local allSeconds = NS.OrdersAllSeconds( o.duration, o.total, o.ready, o.nextSeconds, char["updateTime"], currentTime );
+				local allSeconds = NS.OrdersAllSeconds( o.duration, o.total, o.ready, o.nextSeconds, passedTime );
 				local nextSeconds = NS.OrdersNextSeconds( allSeconds, o.duration );
 				wo.topRightText = nil;
 				--
@@ -1186,7 +1222,7 @@ NS.UpdateCharacters = function()
 				end
 				--
 				if readyToStart > 0 then
-					if o.troopCount and ( wo.texture == 1551342 or wo.texture == 1551349 ) then -- Grimtotem Warrior (1551342) and Coilskar Brute (1551349)
+					if o.troopCount and o.troopSummonItemCount then -- Troops summoned by item instead of Work Order
 						wo.lines[#wo.lines + 1] = ( o.troopSummonItemCount > 0 and GREEN_FONT_COLOR_CODE or RED_FONT_COLOR_CODE ) .. string.format( L["%d Ready to summon"], math.min( o.troopSummonItemCount, readyToStart ) ) .. FONT_COLOR_CODE_CLOSE;
 					elseif wo.texture ~= 133858 or wo.spellSeconds == 0 then -- Ignore Seal of Broken Fate unless not completed this week
 						wo.lines[#wo.lines + 1] = GREEN_FONT_COLOR_CODE .. string.format( L["%d Ready to start"], readyToStart ) .. FONT_COLOR_CODE_CLOSE;

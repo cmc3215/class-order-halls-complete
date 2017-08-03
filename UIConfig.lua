@@ -21,13 +21,13 @@ NS.UI.cfg = {
 		end,
 		OnShow		= function( MainFrame )
 			MainFrame:Reposition();
-			PlaySound( "UI_Garrison_GarrisonReport_Open" ); -- id:44298 for patch 7.3
+			PlaySound( ( NS.patch == "7.2.5" and "UI_Garrison_GarrisonReport_Open" or 44298 ) );
 		end,
 		OnHide		= function( MainFrame )
 			StaticPopup_Hide( "COHC_CHARACTER_DELETE" );
 			StaticPopup_Hide( "COHC_CHARACTER_ORDER" );
 			StaticPopup_Hide( "COHC_MONITOR_COLUMN" );
-			PlaySound( "UI_Garrison_GarrisonReport_Close" ); -- id:44299 for patch 7.3
+			PlaySound( ( NS.patch == "7.2.5" and "UI_Garrison_GarrisonReport_Close" or 44299 ) );
 			local point, relativeTo, relativePoint, xOffset, yOffset = MainFrame:GetPoint( 1 );
 			NS.db["dragPosition"] = ( point and point == relativePoint and xOffset and yOffset ) and { point, xOffset, yOffset } or nil;
 		end,

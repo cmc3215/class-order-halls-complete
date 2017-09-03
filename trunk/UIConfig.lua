@@ -21,13 +21,13 @@ NS.UI.cfg = {
 		end,
 		OnShow		= function( MainFrame )
 			MainFrame:Reposition();
-			PlaySound( ( NS.patch == "7.2.5" and "UI_Garrison_GarrisonReport_Open" or 44298 ) );
+			PlaySound( 44298 ); -- UI_Garrison_GarrisonReport_Open
 		end,
 		OnHide		= function( MainFrame )
 			StaticPopup_Hide( "COHC_CHARACTER_DELETE" );
 			StaticPopup_Hide( "COHC_CHARACTER_ORDER" );
 			StaticPopup_Hide( "COHC_MONITOR_COLUMN" );
-			PlaySound( ( NS.patch == "7.2.5" and "UI_Garrison_GarrisonReport_Close" or 44299 ) );
+			PlaySound( 44299 ); -- UI_Garrison_GarrisonReport_Close
 			local point, relativeTo, relativePoint, xOffset, yOffset = MainFrame:GetPoint( 1 );
 			NS.db["dragPosition"] = ( point and point == relativePoint and xOffset and yOffset ) and { point, xOffset, yOffset } or nil;
 		end,
@@ -63,8 +63,8 @@ NS.UI.cfg = {
 						NS.Print( "Refreshed" );
 					end,
 				} );
-				NS.TextFrame( "MessageShipmentConfirms", SubFrame, L["Confirming character data, one moment..."], {
-					size = { 236, 16 },
+				NS.TextFrame( "MessageShipmentConfirms", SubFrame, L["Confirming character data..."], {
+					size = { 186, 16 },
 					setPoint = { "RIGHT", "#sibling", "LEFT", -8, 0 },
 					fontObject = "GameFontRedSmall",
 					justifyH = "CENTER",
@@ -73,7 +73,7 @@ NS.UI.cfg = {
 					size = { 738, ( 50 * NS.db["monitorRows"] - 5 ) },
 					setPoint = { "TOPLEFT", "$parentNameColumnHeaderButton", "BOTTOMLEFT", 1, -3 },
 					buttonTemplate = "COHCMonitorTabScrollFrameButtonTemplate",
-					udpate = {
+					update = {
 						numToDisplay = NS.db["monitorRows"],
 						buttonHeight = 50,
 						alwaysShowScrollBar = true,
@@ -101,7 +101,7 @@ NS.UI.cfg = {
 										end
 										items = t;
 									else
-										table.insert( items, char );
+										items[#items + 1] = char;
 									end
 								end
 							end
@@ -206,10 +206,9 @@ NS.UI.cfg = {
 										_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnEnter", function( self ) MonitorButton_OnEnter( self, missions.text, missions.lines ); end );
 										_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnLeave", OnLeave );
 										_G[bn .. "Monitor" .. monitorNum .. "TopRightText"]:SetText( "" );
-										local color = ( missions.total == 0 and "Gray" ) or ( missions.incomplete == missions.total and "Red" ) or ( missions.incomplete > 0 and "Yellow" ) or "Green";
-										_G[bn .. "Monitor" .. monitorNum .. "CenterText"]:SetText( ( color == "Gray" and "" ) or ( ( missions.total - missions.incomplete ) .. "/" .. missions.total ) );
-										_G[bn .. "Monitor" .. monitorNum .. "Indicator"]:SetTexture( "Interface\\COMMON\\Indicator-" .. color );
-										if color == "Green" then
+										_G[bn .. "Monitor" .. monitorNum .. "CenterText"]:SetText( ( missions.color == "Gray" and "" ) or ( ( missions.total - missions.incomplete ) .. "/" .. missions.total ) );
+										_G[bn .. "Monitor" .. monitorNum .. "Indicator"]:SetTexture( "Interface\\COMMON\\Indicator-" .. missions.color );
+										if missions.color == "Green" then
 											_G[bn .. "Monitor" .. monitorNum]:GetNormalTexture():SetVertexColor( 0.1, 1.0, 0.1 );
 										else
 											_G[bn .. "Monitor" .. monitorNum]:GetNormalTexture():SetVertexColor( 1.0, 1.0, 1.0 );
@@ -226,10 +225,9 @@ NS.UI.cfg = {
 										_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnEnter", function( self ) MonitorButton_OnEnter( self, advancement.text, advancement.lines ); end );
 										_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnLeave", OnLeave );
 										_G[bn .. "Monitor" .. monitorNum .. "TopRightText"]:SetText( "" );
-										local color = ( ( advancement.status == "available" or advancement.status == "maxed" ) and "Gray" ) or ( advancement.seconds > 0 and "Red" ) or "Green";
-										_G[bn .. "Monitor" .. monitorNum .. "CenterText"]:SetText( ( color == "Red" and SecondsToTime( advancement.seconds, false, false, 1 ) ) or "" );
-										_G[bn .. "Monitor" .. monitorNum .. "Indicator"]:SetTexture( "Interface\\COMMON\\Indicator-" .. color );
-										if color == "Green" then
+										_G[bn .. "Monitor" .. monitorNum .. "CenterText"]:SetText( ( advancement.color == "Red" and SecondsToTime( advancement.seconds, false, false, 1 ) ) or "" );
+										_G[bn .. "Monitor" .. monitorNum .. "Indicator"]:SetTexture( "Interface\\COMMON\\Indicator-" .. advancement.color );
+										if advancement.color == "Green" then
 											_G[bn .. "Monitor" .. monitorNum]:GetNormalTexture():SetVertexColor( 0.1, 1.0, 0.1 );
 										else
 											_G[bn .. "Monitor" .. monitorNum]:GetNormalTexture():SetVertexColor( 1.0, 1.0, 1.0 );
@@ -249,10 +247,9 @@ NS.UI.cfg = {
 											_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnEnter", function( self ) MonitorButton_OnEnter( self, ( orders[i].spell and orders[i].spellName or orders[i].text ), orders[i].lines ); end );
 											_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnLeave", OnLeave );
 											_G[bn .. "Monitor" .. monitorNum .. "TopRightText"]:SetText( orders[i].topRightText and orders[i].topRightText or "" );
-											local color = ( not orders[i].spell and orders[i].total == 0 and "Gray" ) or ( ( ( orders[i].spell and orders[i].spellSeconds > 0 ) or ( not orders[i].spell and orders[i].readyForPickup == 0 ) ) and "Red" ) or ( orders[i].readyForPickup < orders[i].total and "Yellow" ) or "Green";
-											_G[bn .. "Monitor" .. monitorNum .. "CenterText"]:SetText( ( orders[i].spell and color == "Red" and SecondsToTime( orders[i].spellSeconds, false, false, 1 ) ) or ( ( orders[i].spell or color == "Gray" ) and "" ) or ( orders[i].readyForPickup .. "/" .. orders[i].total ) );
-											_G[bn .. "Monitor" .. monitorNum .. "Indicator"]:SetTexture( "Interface\\COMMON\\Indicator-" .. color );
-											if color == "Green" then
+											_G[bn .. "Monitor" .. monitorNum .. "CenterText"]:SetText( ( orders[i].spell and orders[i].color == "Red" and SecondsToTime( orders[i].spellSeconds, false, false, 1 ) ) or ( ( orders[i].spell or orders[i].color == "Gray" ) and "" ) or ( orders[i].readyForPickup .. "/" .. orders[i].total ) );
+											_G[bn .. "Monitor" .. monitorNum .. "Indicator"]:SetTexture( "Interface\\COMMON\\Indicator-" .. orders[i].color );
+											if orders[i].color == "Green" then
 												_G[bn .. "Monitor" .. monitorNum]:GetNormalTexture():SetVertexColor( 0.1, 1.0, 0.1 );
 											else
 												_G[bn .. "Monitor" .. monitorNum]:GetNormalTexture():SetVertexColor( 1.0, 1.0, 1.0 );
@@ -386,7 +383,7 @@ NS.UI.cfg = {
 				else
 					missionsCenterText = HIGHLIGHT_FONT_COLOR_CODE .. NS.allCharacters.missionsComplete .. "/" .. NS.allCharacters.missionsTotal .. FONT_COLOR_CODE_CLOSE;
 					missionsColor = NS.allCharacters.missionsComplete > 0 and "Yellow" or "Red";
-					missionsRightText = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["(Next: %s)"], SecondsToTime( NS.allCharacters.nextMissionTimeRemaining ) ) .. "\n" .. NS.allCharacters.nextMissionCharName .. FONT_COLOR_CODE_CLOSE;
+					missionsRightText = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["(Next: %s)"], SecondsToTime( NS.allCharacters.nextMissionTimeRemaining ) )  .. FONT_COLOR_CODE_CLOSE .. "\n" .. NS.allCharacters.nextMissionCharName;
 				end
 				-- Advancement
 				local abn = "FooterAdvancementsReportButton";
@@ -402,7 +399,7 @@ NS.UI.cfg = {
 				else
 					advancementsCenterText = HIGHLIGHT_FONT_COLOR_CODE .. NS.allCharacters.advancementsComplete .. "/" .. NS.allCharacters.advancementsTotal .. FONT_COLOR_CODE_CLOSE;
 					advancementsColor = NS.allCharacters.advancementsComplete > 0 and "Yellow" or "Red";
-					advancementsRightText = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["(Next: %s)"], SecondsToTime( NS.allCharacters.nextAdvancementTimeRemaining ) ) .. "\n" .. NS.allCharacters.nextAdvancementCharName .. FONT_COLOR_CODE_CLOSE;
+					advancementsRightText = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["(Next: %s)"], SecondsToTime( NS.allCharacters.nextAdvancementTimeRemaining ) )  .. FONT_COLOR_CODE_CLOSE .. "\n" .. NS.allCharacters.nextAdvancementCharName;
 				end
 				-- Work Orders
 				local wbn = "FooterWorkOrdersReportButton";
@@ -418,7 +415,7 @@ NS.UI.cfg = {
 				else
 					workOrdersCenterText = HIGHLIGHT_FONT_COLOR_CODE .. NS.allCharacters.workOrdersReady .. "/" .. NS.allCharacters.workOrdersTotal .. FONT_COLOR_CODE_CLOSE;
 					workOrdersColor = NS.allCharacters.workOrdersReady > 0 and "Yellow" or "Red";
-					workOrdersRightText = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["(Next: %s)"], SecondsToTime( NS.allCharacters.nextWorkOrderTimeRemaining ) ) .. "\n" .. NS.allCharacters.nextWorkOrderCharName .. FONT_COLOR_CODE_CLOSE;
+					workOrdersRightText = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["(Next: %s)"], SecondsToTime( NS.allCharacters.nextWorkOrderTimeRemaining ) )  .. FONT_COLOR_CODE_CLOSE .. "\n" .. NS.allCharacters.nextWorkOrderCharName;
 				end
 				--
 				_G[sfn .. mbn .. "CenterText"]:SetText( missionsCenterText );
@@ -455,7 +452,7 @@ NS.UI.cfg = {
 			mainFrameTitle	= NS.title,
 			tabText			= L["Characters"],
 			Init			= function( SubFrame )
-				NS.TextFrame( "Character", SubFrame, L["Character:"], {
+				NS.TextFrame( "CharacterLabel", SubFrame, L["Character:"], {
 					size = { 67, 16 },
 					setPoint = { "TOPLEFT", "$parent", "TOPLEFT", 8, -8 },
 				} );
@@ -490,6 +487,7 @@ NS.UI.cfg = {
 					db = "orderCharactersAutomatically",
 				} );
 				NS.TextFrame( "MonitoredNum", SubFrame, "", {
+					-- Text updated during scrollframe update
 					size = { 438, 20 },
 					setPoint = { "LEFT", "$parentCharacterDropDownMenu", "RIGHT", -6, 0 },
 					fontObject = "GameFontHighlight",
@@ -509,7 +507,7 @@ NS.UI.cfg = {
 					size = { 738, ( 40 * 10 - 5 ) },
 					setPoint = { "TOPLEFT", "$parent", "TOPLEFT", -1, -37 },
 					buttonTemplate = "COHCCharactersTabScrollFrameButtonTemplate",
-					udpate = {
+					update = {
 						numToDisplay = 10,
 						buttonHeight = 40,
 						alwaysShowScrollBar = true,
@@ -714,11 +712,11 @@ NS.UI.cfg = {
 			end,
 		},
 		{
-			-- Options
+			-- Misc
 			mainFrameTitle	= NS.title,
-			tabText			= OPTIONS,
+			tabText			= L["Misc"],
 			Init			= function( SubFrame )
-				NS.TextFrame( "MiscLabel", SubFrame, L["Miscellaneous"], {
+				NS.TextFrame( "MinimapButtonHeader", SubFrame, L["Minimap Button"], {
 					setPoint = {
 						{ "TOPLEFT", "$parent", "TOPLEFT", 8, -8 },
 						{ "RIGHT", -8 },
@@ -726,8 +724,8 @@ NS.UI.cfg = {
 					fontObject = "GameFontNormalLarge",
 				} );
 				NS.CheckButton( "ShowMinimapButtonCheckButton", SubFrame, L["Show Minimap Button"], {
-					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 3, -1 },
-					tooltip = L["Show or hide the\nbutton on the Minimap\n\n(Character Specific)"],
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 3, -5 },
+					tooltip = L["Show or hide the\nbutton on the Minimap"],
 					OnClick = function( checked )
 						if not checked then
 							COHCMinimapButton:Hide();
@@ -736,39 +734,57 @@ NS.UI.cfg = {
 						end
 						NS.UpdateAll( "forceUpdate" );
 					end,
-					dbpc = "showMinimapButton",
+					db = "showMinimapButton",
+				} );
+				NS.CheckButton( "ShowCharacterTooltipMinimapButtonCheckButton", SubFrame, L["Show Character Tooltip"], {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					tooltip = L["Show or hide the character\ntooltip when available\nfor the Minimap button"],
+					db = "showCharacterTooltipMinimapButton",
 				} );
 				NS.CheckButton( "DockMinimapButtonCheckButton", SubFrame, L["Dock Minimap Button"], {
 					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
-					tooltip = L["Docks Minimap button\nto drag around Minimap,\nundock to drag anywhere\n\n(Character Specific)"],
+					tooltip = L["Docks Minimap button\nto drag around Minimap,\nundock to drag anywhere"],
 					OnClick = function( checked )
-						NS.dbpc[COHCMinimapButton.dbpc] = checked and NS.DefaultSavedVariablesPerCharacter()["minimapButtonPosition"] or { "CENTER", 0, 150 };
+						NS.db[COHCMinimapButton.db] = checked and NS.DefaultSavedVariables()["minimapButtonPosition"] or { "CENTER", 0, 150 };
 						COHCMinimapButton.docked = checked;
 						COHCMinimapButton:UpdatePos();
 					end,
-					dbpc = "dockMinimapButton",
+					db = "dockMinimapButton",
 				} );
 				NS.CheckButton( "LargeMinimapButtonCheckButton", SubFrame, L["Large Minimap Button"], {
 					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
-					tooltip = L["Enables larger Minimap button\nsimilar to Class Hall Report\n\n(Character Specific)"],
+					tooltip = L["Enables larger Minimap button\nsimilar to Class Hall Report"],
 					OnClick = function( checked )
-						COHCMinimapButton:UpdateSize( NS.dbpc["largeMinimapButton"] );
+						COHCMinimapButton:UpdateSize( NS.db["largeMinimapButton"] );
 						COHCMinimapButton:UpdatePos();
 					end,
-					dbpc = "largeMinimapButton",
+					db = "largeMinimapButton",
 				} );
 				NS.CheckButton( "ShowClassHallReportMinimapButtonCheckButton", SubFrame, L["Show Class Hall Report Minimap Button"], {
 					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
-					tooltip = L["Show or hide the\nClass Hall Report\nbutton on the Minimap\n\n(Character Specific)"],
+					tooltip = L["Show or hide the\nClass Hall Report\nbutton on the Minimap"],
 					OnClick = function( checked )
 						if not C_Garrison.HasGarrison( LE_GARRISON_TYPE_7_0 ) or not GarrisonLandingPageMinimapButton.title then return end
 						GarrisonLandingPageMinimapButton:Hide();
 						GarrisonLandingPageMinimapButton:Show();
 					end,
-					dbpc = "showClassHallReportMinimapButton",
+					db = "showClassHallReportMinimapButton",
+				} );
+				NS.TextFrame( "MinimapButtonNotice", SubFrame, BATTLENET_FONT_COLOR_CODE .. L["Settings above apply to my custom Minimap button.\nFor a standardized Minimap button see the LDB tab."] .. FONT_COLOR_CODE_CLOSE, {
+					setPoint = {
+						{ "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -5 },
+						{ "RIGHT", ( 0 - ( NS.UI.cfg.mainFrame.width / 2 ) ) },
+					},
+				} );
+				NS.TextFrame( "OtherHeader", SubFrame, L["Other"], {
+					setPoint = {
+						{ "TOPLEFT", "$parent", "TOPLEFT", ( ( NS.UI.cfg.mainFrame.width / 2 ) + 8 ), -8 },
+						{ "RIGHT", -8 },
+					},
+					fontObject = "GameFontNormalLarge",
 				} );
 				NS.CheckButton( "ShowCharacterRealmsCheckButton", SubFrame, L["Show Character Realms"], {
-					setPoint = { "LEFT", "$parentShowMinimapButtonCheckButton", "LEFT", ( ( NS.UI.cfg.mainFrame.width - 11 ) / 2 ), 0 },
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 3, -5 },
 					tooltip = L["Show or hide\ncharacter realms"],
 					db = "showCharacterRealms",
 				} );
@@ -824,7 +840,6 @@ NS.UI.cfg = {
 				local columnNames = {
 					["missions"] = L["Missions"],
 					["advancement"] = L["Class Hall Upgrades"],
-					["artifact-research-notes"] = L["Artifact Research Notes"],
 					["cooking-recipes"] = L["Legion Cooking Recipes"],
 					["troop1"] = L["Troop #1"],
 					["troop2"] = L["Troop #2"],
@@ -833,6 +848,7 @@ NS.UI.cfg = {
 					["troop3"] = L["Troop #3"],
 					["troop4"] = L["Troop #4"],
 					["troop5"] = L["Troop #5"],
+					["troop6"] = L["Troop #6"],
 				};
 				NS.DropDownMenu( "MonitorColumnsDropDownMenu", SubFrame, {
 					setPoint = { "TOPLEFT", "$parentMonitorRowsDropDownMenu", "BOTTOMLEFT", 0, -1 },
@@ -865,122 +881,6 @@ NS.UI.cfg = {
 						SubFrame:Refresh();
 						NS.Print( L["Monitor columns reset"] );
 					end,
-				} );
-				NS.TextFrame( "AlertLabel", SubFrame, L["Alert - Flashes Minimap button when an indicator is |TInterface\\COMMON\\Indicator-Green:20:20|t"], {
-					setPoint = {
-						{ "TOPLEFT", "$parentShowClassHallReportMinimapButtonCheckButton", "BOTTOMLEFT", -3, -8 },
-						{ "RIGHT", -8 },
-					},
-					fontObject = "GameFontNormalLarge",
-				} );
-				NS.DropDownMenu( "AlertDropDownMenu", SubFrame, {
-					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", -12, -1 },
-					buttons = {
-						{ L["Current Character"], "current" },
-						{ L["Any Character"], "any" },
-						{ L["Disabled"], "disabled" },
-					},
-					OnClick = function( info )
-						NS.db["alert"] = info.value;
-						NS.UpdateAll( "forceUpdate" );
-					end,
-					width = 116,
-				} );
-				NS.CheckButton( "AlertMissionsCheckButton", SubFrame, L["Missions"], {
-					setPoint = { "TOPLEFT", "$parentAlertDropDownMenu", "BOTTOMLEFT", 15, -1 },
-					tooltip = L["|cffffffffEnable Alert|r\nMissions In Progress"],
-					OnClick = function( checked )
-						NS.UpdateAll( "forceUpdate" );
-					end,
-					db = "alertMissions",
-				} );
-				NS.CheckButton( "AlertClassHallUpgradesCheckButton", SubFrame, L["Class Hall Upgrades"], {
-					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
-					tooltip = L["|cffffffffEnable Alert|r\nClass Hall Upgrade Research"],
-					OnClick = function( checked )
-						NS.UpdateAll( "forceUpdate" );
-					end,
-					db = "alertClassHallUpgrades",
-				} );
-				NS.CheckButton( "AlertTroopsCheckButton", SubFrame, L["Troops"], {
-					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
-					tooltip = L["|cffffffffEnable Alert|r\nTroop Work Orders"],
-					OnClick = function( checked )
-						NS.UpdateAll( "forceUpdate" );
-					end,
-					db = "alertTroops",
-				} );
-				NS.CheckButton( "AlertArtifactResearchNotesCheckButton", SubFrame, L["Artifact Research Notes"], {
-					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
-					tooltip = L["|cffffffffEnable Alert|r\nArtifact Research Notes Work Orders"],
-					OnClick = function( checked )
-						NS.UpdateAll( "forceUpdate" );
-					end,
-					db = "alertArtifactResearchNotes",
-				} );
-				NS.CheckButton( "AlertAnyArtifactResearchNotesCheckButton", SubFrame, string.format( L["Include 1/2 |T237446:20:20|t %sArtifact Research Notes|r ready for pickup"], ITEM_QUALITY_COLORS[6].hex ), {
-					template = "InterfaceOptionsSmallCheckButtonTemplate",
-					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 24, -1 },
-					OnClick = function()
-						NS.UpdateAll( "forceUpdate" );
-					end,
-					db = "alertAnyArtifactResearchNotes",
-				} );
-				NS.CheckButton( "AlertChatArtifactResearchNotesCheckButton", SubFrame, L["Print alert to chat every 3 min (Current Character Only)"], {
-					template = "InterfaceOptionsSmallCheckButtonTemplate",
-					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
-					OnClick = function()
-						NS.UpdateAll( "forceUpdate" );
-					end,
-					db = "alertChatArtifactResearchNotes",
-				} );
-				NS.CheckButton( "AlertChampionArmamentsCheckButton", SubFrame, L["Champion Armaments"], {
-					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", -24, -1 },
-					tooltip = L["|cffffffffEnable Alert|r\nChampion Armaments Work Orders"],
-					OnClick = function( checked )
-						NS.UpdateAll( "forceUpdate" );
-					end,
-					db = "alertChampionArmaments",
-				} );
-				NS.CheckButton( "AlertLegionCookingRecipesCheckButton", SubFrame, L["Legion Cooking Recipes"], {
-					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
-					tooltip = L["|cffffffffEnable Alert|r\nLegion Cooking Recipe Work Orders"],
-					OnClick = function( checked )
-						NS.UpdateAll( "forceUpdate" );
-					end,
-					db = "alertLegionCookingRecipes",
-				} );
-				NS.CheckButton( "AlertInstantCompleteWorldQuestCheckButton", SubFrame, L["Instant Complete World Quest"], {
-					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
-					tooltip = L["|cffffffffEnable Alert|r\nInstant Complete World Quest\n(e.g. Call the Val'kyr) Spell Cooldown\n\nNo Alert for the 10 Min Work Order"],
-					OnClick = function( checked )
-						NS.UpdateAll( "forceUpdate" );
-					end,
-					db = "alertInstantCompleteWorldQuest",
-				} );
-				NS.CheckButton( "AlertBlessingOfTheOrderCheckButton", SubFrame, L["Blessing of the Order"], {
-					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
-					tooltip = L["|cffffffffEnable Alert|r\nBlessing of the Order\nPriest Work Order"],
-					OnClick = function( checked )
-						NS.UpdateAll( "forceUpdate" );
-					end,
-					db = "alertBlessingOfTheOrder",
-				} );
-				NS.CheckButton( "AlertBonusRollTokenCheckButton", SubFrame, L["Seal of Broken Fate"], {
-					setPoint = { "LEFT", "$parentAlertMissionsCheckButton", "LEFT", ( ( NS.UI.cfg.mainFrame.width - 11 ) / 2 ), 0 },
-					tooltip = L["|cffffffffEnable Alert|r\nSeal of Broken Fate Work Order"],
-					OnClick = function( checked )
-						NS.UpdateAll( "forceUpdate" );
-					end,
-					db = "alertBonusRollToken",
-				} );
-				NS.CheckButton( "AlertDisableInInstancesCheckButton", SubFrame, L["Disable in Instances"], {
-					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
-					tooltip = L["|cffffffffDisable Alert|r\nIn Arenas, Dungeons,\nBattlegrounds, and Raids"],
-					OnClick = function( checked )
-						NS.UpdateAll( "forceUpdate" );
-					end,
-					db = "alertDisableInInstances",
 				} );
 				StaticPopupDialogs["COHC_MONITOR_COLUMN"] = {
 					text = L["\n%s\n\n|cffffd200Column|r\n|cff82c5ffNumber|r"],
@@ -1028,10 +928,11 @@ NS.UI.cfg = {
 			end,
 			Refresh			= function( SubFrame )
 				local sfn = SubFrame:GetName();
-				_G[sfn .. "ShowMinimapButtonCheckButton"]:SetChecked( NS.dbpc["showMinimapButton"] );
-				_G[sfn .. "DockMinimapButtonCheckButton"]:SetChecked( NS.dbpc["dockMinimapButton"] );
-				_G[sfn .. "LargeMinimapButtonCheckButton"]:SetChecked( NS.dbpc["largeMinimapButton"] );
-				_G[sfn .. "ShowClassHallReportMinimapButtonCheckButton"]:SetChecked( NS.dbpc["showClassHallReportMinimapButton"] );
+				_G[sfn .. "ShowMinimapButtonCheckButton"]:SetChecked( NS.db["showMinimapButton"] );
+				_G[sfn .. "ShowCharacterTooltipMinimapButtonCheckButton"]:SetChecked( NS.db["showCharacterTooltipMinimapButton"] );
+				_G[sfn .. "DockMinimapButtonCheckButton"]:SetChecked( NS.db["dockMinimapButton"] );
+				_G[sfn .. "LargeMinimapButtonCheckButton"]:SetChecked( NS.db["largeMinimapButton"] );
+				_G[sfn .. "ShowClassHallReportMinimapButtonCheckButton"]:SetChecked( NS.db["showClassHallReportMinimapButton"] );
 				_G[sfn .. "ShowCharacterRealmsCheckButton"]:SetChecked( NS.db["showCharacterRealms"] );
 				_G[sfn .. "ForgetDragPositionCheckButton"]:SetChecked( NS.db["forgetDragPosition"] );
 				if NS.db["forgetDragPosition"] then
@@ -1041,19 +942,275 @@ NS.UI.cfg = {
 				end
 				_G[sfn .. "MonitorRowsDropDownMenu"]:Reset( NS.db["monitorRows"] );
 				_G[sfn .. "MonitorColumnsDropDownMenu"]:Reset( 1 );
+			end,
+		},
+		{
+			-- Alerts
+			mainFrameTitle	= NS.title,
+			tabText			= L["Alerts"],
+			Init			= function( SubFrame )
+				NS.TextFrame( "AlertHeader", SubFrame, L["Alert - Flashes Minimap button when an indicator is |TInterface\\COMMON\\Indicator-Green:0|t"], {
+					setPoint = {
+						{ "TOPLEFT", "$parent", "TOPLEFT", 8, -8 },
+						{ "RIGHT", -8 },
+					},
+					fontObject = "GameFontNormalLarge",
+				} );
+				NS.DropDownMenu( "AlertDropDownMenu", SubFrame, {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", -12, -8 },
+					buttons = {
+						{ L["Current Character"], "current" },
+						{ L["Any Character"], "any" },
+						{ L["Disabled"], "disabled" },
+					},
+					OnClick = function( info )
+						NS.db["alert"] = info.value;
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					width = 116,
+				} );
+				NS.CheckButton( "AlertMissionsCheckButton", SubFrame, L["Missions"], {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 15, -1 },
+					tooltip = L["|cffffffffEnable Alert|r\nMissions In Progress"],
+					OnClick = function( checked )
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "alertMissions",
+				} );
+				NS.CheckButton( "AlertClassHallUpgradesCheckButton", SubFrame, L["Class Hall Upgrades"], {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					tooltip = L["|cffffffffEnable Alert|r\nClass Hall Upgrade Research"],
+					OnClick = function( checked )
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "alertClassHallUpgrades",
+				} );
+				NS.CheckButton( "AlertTroopsCheckButton", SubFrame, L["Troops"], {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					tooltip = L["|cffffffffEnable Alert|r\nTroop Work Orders"],
+					OnClick = function( checked )
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "alertTroops",
+				} );
+				NS.CheckButton( "AlertChampionArmamentsCheckButton", SubFrame, L["Champion Armaments"], {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					tooltip = L["|cffffffffEnable Alert|r\nChampion Armaments Work Orders"],
+					OnClick = function( checked )
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "alertChampionArmaments",
+				} );
+				NS.CheckButton( "AlertLegionCookingRecipesCheckButton", SubFrame, L["Legion Cooking Recipes"], {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					tooltip = L["|cffffffffEnable Alert|r\nLegion Cooking Recipe Work Orders"],
+					OnClick = function( checked )
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "alertLegionCookingRecipes",
+				} );
+				NS.CheckButton( "AlertInstantCompleteWorldQuestCheckButton", SubFrame, L["Instant Complete World Quest"], {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					tooltip = L["|cffffffffEnable Alert|r\nInstant Complete World Quest\n(e.g. Call the Val'kyr) Spell Cooldown\n\nNo Alert for the 10 Min Work Order"],
+					OnClick = function( checked )
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "alertInstantCompleteWorldQuest",
+				} );
+				NS.CheckButton( "AlertBlessingOfTheOrderCheckButton", SubFrame, L["Blessing of the Order"], {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					tooltip = L["|cffffffffEnable Alert|r\nBlessing of the Order\nPriest Work Order"],
+					OnClick = function( checked )
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "alertBlessingOfTheOrder",
+				} );
+				NS.CheckButton( "AlertBonusRollTokenCheckButton", SubFrame, L["Seal of Broken Fate"], {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					tooltip = L["|cffffffffEnable Alert|r\nSeal of Broken Fate Work Order"],
+					OnClick = function( checked )
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "alertBonusRollToken",
+				} );
+				NS.CheckButton( "AlertDisableInInstancesCheckButton", SubFrame, L["Disable in Instances"], {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					tooltip = L["|cffffffffDisable Alert|r\nIn Arenas, Dungeons,\nBattlegrounds, and Raids"],
+					OnClick = function( checked )
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "alertDisableInInstances",
+				} );
+				NS.TextFrame( "AlertNotice", SubFrame, BATTLENET_FONT_COLOR_CODE .. L["Minimap button flash is only enabled for my custom Minimap button.\nThe optional standardized LibDBIcon Minimap button (see LDB tab) does not flash."] .. FONT_COLOR_CODE_CLOSE, {
+					setPoint = {
+						{ "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -5 },
+						{ "RIGHT", -8 },
+					},
+				} );
+			end,
+			Refresh			= function( SubFrame )
+				local sfn = SubFrame:GetName();
 				_G[sfn .. "AlertDropDownMenu"]:Reset( NS.db["alert"] );
 				_G[sfn .. "AlertMissionsCheckButton"]:SetChecked( NS.db["alertMissions"] );
 				_G[sfn .. "AlertClassHallUpgradesCheckButton"]:SetChecked( NS.db["alertClassHallUpgrades"] );
 				_G[sfn .. "AlertTroopsCheckButton"]:SetChecked( NS.db["alertTroops"] );
-				_G[sfn .. "AlertArtifactResearchNotesCheckButton"]:SetChecked( NS.db["alertArtifactResearchNotes"] );
-				_G[sfn .. "AlertAnyArtifactResearchNotesCheckButton"]:SetChecked( NS.db["alertAnyArtifactResearchNotes"] );
-				_G[sfn .. "AlertChatArtifactResearchNotesCheckButton"]:SetChecked( NS.db["alertChatArtifactResearchNotes"] );
 				_G[sfn .. "AlertChampionArmamentsCheckButton"]:SetChecked( NS.db["alertChampionArmaments"] );
 				_G[sfn .. "AlertLegionCookingRecipesCheckButton"]:SetChecked( NS.db["alertLegionCookingRecipes"] );
 				_G[sfn .. "AlertInstantCompleteWorldQuestCheckButton"]:SetChecked( NS.db["alertInstantCompleteWorldQuest"] );
 				_G[sfn .. "AlertBlessingOfTheOrderCheckButton"]:SetChecked( NS.db["alertBlessingOfTheOrder"] );
 				_G[sfn .. "AlertBonusRollTokenCheckButton"]:SetChecked( NS.db["alertBonusRollToken"] );
 				_G[sfn .. "AlertDisableInInstancesCheckButton"]:SetChecked( NS.db["alertDisableInInstances"] );
+			end,
+		},
+		{
+			-- LDB
+			mainFrameTitle	= NS.title,
+			tabText			= L["LDB"],
+			Init			= function( SubFrame )
+				NS.TextFrame( "Description", SubFrame, string.format( L["The %s LDB data source can be used by LDB display addons such as Titan Panel, Chocolate Bar, and Bazooka.\n\n%sThe LDB data source reflects the characters as they are configured and shown on the Monitor tab.|r"], HIGHLIGHT_FONT_COLOR_CODE .. NS.addon .. FONT_COLOR_CODE_CLOSE, RED_FONT_COLOR_CODE ), {
+					setPoint = {
+						{ "TOPLEFT", "$parent", "TOPLEFT", 8, -8 },
+						{ "RIGHT", -8 },
+					},
+					fontObject = "GameFontNormalSmall",
+				} );
+				NS.TextFrame( "SourceLabel", SubFrame, L["Source:"], {
+					size = { 81, 16 },
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -18 },
+					justifyH = "RIGHT",
+				} );
+				NS.DropDownMenu( "SourceDropDownMenu", SubFrame, {
+					setPoint = { "LEFT", "#sibling", "RIGHT", -12, -1 },
+					buttons = {
+						{ L["Current Character"], "current" },
+						{ L["All Characters"], "all" },
+					},
+					OnClick = function( info )
+						NS.db["ldbSource"] = info.value;
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					width = 116,
+				} );
+				NS.TextFrame( "TextFormatLabel", SubFrame, L["Text Format:"], {
+					size = { 81, 16 },
+					setPoint = { "TOPLEFT", "$parentSourceLabel", "BOTTOMLEFT", 0, -18 },
+					justifyH = "RIGHT",
+				} );
+				NS.DropDownMenu( "TextFormatDropDownMenu", SubFrame, {
+					setPoint = { "LEFT", "#sibling", "RIGHT", -12, -1 },
+					buttons = {
+						{ L["Missions: X Upgrades: Y Orders: Z"], "missions-upgrades-orders" },
+						{ L["Missions: X Orders: Z"], "missions-orders" },
+						{ L["Missions: X"], "missions" },
+						{ L["Upgrades: Y"], "upgrades" },
+						{ L["Orders: Z"], "orders" },
+					},
+					OnClick = function( info )
+						NS.db["ldbTextFormat"] = info.value;
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					width = 203,
+				} );
+				NS.CheckButton( "ShowLabelsCheckButton", SubFrame, string.format( L["Show Labels (e.g. %sMissions|r)"], NORMAL_FONT_COLOR_CODE ), {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 15, -1 },
+					OnClick = function( checked )
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "ldbShowLabels",
+				} );
+				NS.CheckButton( "ShowWhenNoneCheckButton", SubFrame, string.format( L["Show when %sNone|r"], GRAY_FONT_COLOR_CODE ), {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					OnClick = function( checked )
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "ldbShowWhenNone",
+				} );
+				NS.CheckButton( "ShowNextMissionCheckButton", SubFrame, string.format( L["Show (Next: 1 Hr) for %sMissions|r"], NORMAL_FONT_COLOR_CODE ), {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					OnClick = function( checked )
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "ldbShowNextMission",
+				} );
+				NS.CheckButton( "ShowNextMissionCharacterCheckButton", SubFrame, L["Show Character Name"], {
+					template = "InterfaceOptionsSmallCheckButtonTemplate",
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 24, -1 },
+					OnClick = function()
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "ldbShowNextMissionCharacter",
+				} );
+				NS.CheckButton( "ShowNextUpgradeCheckButton", SubFrame, string.format( L["Show (Next: 1 Hr) for %sUpgrades|r"], NORMAL_FONT_COLOR_CODE ), {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", -24, -1 },
+					OnClick = function( checked )
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "ldbShowNextUpgrade",
+				} );
+				NS.CheckButton( "ShowNextUpgradeCharacterCheckButton", SubFrame, L["Show Character Name"], {
+					template = "InterfaceOptionsSmallCheckButtonTemplate",
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 24, -1 },
+					OnClick = function()
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "ldbShowNextUpgradeCharacter",
+				} );
+				NS.CheckButton( "ShowNextOrderCheckButton", SubFrame, string.format( L["Show (Next: 1 Hr) for %sOrders|r"], NORMAL_FONT_COLOR_CODE ), {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", -24, -1 },
+					OnClick = function( checked )
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "ldbShowNextOrder",
+				} );
+				NS.CheckButton( "ShowNextOrderCharacterCheckButton", SubFrame, L["Show Character Name"], {
+					template = "InterfaceOptionsSmallCheckButtonTemplate",
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 24, -1 },
+					OnClick = function()
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "ldbShowNextOrderCharacter",
+				} );
+				NS.TextFrame( "LibDBIconLabel", SubFrame, L["LibDBIcon:"], {
+					size = { 81, 16 },
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", ( -24 - ( 15 - 12 ) - 81 ), -12 },
+					justifyH = "RIGHT",
+				} );
+				NS.TextFrame( "LibDBIconDescription", SubFrame, L["Creates a standardized Minimap button compatible with a wide range of additional addons."], {
+					setPoint = {
+						{ "LEFT", "#sibling", "RIGHT", 5, 0 },
+						{ "RIGHT", -8 },
+					},
+					fontObject = "GameFontHighlight",
+				} );
+				NS.CheckButton( "HideLibDBIconMinimapButtonCheckButton", SubFrame, L["Hide LibDBIcon Minimap Button"], {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", ( -5 + ( 15 - 12 ) ), -5 },
+					tooltip = L["Hide or show the\nbutton on the Minimap"],
+					OnClick = function( checked )
+						NS.db["ldbi"].hide = checked;
+						NS.ldbi:Refresh( NS.addon );
+					end,
+				} );
+				NS.CheckButton( "ShowCharacterTooltipLibDBIconMinimapButtonCheckButton", SubFrame, L["Show Character Tooltip"], {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					tooltip = L["Show or hide the character\ntooltip when available\nfor the Minimap button"],
+					db = "ldbiShowCharacterTooltip",
+				} );
+			end,
+			Refresh			= function( SubFrame )
+				local sfn = SubFrame:GetName();
+				_G[sfn .. "SourceDropDownMenu"]:Reset( NS.db["ldbSource"] );
+				_G[sfn .. "TextFormatDropDownMenu"]:Reset( NS.db["ldbTextFormat"] );
+				_G[sfn .. "ShowLabelsCheckButton"]:SetChecked( NS.db["ldbShowLabels"] );
+				_G[sfn .. "ShowWhenNoneCheckButton"]:SetChecked( NS.db["ldbShowWhenNone"] );
+				_G[sfn .. "ShowNextMissionCheckButton"]:SetChecked( NS.db["ldbShowNextMission"] );
+				_G[sfn .. "ShowNextMissionCharacterCheckButton"]:SetChecked( NS.db["ldbShowNextMissionCharacter"] );
+				_G[sfn .. "ShowNextUpgradeCheckButton"]:SetChecked( NS.db["ldbShowNextUpgrade"] );
+				_G[sfn .. "ShowNextUpgradeCharacterCheckButton"]:SetChecked( NS.db["ldbShowNextUpgradeCharacter"] );
+				_G[sfn .. "ShowNextOrderCheckButton"]:SetChecked( NS.db["ldbShowNextOrder"] );
+				_G[sfn .. "ShowNextOrderCharacterCheckButton"]:SetChecked( NS.db["ldbShowNextOrderCharacter"] );
+				_G[sfn .. "HideLibDBIconMinimapButtonCheckButton"]:SetChecked( NS.db["ldbi"].hide );
+				_G[sfn .. "ShowCharacterTooltipLibDBIconMinimapButtonCheckButton"]:SetChecked( NS.db["ldbiShowCharacterTooltip"] );
+
 			end,
 		},
 		{

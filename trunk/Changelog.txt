@@ -1,3 +1,16 @@
+**1.26**
+
+- Release date: 09/02/2017
+- New Character Tooltip added to Minimap button and LDB.
+- Mission type icons added to Missions tooltip. This was done mostly to help identify quest missions.
+- Artifact Research Notes removed.
+- Troop #6 added for additional troops added in patch 7.3.0.
+- Options tab split into 3 tabs: Misc, Alerts, LDB.
+- Limited LDB support added.
+- LibDBIcon Minimap button added for compatibility with other addons.
+- Minimap button options have been reset and are now account-wide rather than character-specific.
+- Bug fix: The Nomi cooking quest in Dalaran with an almost instant work order is now filtered out to prevent the unexpected work order report messages.
+
 **1.25**
 
 - Release date: 08/03/2017

@@ -1,3 +1,8 @@
+**1.27**
+
+- Release date: 09/03/2017
+- Bug fix: GameTooltip font sizes were being permanently changed by accident. Font size will no longer be changed for better overall compatibility.
+
 **1.26**
 
 - Release date: 09/02/2017

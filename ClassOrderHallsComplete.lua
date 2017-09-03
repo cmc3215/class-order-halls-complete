@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------------------------------------------------------------------
 local NS = select( 2, ... );
 local L = NS.localization;
-NS.versionString = "1.25";
+NS.versionString = "1.26";
 NS.version = tonumber( NS.versionString );
 --
 NS.initialized = false;
@@ -11,6 +11,7 @@ NS.initialized = false;
 NS.lastTimeUpdateRequest = nil;
 NS.lastTimeUpdateRequestSent = nil;
 NS.lastTimeUpdateAll = nil;
+NS.updateAllInterval = 10;
 --
 NS.shipmentConfirmsRequired = 3; -- Bypassed for players without a Class Order Hall
 NS.shipmentConfirmsCount = 0;
@@ -66,7 +67,6 @@ NS.classRef = {
 	-- Quests or Talents that signify the character is capable of starting Research or Work Orders
 	--
 	-- advancement = "Order Advancement"										- questID
-	-- artifact = "Artifact Research Notes"										- questID
 	-- armaments = Champion Armaments or Equipment Work Orders Talent - Tier 3	- talent.id
 	-- wqcomplete = World Quest Complete Work Order Talent - Tier 5				- talent.id, itemID, itemName, spellID, spellTexture
 	-- blessingorder = Blessing of the Order Work Order Talent - Tier 5			- talent.id, itemID, itemName
@@ -75,88 +75,88 @@ NS.classRef = {
 	--
 	["WARRIOR"] = {
 		advancement = 42611, 																					-- Einar the Runecaster
-		artifact = 43888, 																						-- Hitting the Books
 		armaments = 411, 																						-- Heavenly Forge
 		wqcomplete = { 410, 140157, L["Horn of War"], 221597, select( 3, GetSpellInfo( 221597 ) ) },			-- Val'kyr Call
 		missions = 42598,																						-- Champions of Skyhold
+		icon = 626008,
 	},
 	["DEATHKNIGHT"] = {
 		advancement = 43268,																					-- Tech It Up A Notch
-		artifact = 43877,																						-- Hitting the Books
 		armaments = 433,																						-- Brothers in Arms
 		wqcomplete = { 432, 139888, L["Frost Crux"], 221557, select( 3, GetSpellInfo( 221557 ) ) },				-- Frost Wyrm
 		missions = 43264,																						-- Rise, Champions
+		icon = 625998,
 	},
 	["PALADIN"] = {
 		advancement = 42850, 																					-- Tech It Up A Notch
-		artifact = 43883, 																						-- Hitting the Books
 		armaments =	400, 																						-- Plowshares to Swords
 		wqcomplete = { 399, 140155, L["Silver Hand Orders"], 221587, select( 3, GetSpellInfo( 221587 ) ) },		-- Grand Crusade
 		bonusroll = 398, 																						-- Holy Purpose
 		missions = 42846,																						-- The Blood Matriarch
+		icon = 626003,
 	},
 	["MONK"] = {
 		advancement = 42191, 																					-- Tech It Up A Notch
-		artifact = 43881, 																						-- Hitting the Books
 		bonusroll = 256, 																						-- One with Destiny
 		missions = 42187,																						-- Rise, Champions
+		icon = 626002,
 	},
 	["PRIEST"] = {
 		advancement = 43277, 																					-- Tech It Up A Notch
-		artifact = 43884, 																						-- Hitting the Books
 		armaments =	455, 																						-- Armaments of Light
 		blessingorder = { 448, 140156, L["Blessing of the Order"] },											-- Tithe
 		bonusroll = 454, 																						-- Blessed Seals
 		missions = 43270,																						-- Rise, Champions
+		icon = 626004,
 	},
 	["SHAMAN"] = {
 		advancement = 41740, 																					-- Tech It Up A Notch
-		artifact = 43886, 																						-- Speaking to the Wind
 		bonusroll = 49, 																						-- Spirit Walk
 		missions = 42383,																						-- Rise, Champions
+		icon = 626006,
 	},
 	["DRUID"] = {
 		advancement = 42588, 																					-- Branching Out
-		artifact = 43879, 																						-- Hitting the Books
 		bonusroll = 355, 																						-- Elune's Chosen
 		missions = 42583,																						-- Rise, Champions
+		icon = 625999,
 	},
 	["ROGUE"] = {
 		advancement = 43015, 																					-- What Winstone Suggests
-		artifact = 43885, 																						-- Hitting the Books
 		armaments =	444, 																						-- Weapons Smuggler
 		bonusroll = 443, 																						-- Plunder
 		missions = 42139,																						-- Rise, Champions
+		icon = 626005,
 	},
 	["MAGE"] = {
 		advancement = 42696, 																					-- Tech It Up A Notch
-		artifact = 43749, 																						-- Hitting the Books
 		armaments =	389, 																						-- Arcane Armaments
 		wqcomplete = { 388, 140038, L["Focusing Crystal"], 221602, select( 3, GetSpellInfo( 221602 ) ) },		-- Might of Dalaran
 		bonusroll = 387, 																						-- Arcane Divination
 		missions = 42663,																						-- Rise, Champions
+		icon = 626001,
 	},
 	["WARLOCK"] = {
 		advancement = 42601, 																					-- Tech It Up A Notch
-		artifact = 43887, 																						-- Hitting the Books
 		armaments =	364, 																						-- Shadow Pact
 		wqcomplete = { 367, 139892, L["Demonic Phylactery"], 219540, select( 3, GetSpellInfo( 219540 ) ) },		-- Unleash Infernal
 		missions = 42608,																						-- Rise, Champions
+		icon = 626007,
 	},
 	["HUNTER"] = {
 		advancement = 42526, 																					-- Tech It Up A Notch
-		artifact = 43880, 																						-- Hitting the Books
 		armaments = 378, 																						-- Fletchery
 		bonusroll = 377, 																						-- Unseen Path
 		missions = 42519,																						-- Rise, Champions
+		icon = 626000,
 	},
 	["DEMONHUNTER"] = {
 		advancement = 42683, 																					-- Demonic Improvements
-		artifact = 43878, 																						-- Hitting the Books
 		armaments =	422, 																						-- Fel Armaments
 		wqcomplete = { 421, 140158, L["Empowered Rift Core"], 221561, select( 3, GetSpellInfo( 221561 ) ) },	-- Fel Hammer's Wrath
 		bonusroll =	420, 																						-- Focused War Effort
 		missions = { 42670, 42671 },																			-- Rise, Champions
+		icon = 1260827,
 	},
 };
 NS.troopTextureRef = {
@@ -199,10 +199,16 @@ NS.troopTextureRef = {
 NS.sealingFateQuests = { 43892, 43893, 43894, 43895, 43896, 43897, 47851, 47864, 47865 };
 NS.sealofBrokenFateMax = 6;
 NS.sealofBrokenFateWeeklyMax = 3;
-NS.artifactKnowledgeLevelStage1Max = 25;
-NS.artifactKnowledgeLevelStage2Max = 40;
+--
+NS.ldbTooltip = {
+	--header = {},
+	--missions = {},
+	--advancements = {},
+	--orders = {},
+	available = false,
+};
 --------------------------------------------------------------------------------------------------------------------------------------------
--- SavedVariables(PerCharacter)
+-- SavedVariables
 --------------------------------------------------------------------------------------------------------------------------------------------
 NS.DefaultSavedVariables = function()
 	return {
@@ -210,6 +216,12 @@ NS.DefaultSavedVariables = function()
 		["characters"] = {},
 		["orderCharactersAutomatically"] = true,
 		["currentCharacterFirst"] = true,
+		["showMinimapButton"] = true,
+		["showCharacterTooltipMinimapButton"] = true,
+		["dockMinimapButton"] = true,
+		["largeMinimapButton"] = true,
+		["minimapButtonPosition"] = 237.2,
+		["showClassHallReportMinimapButton"] = true,
 		["showCharacterRealms"] = true,
 		["forgetDragPosition"] = true,
 		["dragPosition"] = nil,
@@ -217,7 +229,6 @@ NS.DefaultSavedVariables = function()
 		["monitorColumn"] = {
 			"missions",
 			"advancement",
-			"artifact-research-notes",
 			"cooking-recipes",
 			"troop1",
 			"troop2",
@@ -226,31 +237,30 @@ NS.DefaultSavedVariables = function()
 			"troop3",
 			"troop4",
 			"troop5",
+			"troop6",
 		},
 		["alert"] = "current",
 		["alertMissions"] = true,
 		["alertClassHallUpgrades"] = true,
 		["alertTroops"] = true,
-		["alertArtifactResearchNotes"] = true,
-		["alertAnyArtifactResearchNotes"] = true,
-		["alertChatArtifactResearchNotes"] = true,
 		["alertChampionArmaments"] = true,
 		["alertLegionCookingRecipes"] = true,
 		["alertInstantCompleteWorldQuest"] = true,
 		["alertBlessingOfTheOrder"] = true,
 		["alertBonusRollToken"] = true,
 		["alertDisableInInstances"] = true,
-	};
-end
---
-NS.DefaultSavedVariablesPerCharacter = function()
-	return {
-		["version"] = NS.version,
-		["showMinimapButton"] = true,
-		["largeMinimapButton"] = true,
-		["dockMinimapButton"] = true,
-		["minimapButtonPosition"] = 302.5,
-		["showClassHallReportMinimapButton"] = true,
+		["ldbSource"] = "current",
+		["ldbTextFormat"] = "missions-upgrades-orders",
+		["ldbShowLabels"] = true,
+		["ldbShowWhenNone"] = true,
+		["ldbShowNextMission"] = true,
+		["ldbShowNextMissionCharacter"] = true,
+		["ldbShowNextUpgrade"] = true,
+		["ldbShowNextUpgradeCharacter"] = true,
+		["ldbShowNextOrder"] = true,
+		["ldbShowNextOrderCharacter"] = true,
+		["ldbi"] = { hide = true },
+		["ldbiShowCharacterTooltip"] = true,
 	};
 end
 --
@@ -262,8 +272,6 @@ NS.Upgrade = function()
 		NS.db["alertMissions"] = vars["alertMissions"];
 		NS.db["alertClassHallUpgrades"] = vars["alertClassHallUpgrades"];
 		NS.db["alertTroops"] = vars["alertTroops"];
-		NS.db["alertArtifactResearchNotes"] = vars["alertArtifactResearchNotes"];
-		NS.db["alertAnyArtifactResearchNotes"] = vars["alertAnyArtifactResearchNotes"];
 		NS.db["alertChampionArmaments"] = vars["alertChampionArmaments"];
 		NS.db["alertLegionCookingRecipes"] = vars["alertLegionCookingRecipes"];
 		NS.db["alertInstantCompleteWorldQuest"] = vars["alertInstantCompleteWorldQuest"];
@@ -300,27 +308,10 @@ NS.Upgrade = function()
 		for ck,c in ipairs( NS.db["characters"] ) do
 			NS.RemoveKeysByFunction( c["orders"], function( o )
 				if ( o.texture == 135705 or o.texture == 341980 or o.texture == 1411833 or o.texture == 1033908 or o.texture == 1367345 or o.texture == 1135365 ) then
-					NS.db["characters"][ck]["monitor"][o.texture] = nil;
+					c["monitor"][o.texture] = nil;
 					return true;
 				end
 			end );
-		end
-	end
-	-- 1.16
-	if version < 1.16 then
-		NS.db["alertChatArtifactResearchNotes"] = vars["alertChatArtifactResearchNotes"];
-	end
-	-- 1.20
-	if version < 1.20 then
-		for ck,c in ipairs( NS.db["characters"] ) do
-			for ok,o in ipairs( c["orders"] ) do
-				if o.texture == 237446 then
-					if o.duration then
-						NS.db["characters"][ck]["orders"][ok]["duration"] = 12960;
-					end
-					break;
-				end
-			end
 		end
 	end
 	-- 1.23
@@ -330,7 +321,7 @@ NS.Upgrade = function()
 		for ck,c in ipairs( NS.db["characters"] ) do
 			NS.RemoveKeysByFunction( c["orders"], function( o )
 				if o.troopCount == "?" then
-					NS.db["characters"][ck]["monitor"][o.texture] = nil;
+					c["monitor"][o.texture] = nil;
 					return true;
 				end
 			end );
@@ -338,32 +329,60 @@ NS.Upgrade = function()
 			for i = 1, #itemSummonTroops do
 				local ok = NS.FindKeyByField( c["orders"], "texture", itemSummonTroops[i] );
 				if ok then
-					NS.db["characters"][ck]["orders"][ok]["troopSummonItemCount"] = 0;
+					c["orders"][ok]["troopSummonItemCount"] = 0;
 				end
 			end
 			--
-			NS.db["characters"][ck]["seals"]["sealingFateQuestsCompleted"] = NS.db["characters"][ck]["seals"]["sealOfBrokenFate"] or nil;
-			NS.db["characters"][ck]["seals"]["sealOfBrokenFate"] = nil;
+			c["seals"]["sealingFateQuestsCompleted"] = c["seals"]["sealOfBrokenFate"] or nil;
+			c["seals"]["sealOfBrokenFate"] = nil;
 		end
 		--
-		local mck = NS.FindKeyByValue( NS.db["monitorColumn"], "troop5" );
-		if not mck then
+		if not NS.FindKeyByValue( NS.db["monitorColumn"], "troop5" ) then
 			table.insert( NS.db["monitorColumn"], "troop5" );
+		end
+	end
+	-- 1.26
+	if version < 1.26 then
+		-- Add
+		NS.db["showMinimapButton"] = vars["showMinimapButton"];
+		NS.db["showCharacterTooltipMinimapButton"] = vars["showCharacterTooltipMinimapButton"];
+		NS.db["dockMinimapButton"] = vars["dockMinimapButton"];
+		NS.db["largeMinimapButton"] = vars["largeMinimapButton"];
+		NS.db["minimapButtonPosition"] = vars["minimapButtonPosition"];
+		NS.db["showClassHallReportMinimapButton"] = vars["showClassHallReportMinimapButton"];
+		NS.db["ldbSource"] = vars["ldbSource"];
+		NS.db["ldbTextFormat"] = vars["ldbTextFormat"];
+		NS.db["ldbShowLabels"] = vars["ldbShowLabels"];
+		NS.db["ldbShowWhenNone"] = vars["ldbShowWhenNone"];
+		NS.db["ldbShowNextMission"] = vars["ldbShowNextMission"];
+		NS.db["ldbShowNextMissionCharacter"] = vars["ldbShowNextMissionCharacter"];
+		NS.db["ldbShowNextUpgrade"] = vars["ldbShowNextUpgrade"];
+		NS.db["ldbShowNextUpgradeCharacter"] = vars["ldbShowNextUpgradeCharacter"];
+		NS.db["ldbShowNextOrder"] = vars["ldbShowNextOrder"];
+		NS.db["ldbShowNextOrderCharacter"] = vars["ldbShowNextOrderCharacter"];
+		NS.db["ldbi"] = vars["ldbi"];
+		NS.db["ldbiShowCharacterTooltip"] = vars["ldbiShowCharacterTooltip"];
+		if not NS.FindKeyByValue( NS.db["monitorColumn"], "troop6" ) then
+			table.insert( NS.db["monitorColumn"], "troop6" );
+		end
+		-- Remove
+		NS.db["alertArtifactResearchNotes"] = nil;
+		NS.db["alertAnyArtifactResearchNotes"] = nil;
+		NS.db["alertChatArtifactResearchNotes"] = nil;
+		NS.RemoveKeysByFunction( NS.db["monitorColumn"], function( mc ) return ( mc == "artifact-research-notes" ); end );
+		for ck,c in ipairs( NS.db["characters"] ) do
+			c["artifactKnowledgeLevel"] = nil;
+			c["artifactKnowledgeStage2Unlocked"] = nil;
+			NS.RemoveKeysByFunction( c["orders"], function( o )
+				if o.texture == 237446 then
+					c["monitor"][o.texture] = nil;
+					return true;
+				end
+			end );
 		end
 	end
 	--
 	NS.db["version"] = NS.version;
-end
---
-NS.UpgradePerCharacter = function()
-	local varspercharacter = NS.DefaultSavedVariablesPerCharacter();
-	local version = NS.dbpc["version"];
-	-- 1.05
-	if version < 1.05 then
-		NS.dbpc["dockMinimapButton"] = varspercharacter["dockMinimapButton"];
-	end
-	--
-	NS.dbpc["version"] = NS.version;
 end
 --------------------------------------------------------------------------------------------------------------------------------------------
 -- Misc
@@ -500,22 +519,12 @@ NS.ToggleAlert = function()
 		a2:SetOrder( 2 );
 	end
 	--
-	if NS.dbpc["showMinimapButton"] and ( not NS.db["alertDisableInInstances"] or not IsInInstance() ) and (
+	if NS.db["showMinimapButton"] and ( not NS.db["alertDisableInInstances"] or not IsInInstance() ) and (
 			( NS.db["alert"] == "current" and NS.allCharacters.alertCurrentCharacter ) or ( NS.db["alert"] == "any" and NS.allCharacters.alertAnyCharacter )
 		) then
 		if not NS.alertFlashing then
 			NS.alertFlashing = true;
 			NS.minimapButtonFlash:Play();
-		end
-		-- Artifact Research Notes Chat Alert, 3 min = 180 sec
-		if NS.alertChatArtifactResearchNotes then
-			local currentTime = time();
-			NS.lastTimeAlertChatArtifactResearchNotes = NS.lastTimeAlertChatArtifactResearchNotes or ( currentTime - 180 );
-			if ( currentTime - NS.lastTimeAlertChatArtifactResearchNotes ) >= 180 then
-				NS.lastTimeAlertChatArtifactResearchNotes = currentTime;
-				NS.Print( NS.alertChatArtifactResearchNotes );
-				NS.alertChatArtifactResearchNotes = nil;
-			end
 		end
 	else
 		if NS.alertFlashing then
@@ -621,15 +630,7 @@ NS.UpdateCharacter = function()
 				local talentTreeIDs = C_Garrison.GetTalentTreeIDsByClassID( LE_GARRISON_TYPE_7_0, NS.currentCharacter.classID );
 				local completeTalentID = C_Garrison.GetCompleteTalent( LE_GARRISON_TYPE_7_0 );
 				if talentTreeIDs and talentTreeIDs[1] then -- Talent trees and first treeID available
-					local talentTree;
-					if NS.patch == "7.2.5" then
-						talentTree = select( 3, C_Garrison.GetTalentTreeInfoForID( LE_GARRISON_TYPE_7_0, talentTreeIDs[1] ) );
-					else
-						talentTree = select( 3, C_Garrison.GetTalentTreeInfoForID( talentTreeIDs[1] ) );
-					end
-					if talentTree[1] and not talentTree[1].id then
-						talentTree = talentTree[1]; -- For some reason in patch 7.2.5+ the talents are double packed in the first element of an otherwise empty table.
-					end
+					local talentTree = select( 3, C_Garrison.GetTalentTreeInfoForID( talentTreeIDs[1] ) );
 					for _,talent in ipairs( talentTree ) do
 						talent.tier = talent.tier + 1; -- Fix tiers starting at 0
 						talent.uiOrder = talent.uiOrder + 1; -- Fix order starting at 0
@@ -732,39 +733,15 @@ NS.UpdateCharacter = function()
 			local looseShipments = C_Garrison.GetLooseShipments( LE_GARRISON_TYPE_7_0 );
 			for i = 1, #looseShipments do
 				local name,texture,capacity,ready,total,creationTime,duration = C_Garrison.GetLandingPageShipmentInfoByContainerID( looseShipments[i] );
-				if texture == 237446 then -- Hotfixed Artifact Research Notes duration is 12960 sec, formerly 432000 sec
-					duration = duration == 0 and 0 or 12960; -- 12960 sec / 3 hr 36 min
-					creationTime = ( not creationTime or creationTime == 0 ) and 0 or ( creationTime + 432000 - duration ); -- Readjust the adjusted creationTime forward 432000 sec then back the actual 12960 sec ago
-				end
-				table.insert( NS.db["characters"][k]["orders"], {
-					["name"] = name,
-					["texture"] = texture,
-					["capacity"] = capacity,
-					["ready"] = ready,
-					["total"] = total,
-					["duration"] = duration,
-					["nextSeconds"] = NS.OrdersOrigNextSeconds( duration, creationTime, currentTime ),
-				} );
-				if NS.db["characters"][k]["monitor"][texture] == nil then
-					NS.db["characters"][k]["monitor"][texture] = true;
-				end
-				monitorable[texture] = true;
-			end
-			-- Artifact Research Notes
-			if IsQuestFlaggedCompleted( NS.classRef[NS.currentCharacter.class].artifact ) then
-				-- Artifact Knowledge Level
-				NS.db["characters"][k]["artifactKnowledgeLevel"] = select( 2, GetCurrencyInfo( 1171 ) );
-				NS.db["characters"][k]["artifactKnowledgeStage2Unlocked"] = NS.db["characters"][k]["artifactKnowledgeLevel"] > 25 and true or IsQuestFlaggedCompleted( 46809 ); -- Quest: Delivering Lost Knowledge
-				--
-				local texture = 237446;
-				local capacity = 2;
-				local ordersKey = NS.FindKeyByField( NS.db["characters"][k]["orders"], "texture", texture );
-				local orders = ordersKey and NS.db["characters"][k]["orders"][ordersKey]["total"] or 0;
-				if orders == 0 then
+				if texture ~= 1387621 then -- Exclude Nomi quest work order
 					table.insert( NS.db["characters"][k]["orders"], {
-						["name"] = GetItemInfo( 139390 ) or L["Artifact Research Notes"],
+						["name"] = name,
 						["texture"] = texture,
 						["capacity"] = capacity,
+						["ready"] = ready,
+						["total"] = total,
+						["duration"] = duration,
+						["nextSeconds"] = NS.OrdersOrigNextSeconds( duration, creationTime, currentTime ),
 					} );
 					if NS.db["characters"][k]["monitor"][texture] == nil then
 						NS.db["characters"][k]["monitor"][texture] = true;
@@ -1045,10 +1022,15 @@ NS.UpdateCharacters = function()
 			mip.lines = {};
 			mip.total = #char["missions"];
 			mip.incomplete = mip.total;
+			mip.nextMissionTimeRemaining = 0;
 			missionsTotal = missionsTotal + mip.total; -- All characters
-			for _,m in ipairs( char["missions"] ) do -- m is for mission, that's good enough for me
+			for _,m in ipairs( char["missions"] ) do
+				-- m is for mission, that's good enough for me
+				if not m["typeInlineTexture"] then
+					m["typeInlineTexture"] = NS.GetAtlasInlineTexture( m.typeAtlas, 24, 24 ); -- Update char missions for LDB tooltip use / Also prevents excessive use of GetAtlasInlineTexture()
+				end
 				mip.lines[#mip.lines + 1] = " ";
-				mip.lines[#mip.lines + 1] = m.name;
+				mip.lines[#mip.lines + 1] = m.typeInlineTexture .. " " .. m.name;
 				mip.lines[#mip.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. LEVEL .. " " .. m.level .. " (" .. m.iLevel .. ")" .. FONT_COLOR_CODE_CLOSE;
 				mip.lines[#mip.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. ( m.successChance and string.format( GARRISON_MISSION_PERCENT_CHANCE, m.successChance ) or UNKNOWN ) .. FONT_COLOR_CODE_CLOSE;
 				--
@@ -1063,12 +1045,14 @@ NS.UpdateCharacters = function()
 				end
 				--
 				local timeLeftSeconds = ( m.timeLeftSeconds and m.timeLeftSeconds >= passedTime ) and ( m.timeLeftSeconds - passedTime ) or 0;
+				m["lastKnownTimeLeftSeconds"] = timeLeftSeconds; -- Update char missions for LDB tooltip use
 				if timeLeftSeconds == 0 then
 					mip.lines[#mip.lines + 1] = GREEN_FONT_COLOR_CODE .. COMPLETE .. FONT_COLOR_CODE_CLOSE;
 					mip.incomplete = mip.incomplete - 1;
 					missionsComplete = missionsComplete + 1; -- All characters
 				else
 					mip.lines[#mip.lines + 1] = RED_FONT_COLOR_CODE .. SecondsToTime( timeLeftSeconds ) .. FONT_COLOR_CODE_CLOSE;
+					mip.nextMissionTimeRemaining = mip.nextMissionTimeRemaining == 0 and timeLeftSeconds or math.min( mip.nextMissionTimeRemaining, timeLeftSeconds ); -- Character
 					nextMissionTimeRemaining = nextMissionTimeRemaining == 0 and timeLeftSeconds or math.min( nextMissionTimeRemaining, timeLeftSeconds ); -- All characters
 					allMissionsTimeRemaining = allMissionsTimeRemaining == 0 and timeLeftSeconds or math.max( allMissionsTimeRemaining, timeLeftSeconds ); -- All characters
 					nextMissionCharName = nextMissionTimeRemaining == timeLeftSeconds and ( "|c" .. RAID_CLASS_COLORS[char["class"]].colorStr .. ( NS.db["showCharacterRealms"] and char["name"] or strsplit( "-", char["name"], 2 ) ) .. FONT_COLOR_CODE_CLOSE ) or nextMissionCharName;
@@ -1082,9 +1066,10 @@ NS.UpdateCharacters = function()
 					alertAnyCharacter = true; -- All characters
 				end
 			end
+			mip.color = ( mip.total == 0 and "Gray" ) or ( mip.incomplete == mip.total and "Red" ) or ( mip.incomplete > 0 and "Yellow" ) or "Green";
 		end
 		--
-		-- Advancement
+		-- Class Hall Upgrades
 		--
 		advancement[char["name"]] = {};
 		if char["monitor"]["advancement"] then
@@ -1111,10 +1096,6 @@ NS.UpdateCharacters = function()
 						alertAnyCharacter = true; -- All characters
 					end
 				end
-				--oa.lines[#oa.lines + 1] = " ";
-				--oa.lines[#oa.lines + 1] = string.format( L["Research Time: %s"], HIGHLIGHT_FONT_COLOR_CODE .. SecondsToTime( talent.researchDuration ) ) .. FONT_COLOR_CODE_CLOSE;
-				--oa.lines[#oa.lines + 1] = string.format( L["Cost: %s"], HIGHLIGHT_FONT_COLOR_CODE .. BreakUpLargeNumbers( talent.researchCost ) .. FONT_COLOR_CODE_CLOSE .. "|T".. 1397630 ..":0:0:2:0|t" );
-				--oa.lines[#oa.lines + 1] = string.format( L["Tier: %s"], HIGHLIGHT_FONT_COLOR_CODE .. talent.tier .. FONT_COLOR_CODE_CLOSE );
 				oa.status = "researching";
 			elseif char["advancement"]["newTalentTier"] then
 				oa.texture = char["advancement"]["newTalentTier"][1].icon;
@@ -1131,65 +1112,61 @@ NS.UpdateCharacters = function()
 					--
 					if char["advancement"]["numTalents"] == 1 and char["level"] and char["level"] < 105 then
 						oa.lines[#oa.lines + 1] = RED_FONT_COLOR_CODE .. L["You need to be level 105 to research."] .. FONT_COLOR_CODE_CLOSE;
+						oa.levelRequired = 105;
 					elseif char["advancement"]["numTalents"] == 2 and char["level"] and char["level"] < 110 then
 						oa.lines[#oa.lines + 1] = RED_FONT_COLOR_CODE .. L["You need to be level 110 to research."] .. FONT_COLOR_CODE_CLOSE;
+						oa.levelRequired = 110;
 					end
 				end
 				oa.status = "available";
 			elseif char["advancement"]["numTalents"] == 8 then
 				oa.texture = 133743;
 				oa.text = L["Class Hall Upgrades - 8/8"];
-				oa.lines = HIGHLIGHT_FONT_COLOR_CODE .. L["There are no new tiers available,\nbegin research to switch talents."] .. FONT_COLOR_CODE_CLOSE;
+				oa.lines = HIGHLIGHT_FONT_COLOR_CODE .. L["There are no new tiers available."] .. FONT_COLOR_CODE_CLOSE;
 				oa.status = "maxed";
 			end
+			oa.color = ( ( oa.status == "available" or oa.status == "maxed" ) and "Gray" ) or ( oa.status == "researching" and ( oa.seconds > 0 and "Red" or "Green" ) ) or nil; -- nil if a character doesn't have their newTalentTier info, since v1.24 the info is recorded regardless of level requirement
 		end
 		--
 		-- Work Orders
 		--
 		orders[char["name"]] = {};
 		local troopNum = 0; -- Used to increment troop monitor order
-		for _,o in ipairs( char["orders"] ) do -- o is for order, that's good enough for me
+		for _,o in ipairs( char["orders"] ) do
+			-- o is for order, that's good enough for me
 			if char["monitor"][o["texture"]] then -- Orders use texture as the monitorIndex
 				orders[char["name"]][#orders[char["name"]] + 1] = {};
 				local wo = orders[char["name"]][#orders[char["name"]]];
 				wo.texture = o.texture;
 				wo.text = o.name;
-				--o.troopCount;
-				--o.troopSummonItemCount;
-				local artifactKnowledgeLevel = wo.texture == 237446 and ( char["artifactKnowledgeLevel"] or "?" ) or nil;
+				wo.troopCount = o.troopCount;
+				wo.troopSummonItemCount = o.troopSummonItemCount;
 				wo.spell = false;
 				wo.spellName = o.spellName;
 				wo.spellTexture = o.spellTexture;
 				wo.spellSeconds = nil;
 				--o.spellCooldown;
 				--o.spellReagentCount;
-				local artifactKnowledgeLevelMax = type( artifactKnowledgeLevel ) == "number" and math.max( char["artifactKnowledgeLevel"], ( char["artifactKnowledgeStage2Unlocked"] and NS.artifactKnowledgeLevelStage2Max or NS.artifactKnowledgeLevelStage1Max ) ) or NS.artifactKnowledgeLevelStage2Max;
-				local artifactKnowledgeTextInfo = nil;
-				local capacity = wo.texture == 237446 and char["artifactKnowledgeLevel"] and ( math.min( o.capacity, artifactKnowledgeLevelMax - char["artifactKnowledgeLevel"] ) ) or o.capacity;
+				wo.capacity = o.capacity;
 				wo.total = o.total or 0; -- o.total is nil if no orders
 				wo.readyForPickup = NS.OrdersReadyForPickup( o.ready, o.total, o.duration, o.nextSeconds, passedTime );
-				local readyToStart = NS.OrdersReadyToStart( capacity, o.total, o.troopCount, o.spellReagentCount );
+				wo.readyToStart = NS.OrdersReadyToStart( wo.capacity, o.total, wo.troopCount, o.spellReagentCount );
 				local allSeconds = NS.OrdersAllSeconds( o.duration, o.total, o.ready, o.nextSeconds, passedTime );
-				local nextSeconds = NS.OrdersNextSeconds( allSeconds, o.duration );
+				wo.nextSeconds = NS.OrdersNextSeconds( allSeconds, o.duration );
 				wo.topRightText = nil;
 				--
 				workOrdersReady = workOrdersReady + wo.readyForPickup; -- All characters
 				workOrdersTotal = workOrdersTotal + wo.total; -- All characters
-				if nextSeconds > 0 then
-					nextWorkOrderTimeRemaining = nextWorkOrderTimeRemaining == 0 and nextSeconds or math.min( nextWorkOrderTimeRemaining, nextSeconds );
-					allWorkOrdersTimeRemaining = allWorkOrdersTimeRemaining == 0 and allSeconds or math.max( allWorkOrdersTimeRemaining, allSeconds );
-					nextWorkOrderCharName = nextWorkOrderTimeRemaining == nextSeconds and ( "|c" .. RAID_CLASS_COLORS[char["class"]].colorStr .. ( NS.db["showCharacterRealms"] and char["name"] or strsplit( "-", char["name"], 2 ) ) .. FONT_COLOR_CODE_CLOSE ) or nextWorkOrderCharName;
+				if wo.nextSeconds > 0 then
+					nextWorkOrderTimeRemaining = nextWorkOrderTimeRemaining == 0 and wo.nextSeconds or math.min( nextWorkOrderTimeRemaining, wo.nextSeconds ); -- All characters
+					allWorkOrdersTimeRemaining = allWorkOrdersTimeRemaining == 0 and allSeconds or math.max( allWorkOrdersTimeRemaining, allSeconds ); -- All characters
+					nextWorkOrderCharName = nextWorkOrderTimeRemaining == wo.nextSeconds and ( "|c" .. RAID_CLASS_COLORS[char["class"]].colorStr .. ( NS.db["showCharacterRealms"] and char["name"] or strsplit( "-", char["name"], 2 ) ) .. FONT_COLOR_CODE_CLOSE ) or nextWorkOrderCharName; -- All characters
 				end
 				--
 				wo.lines = {};
-				if o.troopCount then
-					wo.text = wo.text .. " - " .. o.troopCount .. "/" .. capacity;
-					wo.topRightText = ( readyToStart > 0 and ( not o.troopSummonItemCount or o.troopSummonItemCount > 0 ) ) and ( ORANGE_FONT_COLOR_CODE .. o.troopCount .. FONT_COLOR_CODE_CLOSE ) or o.troopCount;
-				end
-				--
-				if artifactKnowledgeLevel then
-					wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["Artifact Knowledge Level: %s"], ( artifactKnowledgeLevel == "?" and L["Unknown"] or artifactKnowledgeLevel ) ) .. FONT_COLOR_CODE_CLOSE;
-					wo.topRightText = artifactKnowledgeLevel;
+				if wo.troopCount then
+					wo.text = wo.text .. " - " .. wo.troopCount .. "/" .. wo.capacity;
+					wo.topRightText = ( wo.readyToStart > 0 and ( not wo.troopSummonItemCount or wo.troopSummonItemCount > 0 ) ) and ( ORANGE_FONT_COLOR_CODE .. wo.troopCount .. FONT_COLOR_CODE_CLOSE ) or wo.troopCount;
 				end
 				-- Instant Complete World Quest
 				if o.spellCooldown then
@@ -1221,46 +1198,21 @@ NS.UpdateCharacters = function()
 					end
 				end
 				--
-				if readyToStart > 0 then
-					if o.troopCount and o.troopSummonItemCount then -- Troops summoned by item instead of Work Order
-						wo.lines[#wo.lines + 1] = ( o.troopSummonItemCount > 0 and GREEN_FONT_COLOR_CODE or RED_FONT_COLOR_CODE ) .. string.format( L["%d Ready to summon"], math.min( o.troopSummonItemCount, readyToStart ) ) .. FONT_COLOR_CODE_CLOSE;
+				if wo.readyToStart > 0 then
+					if wo.troopCount and o.troopSummonItemCount then -- Troops summoned by item instead of Work Order
+						wo.readyToStart = math.min( o.troopSummonItemCount, wo.readyToStart ); -- Ready to summon
+						wo.lines[#wo.lines + 1] = ( o.troopSummonItemCount > 0 and GREEN_FONT_COLOR_CODE or RED_FONT_COLOR_CODE ) .. string.format( L["%d Ready to summon"], wo.readyToStart ) .. FONT_COLOR_CODE_CLOSE;
 					elseif wo.texture ~= 133858 or wo.spellSeconds == 0 then -- Ignore Seal of Broken Fate unless not completed this week
-						wo.lines[#wo.lines + 1] = GREEN_FONT_COLOR_CODE .. string.format( L["%d Ready to start"], readyToStart ) .. FONT_COLOR_CODE_CLOSE;
-					end
-					--
-					if artifactKnowledgeLevel and artifactKnowledgeLevel ~= "?" then
-						local quest = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["Obtain Artifact Research Notes instantly\nusing Order Resources by completing the\nquest \"Knowledge is Power\" in your Class\nOrder Hall up to Artifact Knowledge Level %d"], NS.artifactKnowledgeLevelStage1Max ) .. FONT_COLOR_CODE_CLOSE;
-						local compendium = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["An often cheaper option is to purchase an\n|r%sArtifact Research Compendium|r %susing a more\nadvanced alt to progress several levels instantly."], ITEM_QUALITY_COLORS[6].hex, HIGHLIGHT_FONT_COLOR_CODE ) .. FONT_COLOR_CODE_CLOSE;
-						-- Artifact Knowledge Level in Stage 1 but not maxed
-						if artifactKnowledgeLevel < NS.artifactKnowledgeLevelStage1Max then
-							wo.lines[#wo.lines] = nil; -- Removes %d Ready to start
-							artifactKnowledgeTextInfo = quest .. "\n\n" .. compendium;
-						-- Artifact Knowledge Level in Stage 2 but not maxed
-						elseif artifactKnowledgeLevel >= NS.artifactKnowledgeLevelStage1Max then
-							artifactKnowledgeTextInfo = compendium;
-						end
-					end
-				elseif artifactKnowledgeLevel then
-					-- Artifact Knowledge Level stuck at Stage 1 max
-					if artifactKnowledgeLevel == NS.artifactKnowledgeLevelStage1Max then
-						artifactKnowledgeTextInfo = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["Archmage Khadgar has a lead on how\nyou can continue your artifact knowledge\nresearch. Seek him out at Deliverance\nPoint on the Broken Shore.\n\nAn often cheaper option is to purchase an\n|r%sArtifact Research Compendium|r %susing a more\nadvanced alt to progress several levels instantly."], ITEM_QUALITY_COLORS[6].hex, HIGHLIGHT_FONT_COLOR_CODE ) .. FONT_COLOR_CODE_CLOSE;
-					-- Artifact Knowledge Level stuck at Stage 2 max
-					elseif artifactKnowledgeLevel == NS.artifactKnowledgeLevelStage2Max then
-						artifactKnowledgeTextInfo = HIGHLIGHT_FONT_COLOR_CODE .. L["You have reached the maximum Artifact\nKnowledge available to you at this time."] .. FONT_COLOR_CODE_CLOSE;
+						wo.lines[#wo.lines + 1] = GREEN_FONT_COLOR_CODE .. string.format( L["%d Ready to start"], wo.readyToStart ) .. FONT_COLOR_CODE_CLOSE;
 					end
 				elseif o.spellReagentCount and o.spellReagentCount > 0 then
 					wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["%d Available"], o.spellReagentCount ) .. FONT_COLOR_CODE_CLOSE;
-				end
-				-- Alert: Chat Artifact Research Notes
-				if wo.texture == 237446 and char["name"] == NS.currentCharacter.name then
-					NS.alertChatArtifactResearchNotes = nil; -- Reset each update before check below
 				end
 				--
 				if wo.total > 0 then
 					if wo.readyForPickup == wo.total then
 						wo.lines[#wo.lines + 1] = GREEN_FONT_COLOR_CODE .. string.format( L["%d Ready for pickup"], wo.readyForPickup ) .. FONT_COLOR_CODE_CLOSE;
-						if ( o.troopCount and NS.db["alertTroops"] ) or
-						   ( wo.texture == 237446 and NS.db["alertArtifactResearchNotes"] ) or
+						if ( wo.troopCount and NS.db["alertTroops"] ) or
 						   ( wo.texture == 975736 and NS.db["alertChampionArmaments"] ) or
 						   ( wo.texture == 134939 and NS.db["alertLegionCookingRecipes"] ) or
 						   ( wo.texture == 135987 and NS.db["alertBlessingOfTheOrder"] ) or
@@ -1269,37 +1221,21 @@ NS.UpdateCharacters = function()
 							alertAnyCharacter = true; -- All characters
 						end
 					else
-						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["%d/%d Ready for pickup %s"], wo.readyForPickup, o.total, string.format( L["(Next: %s)"], SecondsToTime( nextSeconds ) ) ) .. FONT_COLOR_CODE_CLOSE;
-						-- Alert: Any Artifact Research Notes
-						if wo.texture == 237446 and wo.readyForPickup > 0 and NS.db["alertArtifactResearchNotes"] and NS.db["alertAnyArtifactResearchNotes"] then
-							alertCurrentCharacter = ( not alertCurrentCharacter and char["name"] == NS.currentCharacter.name ) and true or alertCurrentCharacter; -- All characters
-							alertAnyCharacter = true; -- All characters
-						end
-					end
-					-- Alert: Chat Artifact Research Notes
-					if wo.texture == 237446 and wo.readyForPickup > 0 and char["name"] == NS.currentCharacter.name and NS.db["alertChatArtifactResearchNotes"] and NS.db["alertArtifactResearchNotes"] and ( NS.db["alertAnyArtifactResearchNotes"] or wo.readyForPickup == wo.total ) then
-						NS.alertChatArtifactResearchNotes = string.format( L["|T237446:0|t %sArtifact Research Notes|r"], ITEM_QUALITY_COLORS[6].hex ) .. " - " .. wo.lines[#wo.lines];
+						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["%d/%d Ready for pickup %s"], wo.readyForPickup, wo.total, string.format( L["(Next: %s)"], SecondsToTime( wo.nextSeconds ) ) ) .. FONT_COLOR_CODE_CLOSE;
 					end
 				end
 				--
-				if artifactKnowledgeTextInfo then
-					wo.lines[#wo.lines + 1] = " ";
-					wo.lines[#wo.lines + 1] = artifactKnowledgeTextInfo;
-				end
-				--
-				if o.troopCount and #wo.lines == 0 then
-					if o.troopCount >= capacity then
+				if wo.troopCount and #wo.lines == 0 then
+					if wo.troopCount >= wo.capacity then
 						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. L["0 recruits remaining"] .. FONT_COLOR_CODE_CLOSE;
 					else
 						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. L["Unable to detect troop counts"] .. FONT_COLOR_CODE_CLOSE;
 					end
 				end
 				-- Monitor Column
-				if o.troopCount then
+				if wo.troopCount then
 					troopNum = troopNum + 1;
 					wo.monitorColumn = "troop" .. troopNum;
-				elseif wo.texture == 237446 then
-					wo.monitorColumn = "artifact-research-notes";
 				elseif wo.texture == 975736 then
 					wo.monitorColumn = "champion-armaments";
 				elseif wo.texture == 134939 then
@@ -1311,6 +1247,8 @@ NS.UpdateCharacters = function()
 				elseif wo.texture == 133858 then
 					wo.monitorColumn = "world-quest-complete/blessing-order/bonus-roll"; -- Bonus Roll
 				end
+				--
+				wo.color = ( not wo.spell and wo.total == 0 and "Gray" ) or ( ( ( wo.spell and wo.spellSeconds > 0 ) or ( not wo.spell and wo.readyForPickup == 0 ) ) and "Red" ) or ( wo.readyForPickup < wo.total and "Yellow" ) or "Green";
 			end
 		end
 	end
@@ -1344,35 +1282,307 @@ NS.UpdateCharacters = function()
 	NS.allCharacters.alertAnyCharacter = alertAnyCharacter;
 end
 --
+NS.UpdateLDB = function()
+	local char = NS.db["characters"][NS.currentCharacter.key];
+	local headerTooltip = { lines = {} };
+	local missionsTooltip = { label = L["Missions"], lines = {} };
+	local advancementsTooltip = { label = L["Class Hall Upgrades"], lines = {} };
+	local ordersTooltip = { label = L["Work Orders"], lines = {} };
+	----------------------------------------------------------------------------------------------------------------------------------------
+	-- (Current) Character Tooltip
+	----------------------------------------------------------------------------------------------------------------------------------------
+	do
+		-- Header
+		headerTooltip.lines[#headerTooltip.lines + 1] = {
+			--[[ Character Name ]]( "|c" .. RAID_CLASS_COLORS[NS.currentCharacter.class].colorStr .. ( NS.db["showCharacterRealms"] and NS.currentCharacter.name or strsplit( "-", NS.currentCharacter.name, 2 ) ) .. FONT_COLOR_CODE_CLOSE ),
+			--[[ Order Resources, Seal of Broken Fate ]]( HIGHLIGHT_FONT_COLOR_CODE .. NS.db["characters"][NS.currentCharacter.key]["orderResources"] .. FONT_COLOR_CODE_CLOSE .. "|T" .. 1397630 .. ":16:16:3:0|t" ) .. ( NS.allCharacters.seals[NS.currentCharacter.name].sealOfBrokenFate and ( "   " .. HIGHLIGHT_FONT_COLOR_CODE .. NS.db["characters"][NS.currentCharacter.key]["sealOfBrokenFate"] .. FONT_COLOR_CODE_CLOSE .. "|T" .. 1604167 .. ":16:16:3:0|t" ) or "" ),
+			"GameFontNormalLarge",
+		};
+		-- Missions
+		-- mt = Missions Total
+		-- mm = Missions Monitored
+		local mt,mm = 0,false;
+		local missions = NS.allCharacters.missions[NS.currentCharacter.name];
+		if next( missions ) then
+			mt = missions.total;
+			mm = true;
+		end
+		if mt > 0 then
+			-- List
+			for _,m in ipairs( char["missions"] ) do -- Pulls mission details from char table, NOT allCharacters
+				if m.lastKnownTimeLeftSeconds == 0 then
+					missionsTooltip.lines[#missionsTooltip.lines + 1] = { ( m.typeInlineTexture .. " " .. m.name ), ( GREEN_FONT_COLOR_CODE .. L["Complete"] .. FONT_COLOR_CODE_CLOSE ), "GameFontNormalSmall" };
+				else
+					missionsTooltip.lines[#missionsTooltip.lines + 1] = { ( m.typeInlineTexture .. " " .. m.name ), ( RED_FONT_COLOR_CODE .. SecondsToTime( m.lastKnownTimeLeftSeconds, false, false, 2 ) .. FONT_COLOR_CODE_CLOSE ), "GameFontNormalSmall" };
+				end
+				for i = 1, #m.rewardsList do
+					missionsTooltip.lines[#missionsTooltip.lines + 1] = { "          " .. m.rewardsList[i] , " ", "GameFontNormalSmall" };
+				end
+			end
+		else
+			-- None
+			if mm then
+				missionsTooltip.lines[#missionsTooltip.lines + 1] = { ( GRAY_FONT_COLOR_CODE .. L["None in progress"] .. FONT_COLOR_CODE_CLOSE ), " ", "GameFontNormalSmall" };
+			end
+		end
+		-- Advancement
+		-- ac = Advancements Complete
+		-- at = Advancements Total
+		-- natr = Next Advancement Time Remaining
+		-- ari = Advancement Research Info [Researching, Available, Maxed] (Current)
+		local ac,at,natr,ari = 0,0,0,nil;
+		local advancement = NS.allCharacters.advancement[NS.currentCharacter.name];
+		if next( advancement ) then
+			ac = ( advancement.seconds and advancement.seconds == 0 and 1 ) or 0;
+			at = advancement.seconds and 1 or 0;
+			natr = advancement.seconds and advancement.seconds;
+			ari = ( advancement.status == "researching" and char["advancement"]["talentBeingResearched"] ) or
+			( advancement.status == "available" and { icon = char["advancement"]["newTalentTier"][1].icon, name = string.format( L["%sNew!|r Tier %d: %s"], GREEN_FONT_COLOR_CODE, char["advancement"]["newTalentTier"][1].tier, ( HIGHLIGHT_FONT_COLOR_CODE .. SecondsToTime( char["advancement"]["newTalentTier"][1].researchDuration ) .. " – " .. BreakUpLargeNumbers( char["advancement"]["newTalentTier"][1].researchCost ) .. FONT_COLOR_CODE_CLOSE .. "|T" .. 1397630 ..":0:0:2:0|t" ) ) } ) or
+			( advancement.status == "maxed" and { icon = advancement.texture, name = ( GRAY_FONT_COLOR_CODE .. L["No new tiers available"] .. FONT_COLOR_CODE_CLOSE ) } );
+		end
+		if at == 0 then
+			if ari then
+				-- Available, Maxed
+				advancementsTooltip.lines[#advancementsTooltip.lines + 1] = { ( "|T" .. ari.icon .. ":24:24|t " .. ari.name ), ( advancement.status == "available" and ( advancement.levelRequired and ( RED_FONT_COLOR_CODE .. string.format( ITEM_MIN_LEVEL, advancement.levelRequired ) .. FONT_COLOR_CODE_CLOSE ) or ( GREEN_FONT_COLOR_CODE .. L["Ready to start"] .. FONT_COLOR_CODE_CLOSE ) ) or " " ), "GameFontNormalSmall" };
+			end
+		elseif ac == at then
+			-- Researching (Complete)
+			advancementsTooltip.lines[#advancementsTooltip.lines + 1] = { ( "|T" .. ari.icon .. ":24:24|t " .. ari.name ), ( GREEN_FONT_COLOR_CODE .. L["Complete"] .. FONT_COLOR_CODE_CLOSE ), "GameFontNormalSmall" };
+		else
+			-- Researching (In Progress)
+			advancementsTooltip.lines[#advancementsTooltip.lines + 1] = { ( "|T" .. ari.icon .. ":24:24|t " .. ari.name ), ( RED_FONT_COLOR_CODE .. SecondsToTime( natr, false, false, 2 ) .. FONT_COLOR_CODE_CLOSE ), "GameFontNormalSmall" };
+		end
+		-- Orders
+		local orders = NS.allCharacters.orders[NS.currentCharacter.name];
+		for i = 1, #orders do
+			local complete = not orders[i].spell and orders[i].readyForPickup or nil;
+			local total = not orders[i].spell and orders[i].total or nil;
+			local readyToStart = orders[i].spell and ( orders[i].spellSeconds == 0 and 1 or 0 ) or orders[i].readyToStart;
+			local icon = orders[i].spellTexture and orders[i].spellTexture or orders[i].texture;
+			local leftText = orders[i].spellName or orders[i].text;
+			local rightText;
+			if orders[i].spell then
+				-- Spells
+				-- Green, Ready
+				-- Red, (Time Remaining)
+				rightText = readyToStart == 1 and ( GREEN_FONT_COLOR_CODE .. L["Ready"] .. FONT_COLOR_CODE_CLOSE ) or ( RED_FONT_COLOR_CODE .. SecondsToTime( orders[i].spellSeconds, false, false, 2 ) .. FONT_COLOR_CODE_CLOSE );
+			elseif orders[i].troopCount then
+				-- Troops
+				if orders[i].troopCount >= orders[i].capacity then
+					-- White, 0 recruits remaining
+					rightText = HIGHLIGHT_FONT_COLOR_CODE .. L["0 recruits remaining"] .. FONT_COLOR_CODE_CLOSE;
+				elseif orders[i].troopSummonItemCount then
+					-- Green, 1+ Ready to summon
+					-- Red, 0 Ready to summon
+					rightText = ( readyToStart > 0 and GREEN_FONT_COLOR_CODE or RED_FONT_COLOR_CODE ) .. string.format( L["%d Ready to summon"], readyToStart ) .. FONT_COLOR_CODE_CLOSE;
+				elseif total == 0 then
+					-- Green, None in progress, Ready to start
+					rightText = GREEN_FONT_COLOR_CODE .. string.format( L["%d Ready to start"], readyToStart ) .. FONT_COLOR_CODE_CLOSE;
+				elseif complete == total then
+					-- Green, All complete
+					rightText = GREEN_FONT_COLOR_CODE .. string.format( L["%d Ready"], total ) .. FONT_COLOR_CODE_CLOSE;
+				else
+					-- Yellow, Some complete
+					-- Red, All incomplete
+					rightText = ( complete > 0 and YELLOW_FONT_COLOR_CODE or RED_FONT_COLOR_CODE ) .. string.format( L["%d/%d Ready"], complete, total ) .. FONT_COLOR_CODE_CLOSE .. " " .. HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["(Next: %s)"], SecondsToTime( orders[i].nextSeconds, false, false, 1 ) ) .. FONT_COLOR_CODE_CLOSE;
+				end
+			else
+				-- Non-troops
+				if total == 0 then
+					-- Green, None in progress, Ready to start
+					-- Gray, Not available
+					rightText = orders[i].readyToStart > 0 and ( GREEN_FONT_COLOR_CODE .. string.format( L["%d Ready to start"], readyToStart ) .. FONT_COLOR_CODE_CLOSE ) or ( GRAY_FONT_COLOR_CODE .. L["Not available"] .. FONT_COLOR_CODE_CLOSE );
+				elseif complete == total then
+					-- Green, All complete
+					rightText = GREEN_FONT_COLOR_CODE .. string.format( L["%d Ready"], total ) .. FONT_COLOR_CODE_CLOSE;
+				else
+					-- Yellow, Some complete
+					-- Red, All incomplete
+					rightText = ( complete > 0 and YELLOW_FONT_COLOR_CODE or RED_FONT_COLOR_CODE ) .. string.format( L["%d/%d Ready"], complete, total ) .. FONT_COLOR_CODE_CLOSE .. " " .. HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["(Next: %s)"], SecondsToTime( orders[i].nextSeconds, false, false, 1 ) ) .. FONT_COLOR_CODE_CLOSE;
+				end
+			end
+			ordersTooltip.lines[#ordersTooltip.lines + 1] = { ( "|T" .. icon .. ":24:24|t " .. leftText ), rightText, "GameFontNormalSmall" };
+		end
+	end
+	----------------------------------------------------------------------------------------------------------------------------------------
+	-- (All or Current) Character(s) Text
+	----------------------------------------------------------------------------------------------------------------------------------------
+	-- Missions
+	-- mc = Missions Complete
+	-- mt = Missions Total
+	-- nmtr = Next Mission Time Remaining
+	-- mm = Missions Monitored (Current)
+	local mc,mt,nmtr,mm = 0,0,0,false;
+	if NS.db["ldbSource"] == "current" then
+		local missions = NS.allCharacters.missions[NS.currentCharacter.name];
+		if next( missions ) then
+			mc = missions.total - missions.incomplete;
+			mt = missions.total;
+			nmtr = missions.nextMissionTimeRemaining;
+			mm = true;
+		end
+	else
+		mc = NS.allCharacters.missionsComplete;
+		mt = NS.allCharacters.missionsTotal;
+		nmtr = NS.allCharacters.nextMissionTimeRemaining;
+	end
+	local missionsLabel = NS.db["ldbShowLabels"] and ( NORMAL_FONT_COLOR_CODE .. L["Missions"] .. ": " .. FONT_COLOR_CODE_CLOSE ) or "";
+	local missionsText;
+	if mt == 0 then
+		-- Text
+		missionsText = ( NS.db["ldbShowWhenNone"] and ( mm or NS.db["ldbSource"] == "all" ) and ( GRAY_FONT_COLOR_CODE .. L["None"] .. FONT_COLOR_CODE_CLOSE ) ) or nil;
+	elseif mc == mt then
+		-- Text
+		missionsText = GREEN_FONT_COLOR_CODE .. mt .. " " .. L["Ready"] .. FONT_COLOR_CODE_CLOSE;
+	else
+		-- Text
+		missionsText = HIGHLIGHT_FONT_COLOR_CODE .. mc .. "/" .. mt .. FONT_COLOR_CODE_CLOSE;
+		if NS.db["ldbShowNextMission"] then
+			missionsText = missionsText .. " " .. HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["(Next: %s)"], SecondsToTime( nmtr, false, false, 1 ) ) .. FONT_COLOR_CODE_CLOSE;
+			if NS.db["ldbShowNextMissionCharacter"] and NS.db["ldbSource"] == "all" then
+				missionsText = missionsText .. " " .. NS.allCharacters.nextMissionCharName;
+			end
+		end
+	end
+	-- Advancement
+	-- ac = Advancements Complete
+	-- at = Advancements Total
+	-- natr = Next Advancement Time Remaining
+	-- am = Advancements Monitored (Current)
+	local ac,at,natr,am = 0,0,0,false;
+	if NS.db["ldbSource"] == "current" then
+		local advancement = NS.allCharacters.advancement[NS.currentCharacter.name];
+		if next( advancement ) then
+			ac = ( advancement.seconds and advancement.seconds == 0 and 1 ) or 0;
+			at = advancement.seconds and 1 or 0;
+			natr = advancement.seconds and advancement.seconds;
+			am = true;
+		end
+	else
+		ac = NS.allCharacters.advancementsComplete;
+		at = NS.allCharacters.advancementsTotal;
+		natr = NS.allCharacters.nextAdvancementTimeRemaining;
+	end
+	local advancementsLabel = NS.db["ldbShowLabels"] and ( NORMAL_FONT_COLOR_CODE .. L["Upgrades"] .. ": " .. FONT_COLOR_CODE_CLOSE ) or "";
+	local advancementsText;
+	if at == 0 then
+		-- Text
+		advancementsText = NS.db["ldbShowWhenNone"] and ( am or NS.db["ldbSource"] == "all" ) and ( GRAY_FONT_COLOR_CODE .. L["None"] .. FONT_COLOR_CODE_CLOSE ) or nil;
+	elseif ac == at then
+		-- Text
+		advancementsText = GREEN_FONT_COLOR_CODE .. ( NS.db["ldbSource"] == "current" and "" or ( at .. " " ) ) .. L["Ready"] .. FONT_COLOR_CODE_CLOSE;
+	else
+		-- Text
+		advancementsText = HIGHLIGHT_FONT_COLOR_CODE .. ( NS.db["ldbSource"] == "current" and SecondsToTime( natr, false, false, 1 ) or ( ac .. "/" .. at ) ) .. FONT_COLOR_CODE_CLOSE;
+		if NS.db["ldbShowNextUpgrade"] and NS.db["ldbSource"] == "all" then
+			advancementsText = advancementsText .. " " .. HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["(Next: %s)"], SecondsToTime( natr, false, false, 1 ) ) .. FONT_COLOR_CODE_CLOSE;
+			if NS.db["ldbShowNextUpgradeCharacter"] then
+				advancementsText = advancementsText .. " " .. NS.allCharacters.nextAdvancementCharName;
+			end
+		end
+	end
+	-- Orders
+	-- oc = Orders Complete
+	-- ot = Orders Total
+	-- notr = Next Order Time Remaining
+	-- om = Orders Monitored (Current)
+	local oc,ot,notr,om = 0,0,0,false;
+	if NS.db["ldbSource"] == "current" then
+		local orders = NS.allCharacters.orders[NS.currentCharacter.name];
+		for i = 1, #orders do
+			oc = oc + ( orders[i].spellSeconds and ( orders[i].spellSeconds == 0 and 1 or 0 ) or orders[i].readyForPickup );
+			ot = ot + ( orders[i].spellSeconds and 1 or orders[i].total );
+			notr = ( ( orders[i].spellSeconds or orders[i].nextSeconds ) == 0 and notr ) or ( notr == 0 and ( orders[i].spellSeconds or orders[i].nextSeconds ) or math.min( notr, ( orders[i].spellSeconds or orders[i].nextSeconds ) ) );
+			om = true;
+		end
+	else
+		oc = NS.allCharacters.workOrdersReady;
+		ot = NS.allCharacters.workOrdersTotal;
+		notr = NS.allCharacters.nextWorkOrderTimeRemaining;
+	end
+	local ordersLabel = NS.db["ldbShowLabels"] and ( NORMAL_FONT_COLOR_CODE .. L["Orders"] .. ": " .. FONT_COLOR_CODE_CLOSE ) or "";
+	local ordersText;
+	if ot == 0 then
+		-- Text
+		ordersText = NS.db["ldbShowWhenNone"] and ( om or NS.db["ldbSource"] == "all" ) and ( GRAY_FONT_COLOR_CODE .. L["None"] .. FONT_COLOR_CODE_CLOSE ) or nil;
+	elseif oc == ot then
+		-- Text
+		ordersText = GREEN_FONT_COLOR_CODE .. ot .. " " .. L["Ready"] .. FONT_COLOR_CODE_CLOSE;
+	else
+		-- Text
+		ordersText = HIGHLIGHT_FONT_COLOR_CODE .. oc .. "/" .. ot .. FONT_COLOR_CODE_CLOSE;
+		if NS.db["ldbShowNextOrder"] then
+			ordersText = ordersText .. " " .. HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["(Next: %s)"], SecondsToTime( notr, false, false, 1 ) ) .. FONT_COLOR_CODE_CLOSE;
+			if NS.db["ldbShowNextOrderCharacter"] and NS.db["ldbSource"] == "all" then
+				ordersText = ordersText .. " " .. NS.allCharacters.nextWorkOrderCharName;
+			end
+		end
+	end
+	----------------------------------------------------------------------------------------------------------------------------------------
+	-- Icon, Text, and Tooltip
+	----------------------------------------------------------------------------------------------------------------------------------------
+	-- Icon
+	NS.ldb.icon = NS.db["ldbSource"] == "current" and NS.classRef[NS.currentCharacter.class].icon or 1397630;
+	-- Text Format
+	local textFormat = NS.Explode( "-", NS.db["ldbTextFormat"] );
+	local i = 1;
+	while i <= #textFormat do
+		if textFormat[i] == "missions" then
+			textFormat[i] = missionsText and ( missionsLabel .. missionsText ) or "remove";
+		elseif textFormat[i] == "upgrades" then
+			textFormat[i] = advancementsText and ( advancementsLabel .. advancementsText ) or "remove";
+		elseif textFormat[i] == "orders" then
+			textFormat[i] = ordersText and ( ordersLabel .. ordersText ) or "remove";
+		end
+		--
+		if textFormat[i] == "remove" then
+			table.remove( textFormat, i );
+		else
+			i = i + 1;
+		end
+	end
+	NS.ldb.text = #textFormat > 0 and table.concat( textFormat, " " ) or ( NORMAL_FONT_COLOR_CODE .. NS.addon .. FONT_COLOR_CODE_CLOSE );
+	-- Tooltip
+	NS.ldbTooltip.header = headerTooltip;
+	NS.ldbTooltip.missions = missionsTooltip;
+	NS.ldbTooltip.advancements = advancementsTooltip;
+	NS.ldbTooltip.orders = ordersTooltip;
+	NS.ldbTooltip.available = C_Garrison.HasGarrison( LE_GARRISON_TYPE_7_0 );
+end
+--
 NS.UpdateAll = function( forceUpdate )
 	-- Stop and delay attempted regular update if a forceUpdate has run recently
 	if not forceUpdate then
 		local lastSecondsUpdateAll = time() - NS.lastTimeUpdateAll;
-		if lastSecondsUpdateAll < 10 then
-			C_Timer.After( ( 10 - lastSecondsUpdateAll ), NS.UpdateAll );
+		if lastSecondsUpdateAll < NS.updateAllInterval then
+			C_Timer.After( ( NS.updateAllInterval - lastSecondsUpdateAll ), NS.UpdateAll );
 			return; -- Stop function
 		end
 	end
-	-- Updates
+	-- Character(s)
 	NS.UpdateCharacter();
 	NS.UpdateCharacters();
-	NS.lastTimeUpdateAll = time();
-	-- Schedule next regular update, repeats every 10 seconds
-	if not forceUpdate or not NS.initialized then -- Initial call is forced, regular updates are not
-		C_Timer.After( 10, NS.UpdateAll );
-	end
-	-- Initialize
+	-- Initialize Continued
 	if not NS.initialized then
+		-- More Variables
 		NS.currentCharacter.key = NS.FindKeyByField( NS.db["characters"], "name", NS.currentCharacter.name ); -- Set key here after UpdateCharacter() because new characters will cause a characters sort
 		NS.selectedCharacterKey = NS.currentCharacter.key; -- Sets selected character in Characters tab
-		NS.initialized = true;
 		-- Events (continued from COHCEventsFrame > OnLoad)
 		WorldMapFrame:HookScript( "OnShow", function( self ) COHCEventsFrame:RegisterEvent( "UNIT_SPELLCAST_SUCCEEDED" ); end ); -- Fires when casting spells with the World Map shown
 		WorldMapFrame:HookScript( "OnHide", function( self ) COHCEventsFrame:UnregisterEvent( "UNIT_SPELLCAST_SUCCEEDED" ); end ); -- Ignore casting spells with the World Map hidden
 		COHCEventsFrame:RegisterEvent( "CHAT_MSG_CURRENCY" ); -- Fires when Order Resources are looted
 		COHCEventsFrame:RegisterEvent( "BONUS_ROLL_RESULT" ); -- Fires when Bonus Rolls are used
-		COHCEventsFrame:RegisterEvent( "CURRENCY_DISPLAY_UPDATE" ); -- Fires when Artifact Research Notes/Compendium are used
 	end
+	-- LDB
+	NS.UpdateLDB();
+	--
+	NS.lastTimeUpdateAll = time();
+	-- Schedule next regular update, repeats every 10 seconds
+	if not forceUpdate or not NS.initialized then -- Initial call is forced, regular updates are not
+		C_Timer.After( NS.updateAllInterval, NS.UpdateAll );
+	end
+	--
+	NS.initialized = true;
 	-- Alert
 	NS.ToggleAlert(); -- Always attempt to turn on/off alerts after updating
 	-- Refresh
@@ -1385,14 +1595,10 @@ end
 -- Minimap Button
 --------------------------------------------------------------------------------------------------------------------------------------------
 NS.MinimapButton( "COHCMinimapButton", "Interface\\TargetingFrame\\UI-Classes-Circles", {
-	dbpc = "minimapButtonPosition",
+	db = "minimapButtonPosition",
 	texCoord = CLASS_ICON_TCOORDS[strupper( NS.currentCharacter.class )],
 	tooltip = function()
-		GameTooltip:SetText( HIGHLIGHT_FONT_COLOR_CODE .. NS.title .. FONT_COLOR_CODE_CLOSE );
-		GameTooltip:AddLine( L["Left-Click to open and close"] );
-		GameTooltip:AddLine( L["Right-Click to show the Class Hall Report"] );
-		GameTooltip:AddLine( L["Drag to move this button"] );
-		GameTooltip:Show();
+		NS.ldb.OnTooltipShow( GameTooltip );
 	end,
 	OnLeftClick = function( self )
 		NS.SlashCmdHandler();
@@ -1404,23 +1610,95 @@ NS.MinimapButton( "COHCMinimapButton", "Interface\\TargetingFrame\\UI-Classes-Ci
 	end,
 } );
 --------------------------------------------------------------------------------------------------------------------------------------------
+-- LDB Data Object
+--------------------------------------------------------------------------------------------------------------------------------------------
+NS.ldb = LibStub:GetLibrary( "LibDataBroker-1.1" ):NewDataObject( NS.addon, {
+	type = "data source",
+	text = NORMAL_FONT_COLOR_CODE .. "..." .. FONT_COLOR_CODE_CLOSE,
+	icon = NS.classRef[NS.currentCharacter.class].icon,
+	OnClick = function( self, button )
+		if button == "RightButton" and self:GetName() == NS.ldbiButtonName then -- Right-Click LibDBIcon Minimap button
+			-- Open the Class Hall Report just as the custom Minimap button does
+			if C_Garrison.HasGarrison( LE_GARRISON_TYPE_7_0 ) then
+				GarrisonLandingPageMinimapButton_OnClick();
+			end
+		else
+			NS.SlashCmdHandler( ( button == "RightButton" and "ldb" ) );
+		end
+	end,
+	OnTooltipShow = function( self )
+		local ownerName = self:GetOwner():GetName();
+		-- Not initialized or not available and not known Minimap owner
+		if not NS.initialized or ( not NS.ldbTooltip.available and ( ownerName ~= "COHCMinimapButton" and ownerName ~= NS.ldbiButtonName ) ) then return end
+		-- Show default tooltip for known Minimap buttons when character tooltip is not available or disabled
+		if ( not NS.ldbTooltip.available and ( ownerName == "COHCMinimapButton" or ownerName == NS.ldbiButtonName ) ) or ( not NS.db["showCharacterTooltipMinimapButton"] and ownerName == "COHCMinimapButton" ) or ( not NS.db["ldbiShowCharacterTooltip"] and ownerName == NS.ldbiButtonName ) then
+			self:SetText( HIGHLIGHT_FONT_COLOR_CODE .. NS.title .. FONT_COLOR_CODE_CLOSE );
+			self:AddLine( L["Left-Click to open and close"] );
+			self:AddLine( L["Right-Click to show the Class Hall Report"] );
+			self:AddLine( L["Drag to move this button"] );
+			return;
+		end
+		-- Adjust anchor for known Minimap buttons when character tooltip will be shown
+		if ( NS.db["showCharacterTooltipMinimapButton"] and ownerName == "COHCMinimapButton" ) or ( NS.db["ldbiShowCharacterTooltip"] and ownerName == NS.ldbiButtonName ) then
+			self:SetAnchorType( "ANCHOR_BOTTOMLEFT" );
+		end
+		-- Header
+		NS.AddLinesToTooltip( NS.ldbTooltip.header.lines, "double", self );
+		self:AddLine( " " );
+		--
+		local empty = true;
+		-- Missions
+		if #NS.ldbTooltip.missions.lines > 0 then
+			self:AddLine( YELLOW_FONT_COLOR_CODE .. NS.ldbTooltip.missions.label .. FONT_COLOR_CODE_CLOSE );
+			self:AddLine( " " );
+			NS.AddLinesToTooltip( NS.ldbTooltip.missions.lines, "double", self );
+			self:AddLine( " " );
+			empty = nil;
+		end
+		-- Class Hall Upgrades
+		if #NS.ldbTooltip.advancements.lines > 0 then
+			self:AddLine( YELLOW_FONT_COLOR_CODE .. NS.ldbTooltip.advancements.label .. FONT_COLOR_CODE_CLOSE );
+			self:AddLine( " " );
+			NS.AddLinesToTooltip( NS.ldbTooltip.advancements.lines, "double", self );
+			self:AddLine( " " );
+			empty = nil;
+		end
+		-- Work Orders
+		if #NS.ldbTooltip.orders.lines > 0 then
+			self:AddLine( YELLOW_FONT_COLOR_CODE .. NS.ldbTooltip.orders.label .. FONT_COLOR_CODE_CLOSE );
+			self:AddLine( " " );
+			NS.AddLinesToTooltip( NS.ldbTooltip.orders.lines, "double", self );
+			empty = nil;
+		end
+		-- Empty
+		if empty then
+			NS.AddLinesToTooltip( { { ( GRAY_FONT_COLOR_CODE .. L["Nothing is currently being monitored. Use the Characters tab to choose what you monitor."] .. FONT_COLOR_CODE_CLOSE ), nil, nil, nil, true, "GameFontNormal" } }, false, self );
+			self:AddLine( " " );
+		end
+	end,
+} );
+--------------------------------------------------------------------------------------------------------------------------------------------
 -- Slash Commands
 --------------------------------------------------------------------------------------------------------------------------------------------
 NS.SlashCmdHandler = function( cmd )
 	if not NS.initialized then return end
 	--
-	if NS.UI.MainFrame:IsShown() then
+	if cmd == "hide" or ( ( not cmd or cmd == "" ) and NS.UI.MainFrame:IsShown() ) then
 		NS.UI.MainFrame:Hide();
 	elseif not cmd or cmd == "" or cmd == "monitor" then
 		NS.UI.MainFrame:ShowTab( 1 );
 	elseif cmd == "characters" then
 		NS.UI.MainFrame:ShowTab( 2 );
-	elseif cmd == "options" then
+	elseif cmd == "misc" then
 		NS.UI.MainFrame:ShowTab( 3 );
+	elseif cmd == "alerts" then
+		NS.UI.MainFrame:ShowTab( 4 );
+	elseif cmd == "ldb" then
+		NS.UI.MainFrame:ShowTab( 5 );
 	elseif cmd == "help" then
-		NS.UI.MainFrame:ShowTab( 4 );
+		NS.UI.MainFrame:ShowTab( 6 );
 	else
-		NS.UI.MainFrame:ShowTab( 4 );
+		NS.UI.MainFrame:ShowTab( 6 );
 		NS.Print( L["Unknown command, opening Help"] );
 	end
 end
@@ -1512,39 +1790,20 @@ NS.Frame( "COHCEventsFrame", UIParent, {
 			--------------------------------------------------------------------------------------------------------------------------------
 			NS.db["characters"][NS.currentCharacter.key]["sealOfBrokenFate"] = select( 2, GetCurrencyInfo( 1273 ) );
 			--------------------------------------------------------------------------------------------------------------------------------
-		elseif	event == "CURRENCY_DISPLAY_UPDATE"				then
-			--------------------------------------------------------------------------------------------------------------------------------
-			-- Artifact Knowledge Level {UPDATED}
-			--------------------------------------------------------------------------------------------------------------------------------
-			local arg1, arg2 = ...;
-			if arg1 == 1171 and type( arg2 ) == "number" then
-				NS.db["characters"][NS.currentCharacter.key]["artifactKnowledgeLevel"] = select( 2, GetCurrencyInfo( 1171 ) );
-			end
-			--------------------------------------------------------------------------------------------------------------------------------
 		elseif	event == "ADDON_LOADED"							then
 			--------------------------------------------------------------------------------------------------------------------------------
 			-- ADDON_LOADED
 			--------------------------------------------------------------------------------------------------------------------------------
 			if IsAddOnLoaded( NS.addon ) and not NS.db then
 				self:UnregisterEvent( event );
-				-- SavedVariables
+				-- SavedVariables or "db"
 				if not CLASSORDERHALLSCOMPLETE_SAVEDVARIABLES then
 					CLASSORDERHALLSCOMPLETE_SAVEDVARIABLES = NS.DefaultSavedVariables();
 				end
-				-- SavedVariablesPerCharacter
-				if not CLASSORDERHALLSCOMPLETE_SAVEDVARIABLESPERCHARACTER then
-					CLASSORDERHALLSCOMPLETE_SAVEDVARIABLESPERCHARACTER = NS.DefaultSavedVariablesPerCharacter();
-				end
-				-- Localize SavedVariables
 				NS.db = CLASSORDERHALLSCOMPLETE_SAVEDVARIABLES;
-				NS.dbpc = CLASSORDERHALLSCOMPLETE_SAVEDVARIABLESPERCHARACTER;
 				-- Upgrade db
 				if NS.db["version"] < NS.version then
 					NS.Upgrade();
-				end
-				-- Upgrade dbpc
-				if NS.dbpc["version"] < NS.version then
-					NS.UpgradePerCharacter();
 				end
 			end
 			--------------------------------------------------------------------------------------------------------------------------------
@@ -1557,18 +1816,24 @@ NS.Frame( "COHCEventsFrame", UIParent, {
 			NS.UpdateRequestHandler( event ); -- Initial update request
 			NS.UpdateRequestHandler(); -- Start handler/ticker
 			-- COHC Minimap Button
-			COHCMinimapButton.docked = NS.dbpc["dockMinimapButton"];
-			COHCMinimapButton:UpdateSize( NS.dbpc["largeMinimapButton"] );
+			COHCMinimapButton.docked = NS.db["dockMinimapButton"];
+			COHCMinimapButton:UpdateSize( NS.db["largeMinimapButton"] );
 			COHCMinimapButton:UpdatePos(); -- Reset to last drag position
-			if not NS.dbpc["showMinimapButton"] then
+			if not NS.db["showMinimapButton"] then
 				COHCMinimapButton:Hide(); -- Hide if unchecked in options
 			end
 			-- Class Hall Report Minimap Button
 			GarrisonLandingPageMinimapButton:HookScript( "OnShow", function()
-				if not NS.dbpc["showClassHallReportMinimapButton"] and C_Garrison.HasGarrison( LE_GARRISON_TYPE_7_0 ) then
+				if not NS.db["showClassHallReportMinimapButton"] and C_Garrison.HasGarrison( LE_GARRISON_TYPE_7_0 ) then
 					GarrisonLandingPageMinimapButton:Hide();
 				end
 			end );
+			-- LDB Icon
+			NS.ldb.icon = NS.db["ldbSource"] == "current" and NS.classRef[NS.currentCharacter.class].icon or 1397630;
+			-- LibDBIcon
+			NS.ldbi = LibStub:GetLibrary( "LibDBIcon-1.0" );
+			NS.ldbi:Register( NS.addon, NS.ldb, NS.db["ldbi"] );
+			NS.ldbiButtonName = "LibDBIcon10_" .. NS.addon;
 			--------------------------------------------------------------------------------------------------------------------------------
 		else
 			--------------------------------------------------------------------------------------------------------------------------------

@@ -1,11 +1,14 @@
-## Interface: 70200
+## Interface: 70300
 ## Title: Class Order Halls Complete
-## Version: 1.25
+## Version: 1.26
 ## Author: Clinton Caldwell
 ## Notes: Monitors Missions, Class Hall Upgrades, and Work Orders account-wide.
 ## SavedVariables: CLASSORDERHALLSCOMPLETE_SAVEDVARIABLES
-## SavedVariablesPerCharacter: CLASSORDERHALLSCOMPLETE_SAVEDVARIABLESPERCHARACTER
 
+Libs\LibStub.lua
+Libs\CallbackHandler-1.0.lua
+Libs\LibDataBroker-1.1.lua
+Libs\LibDBIcon-1.0.lua
 Templates.xml
 Localization.lua
 Base.lua

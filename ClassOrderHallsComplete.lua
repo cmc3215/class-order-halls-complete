@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------------------------------------------------------------------
 local NS = select( 2, ... );
 local L = NS.localization;
-NS.versionString = "1.26";
+NS.versionString = "1.27";
 NS.version = tonumber( NS.versionString );
 --
 NS.initialized = false;
@@ -1639,7 +1639,7 @@ NS.ldb = LibStub:GetLibrary( "LibDataBroker-1.1" ):NewDataObject( NS.addon, {
 			return;
 		end
 		-- Adjust anchor for known Minimap buttons when character tooltip will be shown
-		if ( NS.db["showCharacterTooltipMinimapButton"] and ownerName == "COHCMinimapButton" ) or ( NS.db["ldbiShowCharacterTooltip"] and ownerName == NS.ldbiButtonName ) then
+		if ownerName == "COHCMinimapButton" or ownerName == NS.ldbiButtonName then
 			self:SetAnchorType( "ANCHOR_BOTTOMLEFT" );
 		end
 		-- Header

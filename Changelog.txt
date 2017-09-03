@@ -1,6 +1,7 @@
 **1.26**
 
 - Release date: 09/02/2017
+- TOC updated for patch 7.3.0.
 - New Character Tooltip added to Minimap button and LDB.
 - Mission type icons added to Missions tooltip. This was done mostly to help identify quest missions.
 - Artifact Research Notes removed.

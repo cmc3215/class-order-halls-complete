@@ -3,7 +3,8 @@
 --------------------------------------------------------------------------------------------------------------------------------------------
 local NS = select( 2, ... );
 local L = NS.localization;
-NS.versionString = "1.27";
+NS.releasePatch = "7.3.5";
+NS.versionString = "1.28";
 NS.version = tonumber( NS.versionString );
 --
 NS.initialized = false;
@@ -238,6 +239,7 @@ NS.DefaultSavedVariables = function()
 			"troop4",
 			"troop5",
 			"troop6",
+			"troop7",
 		},
 		["alert"] = "current",
 		["alertMissions"] = true,
@@ -379,6 +381,12 @@ NS.Upgrade = function()
 					return true;
 				end
 			end );
+		end
+	end
+	-- 1.28
+	if version < 1.28 then
+		if not NS.FindKeyByValue( NS.db["monitorColumn"], "troop7" ) then
+			table.insert( NS.db["monitorColumn"], "troop7" );
 		end
 	end
 	--
@@ -1131,7 +1139,7 @@ NS.UpdateCharacters = function()
 		-- Work Orders
 		--
 		orders[char["name"]] = {};
-		local troopNum = 0; -- Used to increment troop monitor order
+		local troopNum = 0; -- Used to increment class specific troop monitor order
 		for _,o in ipairs( char["orders"] ) do
 			-- o is for order, that's good enough for me
 			if char["monitor"][o["texture"]] then -- Orders use texture as the monitorIndex
@@ -1234,8 +1242,16 @@ NS.UpdateCharacters = function()
 				end
 				-- Monitor Column
 				if wo.troopCount then
-					troopNum = troopNum + 1;
-					wo.monitorColumn = "troop" .. troopNum;
+					if wo.texture == 1712229 then
+						wo.monitorColumn = "troop5"; -- Krokul Ridgestalker (1712229:All:7.3)
+					elseif wo.texture == 1712228 then
+						wo.monitorColumn = "troop6"; -- Void-Purged Krokul (1712228:All:7.3)
+					elseif wo.texture == 1694048 then
+						wo.monitorColumn = "troop7"; -- Lightforged Bulwark (1694048:All:7.3)
+					else
+						troopNum = troopNum + 1;
+						wo.monitorColumn = "troop" .. troopNum;
+					end
 				elseif wo.texture == 975736 then
 					wo.monitorColumn = "champion-armaments";
 				elseif wo.texture == 134939 then

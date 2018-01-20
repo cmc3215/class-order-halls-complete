@@ -488,7 +488,7 @@ NS.UI.cfg = {
 				} );
 				NS.TextFrame( "MonitoredNum", SubFrame, "", {
 					-- Text updated during scrollframe update
-					size = { 438, 20 },
+					size = { 490, 20 },
 					setPoint = { "LEFT", "$parentCharacterDropDownMenu", "RIGHT", -6, 0 },
 					fontObject = "GameFontHighlight",
 					justifyH = "RIGHT",
@@ -504,7 +504,7 @@ NS.UI.cfg = {
 					return numMonitored,numTotal;
 				end
 				NS.ScrollFrame( "ScrollFrame", SubFrame, {
-					size = { 738, ( 40 * 10 - 5 ) },
+					size = { 790, ( 40 * 10 - 5 ) },
 					setPoint = { "TOPLEFT", "$parent", "TOPLEFT", -1, -37 },
 					buttonTemplate = "COHCCharactersTabScrollFrameButtonTemplate",
 					update = {

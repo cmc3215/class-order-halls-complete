@@ -1,3 +1,8 @@
+**1.29**
+
+- Release date: 01/20/2018
+- Adjusted misaligned Characters tab content caused by previous update.
+
 **1.28**
 
 - Release date: 01/20/2018

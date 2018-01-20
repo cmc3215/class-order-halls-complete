@@ -9,7 +9,7 @@ local L = NS.localization;
 NS.UI.cfg = {
 	--
 	mainFrame = {
-		width		= 785,
+		width		= 837,
 		height		= 548,
 		portrait	= true,
 		frameStrata	= "MEDIUM",
@@ -51,7 +51,7 @@ NS.UI.cfg = {
 				} );
 				NS.Button( "ButtonsColumnHeaderButton", SubFrame, "" .. L["Missions, Class Hall Upgrades, Work Orders"], {
 					template = "COHCColumnHeaderButtonTemplate",
-					size = { 582, 19 },
+					size = { 634, 19 },
 					setPoint = { "TOPLEFT", "#sibling", "TOPRIGHT", -2, 0 },
 				} );
 				NS.Button( "RefreshButton", SubFrame, L["Refresh"], {
@@ -70,7 +70,7 @@ NS.UI.cfg = {
 					justifyH = "CENTER",
 				} );
 				NS.ScrollFrame( "ScrollFrame", SubFrame, {
-					size = { 738, ( 50 * NS.db["monitorRows"] - 5 ) },
+					size = { 790, ( 50 * NS.db["monitorRows"] - 5 ) },
 					setPoint = { "TOPLEFT", "$parentNameColumnHeaderButton", "BOTTOMLEFT", 1, -3 },
 					buttonTemplate = "COHCMonitorTabScrollFrameButtonTemplate",
 					update = {
@@ -78,7 +78,7 @@ NS.UI.cfg = {
 						buttonHeight = 50,
 						alwaysShowScrollBar = true,
 						UpdateFunction = function( sf )
-							local monitorMax = 11; -- Number of monitor buttons in XML template
+							local monitorMax = 12; -- Number of monitor buttons in XML template
 							local currentTime = time(); -- Time used in status calculation
 							--------------------------------------------------------------------------------------------------------------------------------------------
 							-- Add characters monitoring at least one into items for ScrollFrame
@@ -282,7 +282,7 @@ NS.UI.cfg = {
 					justifyV = "CENTER",
 				} );
 				local FooterFrame = NS.Frame( "Footer", SubFrame, {
-					size = { 766, 60 },
+					size = { 818, 60 },
 					setPoint = { "BOTTOM", "$parent", "BOTTOM", 0, 0 },
 					bg = { "Interface\\Garrison\\GarrisonMissionUIInfoBoxBackgroundTile", true, true },
 					bgSetAllPoints = true,
@@ -294,11 +294,11 @@ NS.UI.cfg = {
 				} );
 				local AdvancementsReportFrame = NS.Frame( "AdvancementsReport", FooterFrame, {
 					size = { 227, 44 },
-					setPoint = { "LEFT", "#sibling", "RIGHT", ( 8 + 27 ), 0 },
+					setPoint = { "LEFT", "#sibling", "RIGHT", ( 8 + 27 + 27 ), 0 },
 				} );
 				local WorkOrdersReportFrame = NS.Frame( "WorkOrdersReport", FooterFrame, {
 					size = { 227, 44 },
-					setPoint = { "LEFT", "#sibling", "RIGHT", ( 9 + 25 ), 0 },
+					setPoint = { "LEFT", "#sibling", "RIGHT", ( 9 + 25 + 25 ), 0 },
 				} );
 				--
 				local MissionsReportButton = NS.Button( "Button", MissionsReportFrame, nil, {
@@ -847,8 +847,9 @@ NS.UI.cfg = {
 					["world-quest-complete/blessing-order/bonus-roll"] = L["Instant Complete World Quest / Blessing of the Order / Seal of Broken Fate"],
 					["troop3"] = L["Troop #3"],
 					["troop4"] = L["Troop #4"],
-					["troop5"] = L["Troop #5"],
-					["troop6"] = L["Troop #6"],
+					["troop5"] = L["Troop #5 (Krokul Ridgestalker)"],
+					["troop6"] = L["Troop #6 (Void-Purged Krokul)"],
+					["troop7"] = L["Troop #7 (Lightforged Bulwark)"],
 				};
 				NS.DropDownMenu( "MonitorColumnsDropDownMenu", SubFrame, {
 					setPoint = { "TOPLEFT", "$parentMonitorRowsDropDownMenu", "BOTTOMLEFT", 0, -1 },
@@ -1218,7 +1219,7 @@ NS.UI.cfg = {
 			mainFrameTitle	= NS.title,
 			tabText			= HELP_LABEL,
 			Init			= function( SubFrame )
-				NS.TextFrame( "Description", SubFrame, string.format( L["%s version %s"], NS.title, NS.versionString ), {
+				NS.TextFrame( "Description", SubFrame, string.format( L["%s version %s for patch %s"], NS.title, NS.versionString, NS.releasePatch ), {
 					setPoint = {
 						{ "TOPLEFT", "$parent", "TOPLEFT", 8, -8 },
 						{ "RIGHT", -8 },

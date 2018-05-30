@@ -751,6 +751,14 @@ NS.UI.cfg = {
 					end,
 					db = "dockMinimapButton",
 				} );
+				NS.CheckButton( "LockMinimapButtonCheckButton", SubFrame, L["Lock Minimap Button"], {
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					tooltip = L["Locks Minimap button\nto prevent dragging\n\nMiddle-clicking the Minimap\nbutton also toggles lock"],
+					OnClick = function( checked )
+						COHCMinimapButton.locked = checked;
+					end,
+					db = "lockMinimapButton",
+				} );
 				NS.CheckButton( "LargeMinimapButtonCheckButton", SubFrame, L["Large Minimap Button"], {
 					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
 					tooltip = L["Enables larger Minimap button\nsimilar to Class Hall Report"],
@@ -932,6 +940,7 @@ NS.UI.cfg = {
 				_G[sfn .. "ShowMinimapButtonCheckButton"]:SetChecked( NS.db["showMinimapButton"] );
 				_G[sfn .. "ShowCharacterTooltipMinimapButtonCheckButton"]:SetChecked( NS.db["showCharacterTooltipMinimapButton"] );
 				_G[sfn .. "DockMinimapButtonCheckButton"]:SetChecked( NS.db["dockMinimapButton"] );
+				_G[sfn .. "LockMinimapButtonCheckButton"]:SetChecked( NS.db["lockMinimapButton"] );
 				_G[sfn .. "LargeMinimapButtonCheckButton"]:SetChecked( NS.db["largeMinimapButton"] );
 				_G[sfn .. "ShowClassHallReportMinimapButtonCheckButton"]:SetChecked( NS.db["showClassHallReportMinimapButton"] );
 				_G[sfn .. "ShowCharacterRealmsCheckButton"]:SetChecked( NS.db["showCharacterRealms"] );
@@ -1034,8 +1043,16 @@ NS.UI.cfg = {
 					end,
 					db = "alertBonusRollToken",
 				} );
+				NS.CheckButton( "AlertBonusRollTokenDisableWhenMaxSealsCheckButton", SubFrame, string.format( L["Disable when player already has %s seals"], RED_FONT_COLOR_CODE .. NS.sealofBrokenFateMax .. "/" .. NS.sealofBrokenFateMax .. FONT_COLOR_CODE_CLOSE ), {
+					template = "InterfaceOptionsSmallCheckButtonTemplate",
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 24, -1 },
+					OnClick = function()
+						NS.UpdateAll( "forceUpdate" );
+					end,
+					db = "alertBonusRollTokenDisableWhenMaxSeals",
+				} );
 				NS.CheckButton( "AlertDisableInInstancesCheckButton", SubFrame, L["Disable in Instances"], {
-					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
+					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", -24, -1 },
 					tooltip = L["|cffffffffDisable Alert|r\nIn Arenas, Dungeons,\nBattlegrounds, and Raids"],
 					OnClick = function( checked )
 						NS.UpdateAll( "forceUpdate" );
@@ -1060,6 +1077,7 @@ NS.UI.cfg = {
 				_G[sfn .. "AlertInstantCompleteWorldQuestCheckButton"]:SetChecked( NS.db["alertInstantCompleteWorldQuest"] );
 				_G[sfn .. "AlertBlessingOfTheOrderCheckButton"]:SetChecked( NS.db["alertBlessingOfTheOrder"] );
 				_G[sfn .. "AlertBonusRollTokenCheckButton"]:SetChecked( NS.db["alertBonusRollToken"] );
+				_G[sfn .. "AlertBonusRollTokenDisableWhenMaxSealsCheckButton"]:SetChecked( NS.db["alertBonusRollTokenDisableWhenMaxSeals"] );
 				_G[sfn .. "AlertDisableInInstancesCheckButton"]:SetChecked( NS.db["alertDisableInInstances"] );
 			end,
 		},
@@ -1317,7 +1335,7 @@ NS.UI.cfg = {
 				} );
 				NS.TextFrame( "NeedMoreHelp", SubFrame, string.format(
 						L["%sQuestions, Comments, Bugs and Suggestions|r\n\n" ..
-						"https://mods.curse.com/addons/wow/254300-class-order-halls-complete"],
+						"https://www.curseforge.com/wow/addons/class-order-halls-complete"],
 						NORMAL_FONT_COLOR_CODE
 					), {
 					setPoint = {

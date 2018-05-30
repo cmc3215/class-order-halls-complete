@@ -1,3 +1,12 @@
+**1.30**
+
+- Release date: 05/29/2018
+- New option under Alerts > Seal of Broken Fate: "Disable when player already has 6/6 seals"
+- New option under Misc: "Lock Minimap Button"
+- Addon now updates quickly when using a Mission Table outside of a Class Order Hall (i.e. Broken Shore and Argus Vindicaar). Previously, it updated every 10 seconds in those areas.
+- Updated LibDBIcon
+- Updated Curse URL on Help tab.
+
 **1.29**
 
 - Release date: 01/20/2018

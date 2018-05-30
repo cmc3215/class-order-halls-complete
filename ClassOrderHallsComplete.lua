@@ -1,10 +1,10 @@
-﻿--------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------
 -- Initialize Variables
 --------------------------------------------------------------------------------------------------------------------------------------------
 local NS = select( 2, ... );
 local L = NS.localization;
 NS.releasePatch = "7.3.5";
-NS.versionString = "1.29";
+NS.versionString = "1.30";
 NS.version = tonumber( NS.versionString );
 --
 NS.initialized = false;
@@ -220,6 +220,7 @@ NS.DefaultSavedVariables = function()
 		["showMinimapButton"] = true,
 		["showCharacterTooltipMinimapButton"] = true,
 		["dockMinimapButton"] = true,
+		["lockMinimapButton"] = false,
 		["largeMinimapButton"] = true,
 		["minimapButtonPosition"] = 237.2,
 		["showClassHallReportMinimapButton"] = true,
@@ -250,6 +251,7 @@ NS.DefaultSavedVariables = function()
 		["alertInstantCompleteWorldQuest"] = true,
 		["alertBlessingOfTheOrder"] = true,
 		["alertBonusRollToken"] = true,
+		["alertBonusRollTokenDisableWhenMaxSeals"] = true,
 		["alertDisableInInstances"] = true,
 		["ldbSource"] = "current",
 		["ldbTextFormat"] = "missions-upgrades-orders",
@@ -388,6 +390,11 @@ NS.Upgrade = function()
 		if not NS.FindKeyByValue( NS.db["monitorColumn"], "troop7" ) then
 			table.insert( NS.db["monitorColumn"], "troop7" );
 		end
+	end
+	-- 1.30
+	if version < 1.30 then
+		NS.db["lockMinimapButton"] = vars["lockMinimapButton"];
+		NS.db["alertBonusRollTokenDisableWhenMaxSeals"] = vars["alertBonusRollTokenDisableWhenMaxSeals"]
 	end
 	--
 	NS.db["version"] = NS.version;
@@ -1199,7 +1206,7 @@ NS.UpdateCharacters = function()
 					if wo.spellSeconds > 0 then
 						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["Weekly Reset: %s"], SecondsToTime( wo.spellSeconds ) ) .. FONT_COLOR_CODE_CLOSE;
 					else
-						if NS.db["alertBonusRollToken"] then
+						if NS.db["alertBonusRollToken"] and ( not NS.db["alertBonusRollTokenDisableWhenMaxSeals"] or char["sealOfBrokenFate"] < NS.sealofBrokenFateMax ) then
 							alertCurrentCharacter = ( not alertCurrentCharacter and char["name"] == NS.currentCharacter.name ) and true or alertCurrentCharacter; -- All characters
 							alertAnyCharacter = true; -- All characters
 						end
@@ -1353,7 +1360,7 @@ NS.UpdateLDB = function()
 			at = advancement.seconds and 1 or 0;
 			natr = advancement.seconds and advancement.seconds;
 			ari = ( advancement.status == "researching" and char["advancement"]["talentBeingResearched"] ) or
-			( advancement.status == "available" and { icon = char["advancement"]["newTalentTier"][1].icon, name = string.format( L["%sNew!|r Tier %d: %s"], GREEN_FONT_COLOR_CODE, char["advancement"]["newTalentTier"][1].tier, ( HIGHLIGHT_FONT_COLOR_CODE .. SecondsToTime( char["advancement"]["newTalentTier"][1].researchDuration ) .. " – " .. BreakUpLargeNumbers( char["advancement"]["newTalentTier"][1].researchCost ) .. FONT_COLOR_CODE_CLOSE .. "|T" .. 1397630 ..":0:0:2:0|t" ) ) } ) or
+			( advancement.status == "available" and { icon = char["advancement"]["newTalentTier"][1].icon, name = string.format( L["%sNew!|r Tier %d: %s"], GREEN_FONT_COLOR_CODE, char["advancement"]["newTalentTier"][1].tier, ( HIGHLIGHT_FONT_COLOR_CODE .. SecondsToTime( char["advancement"]["newTalentTier"][1].researchDuration ) .. " - " .. BreakUpLargeNumbers( char["advancement"]["newTalentTier"][1].researchCost ) .. FONT_COLOR_CODE_CLOSE .. "|T" .. 1397630 ..":0:0:2:0|t" ) ) } ) or
 			( advancement.status == "maxed" and { icon = advancement.texture, name = ( GRAY_FONT_COLOR_CODE .. L["No new tiers available"] .. FONT_COLOR_CODE_CLOSE ) } );
 		end
 		if at == 0 then
@@ -1588,6 +1595,8 @@ NS.UpdateAll = function( forceUpdate )
 		WorldMapFrame:HookScript( "OnHide", function( self ) COHCEventsFrame:UnregisterEvent( "UNIT_SPELLCAST_SUCCEEDED" ); end ); -- Ignore casting spells with the World Map hidden
 		COHCEventsFrame:RegisterEvent( "CHAT_MSG_CURRENCY" ); -- Fires when Order Resources are looted
 		COHCEventsFrame:RegisterEvent( "BONUS_ROLL_RESULT" ); -- Fires when Bonus Rolls are used
+		COHCEventsFrame:RegisterEvent( "GARRISON_MISSION_STARTED" ); -- Fires when player starts a mission
+		COHCEventsFrame:RegisterEvent( "GARRISON_MISSION_BONUS_ROLL_COMPLETE" ); -- Fires when player ends a mission
 	end
 	-- LDB
 	NS.UpdateLDB();
@@ -1623,6 +1632,10 @@ NS.MinimapButton( "COHCMinimapButton", "Interface\\TargetingFrame\\UI-Classes-Ci
 		if C_Garrison.HasGarrison( LE_GARRISON_TYPE_7_0 ) then
 			GarrisonLandingPageMinimapButton_OnClick();
 		end
+	end,
+	OnMiddleClick = function( self )
+		NS.db["lockMinimapButton"] = ( not NS.db["lockMinimapButton"] and true ) or false;
+		self.locked = NS.db["lockMinimapButton"];
 	end,
 } );
 --------------------------------------------------------------------------------------------------------------------------------------------
@@ -1731,7 +1744,7 @@ NS.UpdateRequestHandler = function( event )
 	if not event then
 		local hasOrderHall = C_Garrison.HasGarrison( LE_GARRISON_TYPE_7_0 );
 		local inOrderHall = C_Garrison.IsPlayerInGarrison( LE_GARRISON_TYPE_7_0 );
-		local inDalaranLegion = ( GetCurrentMapAreaID() == 1014 );
+		local inDalaranLegion = ( GetCurrentMapAreaID() == 1014 ); -- Dalaran Legion = 1014
 		local inEventZoneOrPeriod = ( inOrderHall or inDalaranLegion or not NS.shipmentConfirmsFlaggedComplete );
 		-- When INSIDE event zone or period, update requests are made automatically every 2 seconds
 		-- When OUTSIDE event zone or period, update requests are only made 2 seconds after an event fires
@@ -1806,6 +1819,17 @@ NS.Frame( "COHCEventsFrame", UIParent, {
 			--------------------------------------------------------------------------------------------------------------------------------
 			NS.db["characters"][NS.currentCharacter.key]["sealOfBrokenFate"] = select( 2, GetCurrencyInfo( 1273 ) );
 			--------------------------------------------------------------------------------------------------------------------------------
+		elseif	event == "GARRISON_MISSION_STARTED" or event == "GARRISON_MISSION_BONUS_ROLL_COMPLETE" then
+			--------------------------------------------------------------------------------------------------------------------------------
+			-- Missions started or ended at tables outside of Class Order Hall {UPDATED}
+			--------------------------------------------------------------------------------------------------------------------------------
+			local mapAreaID = GetCurrentMapAreaID(); -- Krokuun = 1135, Mac'Aree = 1170, Antoran Wastes = 1171, Broken Shore = 1021
+			if mapAreaID == 1135 or mapAreaID == 1170 or mapAreaID == 1171 or mapAreaID == 1021 then
+				-- RequestLandingPageShipmentInfo() followed by NS.UpdateAll
+				-- Only required and effective OUTSIDE event zone or period
+				NS.UpdateRequestHandler( event );
+			end
+			--------------------------------------------------------------------------------------------------------------------------------
 		elseif	event == "ADDON_LOADED"							then
 			--------------------------------------------------------------------------------------------------------------------------------
 			-- ADDON_LOADED
@@ -1833,6 +1857,7 @@ NS.Frame( "COHCEventsFrame", UIParent, {
 			NS.UpdateRequestHandler(); -- Start handler/ticker
 			-- COHC Minimap Button
 			COHCMinimapButton.docked = NS.db["dockMinimapButton"];
+			COHCMinimapButton.locked = NS.db["lockMinimapButton"];
 			COHCMinimapButton:UpdateSize( NS.db["largeMinimapButton"] );
 			COHCMinimapButton:UpdatePos(); -- Reset to last drag position
 			if not NS.db["showMinimapButton"] then

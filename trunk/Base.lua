@@ -33,7 +33,7 @@ NS.Tooltip = function( frame, tooltip, tooltipAnchor )
 	frame.tooltipAnchor = tooltipAnchor;
 	frame:SetScript( "OnEnter", function( self )
 		GameTooltip:SetOwner( unpack( self.tooltipAnchor ) );
-		local tooltipText = type( self.tooltip ) ~= "function" and self.tooltip or self.tooltip();
+		local tooltipText = type( self.tooltip ) ~= "function" and self.tooltip or self.tooltip( self );
 		if tooltipText then -- Function may have only SetHyperlink, etc. without returning text
 			GameTooltip:SetText( tooltipText );
 		end
@@ -116,6 +116,9 @@ NS.InputBox = function( name, parent, set  )
 	end
 	if set.OnTextChanged then
 		f:SetScript( "OnTextChanged", set.OnTextChanged );
+	end
+	if set.OnLoad then
+		set.OnLoad( f );
 	end
 	return f;
 end
@@ -421,6 +424,7 @@ NS.MinimapButton = function( name, texture, set )
 	local f = CreateFrame( "Button", name, Minimap );
 	f.db = set.db; -- Saved position variable
 	f.docked = true;
+	f.locked = false;
 	local i,b,bg,radius,diagRadius;
 	local minimapShapes = {
 		["ROUND"] = { true, true, true, true },
@@ -441,9 +445,13 @@ NS.MinimapButton = function( name, texture, set )
 	-- Position and Dragging
 	f:EnableMouse( true );
 	f:SetMovable( true );
-	f:RegisterForClicks( "LeftButtonUp", "RightButtonUp" );
+	f:RegisterForClicks( "LeftButtonUp", "RightButtonUp", "MiddleButtonUp" );
 	f:RegisterForDrag( "LeftButton", "RightButton" );
 	local BeingDragged = function()
+		-- Locked
+		if f.locked then
+			return;
+		end
 		-- Undocked
 		if not f.docked then
 			f:StartMoving();
@@ -556,6 +564,8 @@ NS.MinimapButton = function( name, texture, set )
 			set.OnLeftClick( self, ... );
 		elseif btn == "RightButton" and set.OnRightClick then
 			set.OnRightClick( self, ... );
+		elseif btn == "MiddleButton" and set.OnMiddleClick then
+			set.OnMiddleClick( self, ... );
 		end
 	end );
 	if set.OnLoad then
@@ -639,6 +649,7 @@ NS.StrTimeToSeconds = function( str )
 end
 --
 NS.FormatNum = function( num )
+	local k;
 	while true do
 		num, k = string.gsub( num, "^(-?%d+)(%d%d%d)", "%1,%2" );
 		if ( k == 0 ) then break end
@@ -774,7 +785,7 @@ NS.BatchDataLoop = function( set )
 	-- DataFunction 		(required)
 	-- CompleteFunction 	(required)
 	--------------------------------------------------------
-	local dataNum,batchNum,batchRetry,AdvanceBatch,NextData;
+	local dataNum,batchNum,batchSize,batchRetry,AdvanceBatch,NextData;
 	--
 	AdvanceBatch = function()
 		if batchNum == batchSize or dataNum == #set.data then

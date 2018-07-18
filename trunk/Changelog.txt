@@ -1,3 +1,8 @@
+**1.32**
+
+- Release date: 07/18/2018
+- Bug fix: Minimap button lock option accidentally removed in previous update.
+
 **1.31**
 
 - Release date: 07/18/2018

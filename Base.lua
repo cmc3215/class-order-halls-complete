@@ -424,7 +424,6 @@ NS.MinimapButton = function( name, texture, set )
 	local f = CreateFrame( "Button", name, Minimap );
 	f.db = set.db; -- Saved position variable
 	f.docked = true;
-	f.locked = false;
 	local i,b,bg,radius,diagRadius;
 	local minimapShapes = {
 		["ROUND"] = { true, true, true, true },
@@ -445,13 +444,9 @@ NS.MinimapButton = function( name, texture, set )
 	-- Position and Dragging
 	f:EnableMouse( true );
 	f:SetMovable( true );
-	f:RegisterForClicks( "LeftButtonUp", "RightButtonUp", "MiddleButtonUp" );
+	f:RegisterForClicks( "LeftButtonUp", "RightButtonUp" );
 	f:RegisterForDrag( "LeftButton", "RightButton" );
 	local BeingDragged = function()
-		-- Locked
-		if f.locked then
-			return;
-		end
 		-- Undocked
 		if not f.docked then
 			f:StartMoving();
@@ -564,8 +559,6 @@ NS.MinimapButton = function( name, texture, set )
 			set.OnLeftClick( self, ... );
 		elseif btn == "RightButton" and set.OnRightClick then
 			set.OnRightClick( self, ... );
-		elseif btn == "MiddleButton" and set.OnMiddleClick then
-			set.OnMiddleClick( self, ... );
 		end
 	end );
 	if set.OnLoad then

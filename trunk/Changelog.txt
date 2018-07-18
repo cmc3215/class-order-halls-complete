@@ -1,3 +1,9 @@
+**1.31**
+
+- Release date: 07/18/2018
+- TOC updated for patch 8.0.1.
+- Minor updates for compatibility with new systems changes in Battle for Azeroth pre-patch: map api calls, number of Class Hall Upgrades lowered from 8 to 7.
+
 **1.30**
 
 - Release date: 05/29/2018

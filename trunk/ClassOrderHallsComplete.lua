@@ -3,8 +3,8 @@
 --------------------------------------------------------------------------------------------------------------------------------------------
 local NS = select( 2, ... );
 local L = NS.localization;
-NS.releasePatch = "7.3.5";
-NS.versionString = "1.30";
+NS.releasePatch = "8.0.1";
+NS.versionString = "1.31";
 NS.version = tonumber( NS.versionString );
 --
 NS.initialized = false;
@@ -200,6 +200,7 @@ NS.troopTextureRef = {
 NS.sealingFateQuests = { 43892, 43893, 43894, 43895, 43896, 43897, 47851, 47864, 47865 };
 NS.sealofBrokenFateMax = 6;
 NS.sealofBrokenFateWeeklyMax = 3;
+NS.maxAdvancementTiers = 7;
 --
 NS.ldbTooltip = {
 	--header = {},
@@ -659,7 +660,7 @@ NS.UpdateCharacter = function()
 						end
 					end
 					-- Talent Tier Available?
-					if ( not NS.db["characters"][k]["advancement"]["talentBeingResearched"] and #talentTiers < 8 ) then
+					if ( not NS.db["characters"][k]["advancement"]["talentBeingResearched"] and #talentTiers < NS.maxAdvancementTiers ) then
 						NS.db["characters"][k]["advancement"]["newTalentTier"] = {};
 						local newTier = #talentTiers + 1;
 						for _,talent in ipairs( talentTree ) do
@@ -1112,7 +1113,7 @@ NS.UpdateCharacters = function()
 					end
 				end
 				oa.status = "researching";
-			elseif char["advancement"]["newTalentTier"] then
+			elseif char["advancement"]["newTalentTier"] and char["advancement"]["numTalents"] < NS.maxAdvancementTiers then -- The and part is a fix for when 8.0.1 removed the 8th talent.
 				oa.texture = char["advancement"]["newTalentTier"][1].icon;
 				oa.text = string.format( L["Class Hall Upgrades - Tier %d"], char["advancement"]["newTalentTier"][1].tier );
 				oa.lines = {};
@@ -1134,9 +1135,9 @@ NS.UpdateCharacters = function()
 					end
 				end
 				oa.status = "available";
-			elseif char["advancement"]["numTalents"] == 8 then
+			elseif char["advancement"]["numTalents"] == NS.maxAdvancementTiers then
 				oa.texture = 133743;
-				oa.text = L["Class Hall Upgrades - 8/8"];
+				oa.text = string.format( L["Class Hall Upgrades - %d/%d"], NS.maxAdvancementTiers, NS.maxAdvancementTiers );
 				oa.lines = HIGHLIGHT_FONT_COLOR_CODE .. L["There are no new tiers available."] .. FONT_COLOR_CODE_CLOSE;
 				oa.status = "maxed";
 			end
@@ -1744,7 +1745,7 @@ NS.UpdateRequestHandler = function( event )
 	if not event then
 		local hasOrderHall = C_Garrison.HasGarrison( LE_GARRISON_TYPE_7_0 );
 		local inOrderHall = C_Garrison.IsPlayerInGarrison( LE_GARRISON_TYPE_7_0 );
-		local inDalaranLegion = ( GetCurrentMapAreaID() == 1014 ); -- Dalaran Legion = 1014
+		local inDalaranLegion = ( C_Map.GetBestMapForUnit( "player" ) == 1014 ); -- Dalaran Legion = 1014
 		local inEventZoneOrPeriod = ( inOrderHall or inDalaranLegion or not NS.shipmentConfirmsFlaggedComplete );
 		-- When INSIDE event zone or period, update requests are made automatically every 2 seconds
 		-- When OUTSIDE event zone or period, update requests are only made 2 seconds after an event fires
@@ -1823,7 +1824,7 @@ NS.Frame( "COHCEventsFrame", UIParent, {
 			--------------------------------------------------------------------------------------------------------------------------------
 			-- Missions started or ended at tables outside of Class Order Hall {UPDATED}
 			--------------------------------------------------------------------------------------------------------------------------------
-			local mapAreaID = GetCurrentMapAreaID(); -- Krokuun = 1135, Mac'Aree = 1170, Antoran Wastes = 1171, Broken Shore = 1021
+			local mapAreaID = C_Map.GetBestMapForUnit( "player" ); -- Krokuun = 1135, Mac'Aree = 1170, Antoran Wastes = 1171, Broken Shore = 1021
 			if mapAreaID == 1135 or mapAreaID == 1170 or mapAreaID == 1171 or mapAreaID == 1021 then
 				-- RequestLandingPageShipmentInfo() followed by NS.UpdateAll
 				-- Only required and effective OUTSIDE event zone or period
@@ -1852,7 +1853,6 @@ NS.Frame( "COHCEventsFrame", UIParent, {
 			-- PLAYER_LOGIN
 			--------------------------------------------------------------------------------------------------------------------------------
 			self:UnregisterEvent( event );
-			SetMapToCurrentZone(); -- Force map to current zone because standing by Nomi in Dalaran (Legion) was returning mapID 1115 on login/reload, which is Karazhan
 			NS.UpdateRequestHandler( event ); -- Initial update request
 			NS.UpdateRequestHandler(); -- Start handler/ticker
 			-- COHC Minimap Button

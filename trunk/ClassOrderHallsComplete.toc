@@ -1,6 +1,6 @@
-## Interface: 70300
+## Interface: 80000
 ## Title: Class Order Halls Complete
-## Version: 1.30
+## Version: 1.31
 ## Author: Clinton Caldwell
 ## Notes: Monitors Missions, Class Hall Upgrades, and Work Orders account-wide.
 ## SavedVariables: CLASSORDERHALLSCOMPLETE_SAVEDVARIABLES

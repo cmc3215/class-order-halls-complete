@@ -121,17 +121,7 @@ NS.UI.cfg = {
 									local MonitorButton_OnEnter = function( self, text, lines )
 										GameTooltip:SetOwner( self, "ANCHOR_RIGHT" );
 										GameTooltip:SetText( text );
-										if type( lines ) == "table" then
-											for i = 1, #lines do
-												if type( lines[i] ) == "table" then
-													GameTooltip:AddLine( lines[i][1], lines[i][2], lines[i][3],  lines[i][4], lines[i][5] );
-												else
-													GameTooltip:AddLine( lines[i] );
-												end
-											end
-										elseif lines then
-											GameTooltip:AddLine( lines );
-										end
+										NS.AddLinesToTooltip( lines, false, GameTooltip );
 										GameTooltip:Show();
 										b:LockHighlight();
 									end
@@ -139,17 +129,7 @@ NS.UI.cfg = {
 									local SealButton_OnEnter = function( self, text, lines )
 										GameTooltip:SetOwner( self, "ANCHOR_RIGHT" );
 										GameTooltip:SetText( text );
-										if type( lines ) == "table" then
-											for i = 1, #lines do
-												if type( lines[i] ) == "table" then
-													GameTooltip:AddLine( lines[i][1], lines[i][2], lines[i][3],  lines[i][4], lines[i][5] );
-												else
-													GameTooltip:AddLine( lines[i] );
-												end
-											end
-										elseif lines then
-											GameTooltip:AddLine( lines );
-										end
+										NS.AddLinesToTooltip( lines, false, GameTooltip );
 										GameTooltip:Show();
 										b:LockHighlight();
 									end
@@ -241,10 +221,10 @@ NS.UI.cfg = {
 									for i = 1, #orders do
 										monitorNum = NS.FindKeyByValue( NS.db["monitorColumn"], orders[i].monitorColumn );
 										if not monitorNum then
-											NS.Print( "Unexpected work order, please report to addon author on Curse: " .. orders[i].text .. " - " .. orders[i].texture );
+											NS.Print( "Unexpected work order, please report to addon author on CurseForge: " .. orders[i].text .. " - " .. orders[i].texture );
 										else
 											_G[bn .. "Monitor" .. monitorNum]:SetNormalTexture( orders[i].spell and orders[i].spellTexture or orders[i].texture );
-											_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnEnter", function( self ) MonitorButton_OnEnter( self, ( orders[i].spell and orders[i].spellName or orders[i].text ), orders[i].lines ); end );
+											_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnEnter", function( self ) MonitorButton_OnEnter( self, orders[i].text, orders[i].lines ); end );
 											_G[bn .. "Monitor" .. monitorNum]:SetScript( "OnLeave", OnLeave );
 											_G[bn .. "Monitor" .. monitorNum .. "TopRightText"]:SetText( orders[i].topRightText and orders[i].topRightText or "" );
 											_G[bn .. "Monitor" .. monitorNum .. "CenterText"]:SetText( ( orders[i].spell and orders[i].color == "Red" and SecondsToTime( orders[i].spellSeconds, false, false, 1 ) ) or ( ( orders[i].spell or orders[i].color == "Gray" ) and "" ) or ( orders[i].readyForPickup .. "/" .. orders[i].total ) );
@@ -367,6 +347,10 @@ NS.UI.cfg = {
 			end,
 			Refresh			= function( SubFrame )
 				local sfn = SubFrame:GetName();
+				-- Title promo for War Campaigns Complete
+				if not IsAddOnLoaded( "WarCampaignsComplete" ) and NS.currentCharacter.level >= 110 then
+					_G[NS.UI.MainFrame:GetName() .. "TitleText"]:SetText( NS.title .. " – |cffef5f2eWar Campaigns Complete|r |cfffffffffor BFA available on|r |cffef5f2eCurseForge|r" ); -- Change MainFrame Title
+				end
 				--
 				_G[sfn .. "ScrollFrame"]:Reset();
 				-- Missions
@@ -452,6 +436,24 @@ NS.UI.cfg = {
 			mainFrameTitle	= NS.title,
 			tabText			= L["Characters"],
 			Init			= function( SubFrame )
+				local function CharactersTabNumMonitored()
+					local numMonitored,numTotal = 0,0;
+					for i = 1, #NS.charactersTabItems do
+						if NS.db["characters"][NS.selectedCharacterKey]["monitor"][NS.charactersTabItems[i].key] then
+							numMonitored = numMonitored + 1;
+						end
+						numTotal = numTotal + 1;
+					end
+					return numMonitored,numTotal;
+				end
+				--
+				local function MonitorSetChecks( checked )
+					for key in pairs( NS.db["characters"][NS.selectedCharacterKey]["monitor"] ) do
+						NS.db["characters"][NS.selectedCharacterKey]["monitor"][key] = checked;
+					end
+					NS.UpdateAll( "forceUpdate" );
+				end
+				--
 				NS.TextFrame( "CharacterLabel", SubFrame, L["Character:"], {
 					size = { 67, 16 },
 					setPoint = { "TOPLEFT", "$parent", "TOPLEFT", 8, -8 },
@@ -493,16 +495,6 @@ NS.UI.cfg = {
 					fontObject = "GameFontHighlight",
 					justifyH = "RIGHT",
 				} );
-				local function CharactersTabNumMonitored()
-					local numMonitored,numTotal = 0,0;
-					for i = 1, #NS.charactersTabItems do
-						if NS.db["characters"][NS.selectedCharacterKey]["monitor"][NS.charactersTabItems[i].key] then
-							numMonitored = numMonitored + 1;
-						end
-						numTotal = numTotal + 1;
-					end
-					return numMonitored,numTotal;
-				end
 				NS.ScrollFrame( "ScrollFrame", SubFrame, {
 					size = { 790, ( 40 * 10 - 5 ) },
 					setPoint = { "TOPLEFT", "$parent", "TOPLEFT", -1, -37 },
@@ -553,12 +545,7 @@ NS.UI.cfg = {
 						end
 					},
 				} );
-				local function MonitorSetChecks( checked )
-					for key in pairs( NS.db["characters"][NS.selectedCharacterKey]["monitor"] ) do
-						NS.db["characters"][NS.selectedCharacterKey]["monitor"][key] = checked;
-					end
-					NS.UpdateAll( "forceUpdate" );
-				end
+
 				NS.TextFrame( "MessageWhenEmpty", SubFrame, L["This character has no Missions, Class Hall Upgrades, or Work Orders.\n\nAs you progress they will be monitored automatically.\n\nYou can then uncheck any you don't want to monitor."], {
 					setPoint = {
 						{ "TOPLEFT", "$parentScrollFrame", "TOPLEFT", 0, 0 },
@@ -692,7 +679,7 @@ NS.UI.cfg = {
 					_G[sfn .. "OrderButton"]:Enable();
 				end
 				_G[sfn .. "CurrentCharacterFirstCheckButton"]:SetChecked( NS.db["currentCharacterFirst"] );
-				-- Merge Missions, Research, Work Orders into items for ScrollFrame
+				-- Merge Missions, Advancements, and Work Orders into items for ScrollFrame
 				wipe( NS.charactersTabItems );
 				local char = NS.db["characters"][NS.selectedCharacterKey];
 				-- Missions
@@ -705,7 +692,7 @@ NS.UI.cfg = {
 				end
 				-- Work Orders
 				for i = 1, #char["orders"] do
-					table.insert( NS.charactersTabItems, { key = char["orders"][i].texture, name = ( char["orders"][i].texture == 134939 and L["Legion Cooking Recipes"] or ( char["orders"][i].spellName or char["orders"][i].name ) ), icon = ( char["orders"][i].spellTexture or char["orders"][i].texture ) } );
+					table.insert( NS.charactersTabItems, { key = char["orders"][i].texture, name = ( char["orders"][i].texture == 134939 and L["Legion Cooking Recipes"] or char["orders"][i].name ), icon = char["orders"][i].texture } );
 				end
 				--
 				_G[sfn .. "ScrollFrame"]:Reset();
@@ -770,9 +757,9 @@ NS.UI.cfg = {
 				} );
 				NS.CheckButton( "ShowClassHallReportMinimapButtonCheckButton", SubFrame, L["Show Class Hall Report Minimap Button"], {
 					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
-					tooltip = L["Show or hide the\nClass Hall Report\nbutton on the Minimap"],
+					tooltip = L["Show or hide the\nClass Hall Report\nbutton on the Minimap\n\n|cffff2020Does not force show if\nhidden by default UI|r"],
 					OnClick = function( checked )
-						if not C_Garrison.HasGarrison( LE_GARRISON_TYPE_7_0 ) or not GarrisonLandingPageMinimapButton.title then return end
+						if not C_Garrison.HasGarrison( LE_GARRISON_TYPE_7_0 ) or C_Garrison.GetLandingPageGarrisonType() ~= LE_GARRISON_TYPE_7_0 or not GarrisonLandingPageMinimapButton.title then return end
 						GarrisonLandingPageMinimapButton:Hide();
 						GarrisonLandingPageMinimapButton:Show();
 					end,
@@ -852,7 +839,7 @@ NS.UI.cfg = {
 					["troop1"] = L["Troop #1"],
 					["troop2"] = L["Troop #2"],
 					["champion-armaments"] = L["Champion Armaments"],
-					["world-quest-complete/blessing-order/bonus-roll"] = L["Instant Complete World Quest / Blessing of the Order / Seal of Broken Fate"],
+					["bonus-roll"] = L["Seal of Broken Fate"],
 					["troop3"] = L["Troop #3"],
 					["troop4"] = L["Troop #4"],
 					["troop5"] = L["Troop #5 (Krokul Ridgestalker)"],
@@ -1019,22 +1006,6 @@ NS.UI.cfg = {
 					end,
 					db = "alertLegionCookingRecipes",
 				} );
-				NS.CheckButton( "AlertInstantCompleteWorldQuestCheckButton", SubFrame, L["Instant Complete World Quest"], {
-					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
-					tooltip = L["|cffffffffEnable Alert|r\nInstant Complete World Quest\n(e.g. Call the Val'kyr) Spell Cooldown\n\nNo Alert for the 10 Min Work Order"],
-					OnClick = function( checked )
-						NS.UpdateAll( "forceUpdate" );
-					end,
-					db = "alertInstantCompleteWorldQuest",
-				} );
-				NS.CheckButton( "AlertBlessingOfTheOrderCheckButton", SubFrame, L["Blessing of the Order"], {
-					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
-					tooltip = L["|cffffffffEnable Alert|r\nBlessing of the Order\nPriest Work Order"],
-					OnClick = function( checked )
-						NS.UpdateAll( "forceUpdate" );
-					end,
-					db = "alertBlessingOfTheOrder",
-				} );
 				NS.CheckButton( "AlertBonusRollTokenCheckButton", SubFrame, L["Seal of Broken Fate"], {
 					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
 					tooltip = L["|cffffffffEnable Alert|r\nSeal of Broken Fate Work Order"],
@@ -1074,8 +1045,6 @@ NS.UI.cfg = {
 				_G[sfn .. "AlertTroopsCheckButton"]:SetChecked( NS.db["alertTroops"] );
 				_G[sfn .. "AlertChampionArmamentsCheckButton"]:SetChecked( NS.db["alertChampionArmaments"] );
 				_G[sfn .. "AlertLegionCookingRecipesCheckButton"]:SetChecked( NS.db["alertLegionCookingRecipes"] );
-				_G[sfn .. "AlertInstantCompleteWorldQuestCheckButton"]:SetChecked( NS.db["alertInstantCompleteWorldQuest"] );
-				_G[sfn .. "AlertBlessingOfTheOrderCheckButton"]:SetChecked( NS.db["alertBlessingOfTheOrder"] );
 				_G[sfn .. "AlertBonusRollTokenCheckButton"]:SetChecked( NS.db["alertBonusRollToken"] );
 				_G[sfn .. "AlertBonusRollTokenDisableWhenMaxSealsCheckButton"]:SetChecked( NS.db["alertBonusRollTokenDisableWhenMaxSeals"] );
 				_G[sfn .. "AlertDisableInInstancesCheckButton"]:SetChecked( NS.db["alertDisableInInstances"] );

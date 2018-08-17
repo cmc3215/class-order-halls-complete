@@ -506,7 +506,7 @@
 	<!-- Template -->
 	<Button name="COHCCharactersTabScrollFrameButtonTemplate" hidden="false" virtual="true">
 		<Size>
-			<AbsDimension x="738" y="40"/><!-- Width is LESS THAN all elements combined w/offsets -->
+			<AbsDimension x="790" y="40"/><!-- Width is LESS THAN all elements combined w/offsets -->
 		</Size>
 		<!-- Frames -->
 		<Frames>
@@ -526,7 +526,7 @@
 			<!-- [Name] -->
 			<Frame name="$parent_Name">
 				<Size>
-					<AbsDimension x="484" y="40"/>
+					<AbsDimension x="704" y="40"/><!-- 708 = ( 708 - 4 ) remove 4 here to give checkbox some room -->
 				</Size>
 				<Anchors>
 					<Anchor point="LEFT" relativeTo="$parent_IconTexture" relativePoint="RIGHT">
@@ -549,7 +549,7 @@
 				<Anchors>
 					<Anchor point="LEFT" relativeTo="$parent_Name" relativePoint="RIGHT">
 						<Offset>
-							<AbsDimension x="164" y="0"/>
+							<AbsDimension x="0" y="0"/>
 						</Offset>
 					</Anchor>
 				</Anchors>

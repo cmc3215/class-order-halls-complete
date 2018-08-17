@@ -4,7 +4,7 @@
 local NS = select( 2, ... );
 local L = NS.localization;
 NS.releasePatch = "8.0.1";
-NS.versionString = "1.32";
+NS.versionString = "1.33";
 NS.version = tonumber( NS.versionString );
 --
 NS.initialized = false;
@@ -69,29 +69,24 @@ NS.classRef = {
 	--
 	-- advancement = "Order Advancement"										- questID
 	-- armaments = Champion Armaments or Equipment Work Orders Talent - Tier 3	- talent.id
-	-- wqcomplete = World Quest Complete Work Order Talent - Tier 5				- talent.id, itemID, itemName, spellID, spellTexture
-	-- blessingorder = Blessing of the Order Work Order Talent - Tier 5			- talent.id, itemID, itemName
 	-- bonusroll = Bonus Roll Work Order Talent - Tier 5						- talent.id
 	-- missions = "Missions"													- questID
 	--
 	["WARRIOR"] = {
 		advancement = 42611, 																					-- Einar the Runecaster
 		armaments = 411, 																						-- Heavenly Forge
-		wqcomplete = { 410, 140157, L["Horn of War"], 221597, select( 3, GetSpellInfo( 221597 ) ) },			-- Val'kyr Call
 		missions = 42598,																						-- Champions of Skyhold
 		icon = 626008,
 	},
 	["DEATHKNIGHT"] = {
 		advancement = 43268,																					-- Tech It Up A Notch
 		armaments = 433,																						-- Brothers in Arms
-		wqcomplete = { 432, 139888, L["Frost Crux"], 221557, select( 3, GetSpellInfo( 221557 ) ) },				-- Frost Wyrm
 		missions = 43264,																						-- Rise, Champions
 		icon = 625998,
 	},
 	["PALADIN"] = {
 		advancement = 42850, 																					-- Tech It Up A Notch
 		armaments =	400, 																						-- Plowshares to Swords
-		wqcomplete = { 399, 140155, L["Silver Hand Orders"], 221587, select( 3, GetSpellInfo( 221587 ) ) },		-- Grand Crusade
 		bonusroll = 398, 																						-- Holy Purpose
 		missions = 42846,																						-- The Blood Matriarch
 		icon = 626003,
@@ -105,7 +100,6 @@ NS.classRef = {
 	["PRIEST"] = {
 		advancement = 43277, 																					-- Tech It Up A Notch
 		armaments =	455, 																						-- Armaments of Light
-		blessingorder = { 448, 140156, L["Blessing of the Order"] },											-- Tithe
 		bonusroll = 454, 																						-- Blessed Seals
 		missions = 43270,																						-- Rise, Champions
 		icon = 626004,
@@ -132,7 +126,6 @@ NS.classRef = {
 	["MAGE"] = {
 		advancement = 42696, 																					-- Tech It Up A Notch
 		armaments =	389, 																						-- Arcane Armaments
-		wqcomplete = { 388, 140038, L["Focusing Crystal"], 221602, select( 3, GetSpellInfo( 221602 ) ) },		-- Might of Dalaran
 		bonusroll = 387, 																						-- Arcane Divination
 		missions = 42663,																						-- Rise, Champions
 		icon = 626001,
@@ -140,7 +133,6 @@ NS.classRef = {
 	["WARLOCK"] = {
 		advancement = 42601, 																					-- Tech It Up A Notch
 		armaments =	364, 																						-- Shadow Pact
-		wqcomplete = { 367, 139892, L["Demonic Phylactery"], 219540, select( 3, GetSpellInfo( 219540 ) ) },		-- Unleash Infernal
 		missions = 42608,																						-- Rise, Champions
 		icon = 626007,
 	},
@@ -154,7 +146,6 @@ NS.classRef = {
 	["DEMONHUNTER"] = {
 		advancement = 42683, 																					-- Demonic Improvements
 		armaments =	422, 																						-- Fel Armaments
-		wqcomplete = { 421, 140158, L["Empowered Rift Core"], 221561, select( 3, GetSpellInfo( 221561 ) ) },	-- Fel Hammer's Wrath
 		bonusroll =	420, 																						-- Focused War Effort
 		missions = { 42670, 42671 },																			-- Rise, Champions
 		icon = 1260827,
@@ -187,6 +178,11 @@ NS.troopTextureRef = {
 	[1396686] = 1452562, -- Druid: Daughters of Cenarius
 	[1396668] = 1489448, -- Druid: Druids of the Claw
 };
+-- Ignored Work Order Textures
+-- Instant Nomi Cooking Recipe
+-- Blessing of the Order
+-- Instant Complete World Quest Items
+NS.ignoredWorkOrderTextures = { 1387621, 135987, 135705, 341980, 1411833, 1033908, 1367345, 1135365 };
 -- Sealing Fate Quests in Dalaran
 -- 43892 = Sealing Fate: Order Resources (1000)
 -- 43893 = Sealing Fate: Stashed Order Resources (2000)
@@ -198,6 +194,7 @@ NS.troopTextureRef = {
 -- 47864 = Sealing Fate: Additional Marks of Honor (10)
 -- 47865 = Sealing Fate: Piles of Marks of Honor (20)
 NS.sealingFateQuests = { 43892, 43893, 43894, 43895, 43896, 43897, 47851, 47864, 47865 };
+--
 NS.sealofBrokenFateMax = 6;
 NS.sealofBrokenFateWeeklyMax = 3;
 NS.maxAdvancementTiers = 7;
@@ -236,7 +233,7 @@ NS.DefaultSavedVariables = function()
 			"troop1",
 			"troop2",
 			"champion-armaments",
-			"world-quest-complete/blessing-order/bonus-roll",
+			"bonus-roll",
 			"troop3",
 			"troop4",
 			"troop5",
@@ -249,8 +246,6 @@ NS.DefaultSavedVariables = function()
 		["alertTroops"] = true,
 		["alertChampionArmaments"] = true,
 		["alertLegionCookingRecipes"] = true,
-		["alertInstantCompleteWorldQuest"] = true,
-		["alertBlessingOfTheOrder"] = true,
 		["alertBonusRollToken"] = true,
 		["alertBonusRollTokenDisableWhenMaxSeals"] = true,
 		["alertDisableInInstances"] = true,
@@ -274,44 +269,53 @@ NS.Upgrade = function()
 	local version = NS.db["version"];
 	-- 1.01
 	if version < 1.01 then
+		-- Add
 		NS.db["alertMissions"] = vars["alertMissions"];
 		NS.db["alertClassHallUpgrades"] = vars["alertClassHallUpgrades"];
 		NS.db["alertTroops"] = vars["alertTroops"];
 		NS.db["alertChampionArmaments"] = vars["alertChampionArmaments"];
 		NS.db["alertLegionCookingRecipes"] = vars["alertLegionCookingRecipes"];
-		NS.db["alertInstantCompleteWorldQuest"] = vars["alertInstantCompleteWorldQuest"];
+		--REMOVED--NS.db["alertInstantCompleteWorldQuest"] = vars["alertInstantCompleteWorldQuest"];
 		NS.db["alertBonusRollToken"] = vars["alertBonusRollToken"];
 	end
 	-- 1.02
 	if version < 1.02 then
+		-- Add
 		NS.db["forgetDragPosition"] = vars["forgetDragPosition"];
 	end
 	-- 1.03
 	if version < 1.03 then
+		-- Add
 		NS.db["orderCharactersAutomatically"] = vars["orderCharactersAutomatically"];
 		NS.db["currentCharacterFirst"] = vars["currentCharacterFirst"];
 		NS.db["monitorRows"] = vars["monitorRows"];
 	end
 	-- 1.05
 	if version < 1.05 then
-		NS.ResetCharactersOrderPositions(); -- Fixes missing field "order" in "characters" table introduced in v1.03
+		-- Fixes missing field "order" in "characters" table introduced in v1.03
+		NS.ResetCharactersOrderPositions();
 	end
 	-- 1.06
 	if version < 1.06 then
+		-- Add
 		NS.db["monitorColumn"] = vars["monitorColumn"];
 	end
 	-- 1.10
 	if version < 1.10 then
+		-- Change
 		local mck = NS.FindKeyByValue( NS.db["monitorColumn"], "world-quest-complete/bonus-roll" );
 		if mck then
 			NS.db["monitorColumn"][mck] = "world-quest-complete/blessing-order/bonus-roll";
 		end
-		NS.db["alertBlessingOfTheOrder"] = vars["alertBlessingOfTheOrder"];
+		-- Add
+		--REMOVED--NS.db["alertBlessingOfTheOrder"] = vars["alertBlessingOfTheOrder"];
 	end
 	-- 1.13
 	if version < 1.13 then
+		-- Remove
 		for ck,c in ipairs( NS.db["characters"] ) do
 			NS.RemoveKeysByFunction( c["orders"], function( o )
+				-- Orders: Instant Complete World Quest (e.g. Horn of War, etc.)
 				if ( o.texture == 135705 or o.texture == 341980 or o.texture == 1411833 or o.texture == 1033908 or o.texture == 1367345 or o.texture == 1135365 ) then
 					c["monitor"][o.texture] = nil;
 					return true;
@@ -324,24 +328,26 @@ NS.Upgrade = function()
 		local itemSummonTroops = { 1551342, 1551349 }; -- Grimtotem Warrior and Coilskar Brute
 		--
 		for ck,c in ipairs( NS.db["characters"] ) do
+			-- Remove
 			NS.RemoveKeysByFunction( c["orders"], function( o )
 				if o.troopCount == "?" then
 					c["monitor"][o.texture] = nil;
 					return true;
 				end
 			end );
-			--
+			-- Change
 			for i = 1, #itemSummonTroops do
 				local ok = NS.FindKeyByField( c["orders"], "texture", itemSummonTroops[i] );
 				if ok then
 					c["orders"][ok]["troopSummonItemCount"] = 0;
 				end
 			end
-			--
+			-- Change/Remove
 			c["seals"]["sealingFateQuestsCompleted"] = c["seals"]["sealOfBrokenFate"] or nil;
+			-- Remove
 			c["seals"]["sealOfBrokenFate"] = nil;
 		end
-		--
+		-- Add
 		if not NS.FindKeyByValue( NS.db["monitorColumn"], "troop5" ) then
 			table.insert( NS.db["monitorColumn"], "troop5" );
 		end
@@ -388,14 +394,37 @@ NS.Upgrade = function()
 	end
 	-- 1.28
 	if version < 1.28 then
+		-- Add
 		if not NS.FindKeyByValue( NS.db["monitorColumn"], "troop7" ) then
 			table.insert( NS.db["monitorColumn"], "troop7" );
 		end
 	end
 	-- 1.30
 	if version < 1.30 then
+		-- Add
 		NS.db["lockMinimapButton"] = vars["lockMinimapButton"];
 		NS.db["alertBonusRollTokenDisableWhenMaxSeals"] = vars["alertBonusRollTokenDisableWhenMaxSeals"]
+	end
+	-- 1.33
+	if version < 1.33 then
+		-- Remove
+		for ck,c in ipairs( NS.db["characters"] ) do
+			c["wqcomplete"] = nil;
+			NS.RemoveKeysByFunction( c["orders"], function( o )
+				-- Orders: Blessing of the Order, Instant Complete World Quest (e.g. Horn of War, etc.)
+				if ( o.texture == 135987 or o.texture == 135705 or o.texture == 341980 or o.texture == 1411833 or o.texture == 1033908 or o.texture == 1367345 or o.texture == 1135365 ) then
+					c["monitor"][o.texture] = nil;
+					return true;
+				end
+			end );
+		end
+		NS.db["alertBlessingOfTheOrder"] = nil;
+		NS.db["alertInstantCompleteWorldQuest"] = nil;
+		-- Change
+		local mck = NS.FindKeyByValue( NS.db["monitorColumn"], "world-quest-complete/blessing-order/bonus-roll" );
+		if mck then
+			NS.db["monitorColumn"][mck] = "bonus-roll";
+		end
 	end
 	--
 	NS.db["version"] = NS.version;
@@ -484,11 +513,10 @@ NS.OrdersReadyForPickup = function( ready, total, duration, nextSeconds, passedT
 	end
 end
 --
-NS.OrdersReadyToStart = function( capacity, total, troopCount, spellReagentCount )
+NS.OrdersReadyToStart = function( capacity, total, troopCount )
 	total = total and total or 0;
 	troopCount = troopCount and troopCount or 0;
-	spellReagentCount = spellReagentCount and spellReagentCount or 0;
-	return ( capacity - ( total + troopCount + spellReagentCount ) );
+	return ( capacity - ( total + troopCount ) );
 end
 --
 NS.OrdersAllSeconds = function( duration, total, ready, nextSeconds, passedTime )
@@ -576,7 +604,6 @@ NS.UpdateCharacter = function()
 			["orderResources"] = 0,										-- Reset below every update
 			["advancement"] = {},										-- Reset below every update
 			["orders"] = {},											-- Reset below every update
-			--["wqcomplete"] = 0,										-- Reset below every update, stores the spellCooldown
 			["troops"] = {},											-- Reset below based on event driven data collection
 			["missions"] = {},											-- Reset below every update
 			["seals"] = {},												-- Reset below every update
@@ -654,9 +681,7 @@ NS.UpdateCharacter = function()
 							talentTiers[talent.tier] = talent;
 							if talent.isBeingResearched or talent.id == completeTalentID then
 								NS.db["characters"][k]["advancement"]["talentBeingResearched"] = CopyTable( talent );
-								--NS.Print( "|T" .. talent.icon .. ":16|t " .. talent.name .. " - isBeingResearched" ); -- DEBUG
 							end
-							--NS.Print( "|T" .. talent.icon .. ":16|t " .. talent.name ); -- DEBUG
 						end
 					end
 					-- Talent Tier Available?
@@ -668,7 +693,6 @@ NS.UpdateCharacter = function()
 								NS.db["characters"][k]["advancement"]["newTalentTier"][talent.uiOrder] = CopyTable( talent );
 							end
 						end
-						--NS.Print( "Talent tier available = " .. newTier ); -- DEBUG
 					end
 				end
 				--
@@ -749,7 +773,7 @@ NS.UpdateCharacter = function()
 			local looseShipments = C_Garrison.GetLooseShipments( LE_GARRISON_TYPE_7_0 );
 			for i = 1, #looseShipments do
 				local name,texture,capacity,ready,total,creationTime,duration = C_Garrison.GetLandingPageShipmentInfoByContainerID( looseShipments[i] );
-				if texture ~= 1387621 then -- Exclude Nomi quest work order
+				if not NS.FindKeyByValue( NS.ignoredWorkOrderTextures, texture ) then -- Ignore certain work orders
 					table.insert( NS.db["characters"][k]["orders"], {
 						["name"] = name,
 						["texture"] = texture,
@@ -774,64 +798,6 @@ NS.UpdateCharacter = function()
 				if orders == 0 then
 					table.insert( NS.db["characters"][k]["orders"], {
 						["name"] = GetItemInfo( 139308 ) or L["Champion Armaments"],
-						["texture"] = texture,
-						["capacity"] = capacity,
-					} );
-					if NS.db["characters"][k]["monitor"][texture] == nil then
-						NS.db["characters"][k]["monitor"][texture] = true;
-					end
-					monitorable[texture] = true;
-				end
-			end
-			-- World Quest Complete (Tier 5)
-			if NS.classRef[NS.currentCharacter.class].wqcomplete and talentTiers[5] and not talentTiers[5].isBeingResearched and talentTiers[5].id == NS.classRef[NS.currentCharacter.class].wqcomplete[1] then
-				local texture = GetItemIcon( NS.classRef[NS.currentCharacter.class].wqcomplete[2] );
-				local capacity = 1;
-				local ordersKey = NS.FindKeyByField( NS.db["characters"][k]["orders"], "texture", texture );
-				local orders = ordersKey and NS.db["characters"][k]["orders"][ordersKey]["total"] or 0;
-				-- Spell Cooldown
-				local start, duration = GetSpellCooldown( NS.classRef[NS.currentCharacter.class].wqcomplete[4] );
-				local gt = GetTime();
-				local spellCooldown = ( ( start == 0 or duration == 0 ) and 0 ) or ( gt > start and duration - ( gt - start ) ) or nil;
-				if not spellCooldown then
-					if NS.db["characters"][k]["wqcomplete"] then
-						spellCooldown = NS.db["characters"][k]["wqcomplete"] - ( currentTime - NS.db["characters"][k]["updateTime"] ); -- Use stored spellCooldown if no longer available (i.e. client has been restarted)
-						spellCooldown = spellCooldown < 0 and 0 or spellCooldown; -- Zero out negatives
-					else
-						spellCooldown = duration or 64800; -- Set unknown spellCooldown to full 18 Hr duration
-					end
-				end
-				--
-				if orders == 0 then
-					table.insert( NS.db["characters"][k]["orders"], {
-						["name"] = GetItemInfo( NS.classRef[NS.currentCharacter.class].wqcomplete[2] ) or NS.classRef[NS.currentCharacter.class].wqcomplete[3],
-						["texture"] = texture,
-						["capacity"] = capacity,
-					} );
-					if NS.db["characters"][k]["monitor"][texture] == nil then
-						NS.db["characters"][k]["monitor"][texture] = true;
-					end
-					monitorable[texture] = true;
-				end
-				ordersKey = ordersKey or #NS.db["characters"][k]["orders"];
-				NS.db["characters"][k]["orders"][ordersKey]["spellName"] = GetSpellInfo( NS.classRef[NS.currentCharacter.class].wqcomplete[4] );
-				NS.db["characters"][k]["orders"][ordersKey]["spellTexture"] = NS.classRef[NS.currentCharacter.class].wqcomplete[5];
-				NS.db["characters"][k]["orders"][ordersKey]["spellCooldown"] = spellCooldown;
-				NS.db["characters"][k]["orders"][ordersKey]["spellReagentCount"] = GetItemCount( NS.classRef[NS.currentCharacter.class].wqcomplete[2], true );
-				--
-				NS.db["characters"][k]["wqcomplete"] = spellCooldown; -- Add wqcomplete data
-			else
-				NS.db["characters"][k]["wqcomplete"] = nil; -- Remove wqcomplete data
-			end
-			-- Blessing of the Order (Tier 5)
-			if NS.classRef[NS.currentCharacter.class].blessingorder and talentTiers[5] and not talentTiers[5].isBeingResearched and talentTiers[5].id == NS.classRef[NS.currentCharacter.class].blessingorder[1] then
-				local texture = GetItemIcon( NS.classRef[NS.currentCharacter.class].blessingorder[2] );
-				local capacity = 1;
-				local ordersKey = NS.FindKeyByField( NS.db["characters"][k]["orders"], "texture", texture );
-				local orders = ordersKey and NS.db["characters"][k]["orders"][ordersKey]["total"] or 0;
-				if orders == 0 then
-					table.insert( NS.db["characters"][k]["orders"], {
-						["name"] = GetItemInfo( NS.classRef[NS.currentCharacter.class].blessingorder[2] ) or NS.classRef[NS.currentCharacter.class].blessingorder[3],
 						["texture"] = texture,
 						["capacity"] = capacity,
 					} );
@@ -932,6 +898,9 @@ NS.UpdateCharacter = function()
 				for i = 1, #NS.sealingFateQuests do
 					if IsQuestFlaggedCompleted( NS.sealingFateQuests[i] ) then
 						sealingFateQuestsCompleted = sealingFateQuestsCompleted + 1;
+						if sealingFateQuestsCompleted == NS.sealofBrokenFateWeeklyMax then
+							break; -- Stop early when possible
+						end
 					end
 				end
 				NS.db["characters"][k]["seals"]["sealingFateQuestsCompleted"] = sealingFateQuestsCompleted;
@@ -1113,7 +1082,7 @@ NS.UpdateCharacters = function()
 					end
 				end
 				oa.status = "researching";
-			elseif char["advancement"]["newTalentTier"] and char["advancement"]["numTalents"] < NS.maxAdvancementTiers then -- The and part is a fix for when 8.0.1 removed the 8th talent.
+			elseif char["advancement"]["newTalentTier"] and char["advancement"]["numTalents"] < NS.maxAdvancementTiers then -- The part after "and" is a fix for when 8.0.1 removed the 8th talent.
 				oa.texture = char["advancement"]["newTalentTier"][1].icon;
 				oa.text = string.format( L["Class Hall Upgrades - Tier %d"], char["advancement"]["newTalentTier"][1].tier );
 				oa.lines = {};
@@ -1157,16 +1126,12 @@ NS.UpdateCharacters = function()
 				wo.text = o.name;
 				wo.troopCount = o.troopCount;
 				wo.troopSummonItemCount = o.troopSummonItemCount;
-				wo.spell = false;
-				wo.spellName = o.spellName;
-				wo.spellTexture = o.spellTexture;
-				wo.spellSeconds = nil;
-				--o.spellCooldown;
-				--o.spellReagentCount;
+				wo.spell = false; -- Seal of Broken Fate
+				wo.spellSeconds = nil; -- ^
 				wo.capacity = o.capacity;
 				wo.total = o.total or 0; -- o.total is nil if no orders
 				wo.readyForPickup = NS.OrdersReadyForPickup( o.ready, o.total, o.duration, o.nextSeconds, passedTime );
-				wo.readyToStart = NS.OrdersReadyToStart( wo.capacity, o.total, wo.troopCount, o.spellReagentCount );
+				wo.readyToStart = NS.OrdersReadyToStart( wo.capacity, o.total, wo.troopCount );
 				local allSeconds = NS.OrdersAllSeconds( o.duration, o.total, o.ready, o.nextSeconds, passedTime );
 				wo.nextSeconds = NS.OrdersNextSeconds( allSeconds, o.duration );
 				wo.topRightText = nil;
@@ -1180,25 +1145,10 @@ NS.UpdateCharacters = function()
 				end
 				--
 				wo.lines = {};
+				-- Troop numbers
 				if wo.troopCount then
 					wo.text = wo.text .. " - " .. wo.troopCount .. "/" .. wo.capacity;
 					wo.topRightText = ( wo.readyToStart > 0 and ( not wo.troopSummonItemCount or wo.troopSummonItemCount > 0 ) ) and ( ORANGE_FONT_COLOR_CODE .. wo.troopCount .. FONT_COLOR_CODE_CLOSE ) or wo.troopCount;
-				end
-				-- Instant Complete World Quest
-				if o.spellCooldown then
-					wo.spell = true;
-					wo.spellSeconds = o.spellCooldown > passedTime and ( o.spellCooldown - passedTime ) or 0;
-					if wo.spellSeconds > 0 then
-						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["Cooldown remaining: %s"], SecondsToTime( wo.spellSeconds ) ) .. FONT_COLOR_CODE_CLOSE;
-					else
-						wo.lines[#wo.lines + 1] = GREEN_FONT_COLOR_CODE ..L["Ready"] .. FONT_COLOR_CODE_CLOSE;
-						if NS.db["alertInstantCompleteWorldQuest"] then
-							alertCurrentCharacter = ( not alertCurrentCharacter and char["name"] == NS.currentCharacter.name ) and true or alertCurrentCharacter; -- All characters
-							alertAnyCharacter = true; -- All characters
-						end
-					end
-					wo.lines[#wo.lines + 1] = " ";
-					wo.lines[#wo.lines + 1] = ITEM_QUALITY_COLORS[3].hex .. o.name .. FONT_COLOR_CODE_CLOSE;
 				end
 				-- Seal of Broken Fate
 				if wo.texture == 133858 then
@@ -1213,25 +1163,24 @@ NS.UpdateCharacters = function()
 						end
 					end
 				end
-				--
+				-- Ready to start or Ready to summon
 				if wo.readyToStart > 0 then
-					if wo.troopCount and o.troopSummonItemCount then -- Troops summoned by item instead of Work Order
+					-- Troops summoned by item instead of Work Order
+					if wo.troopCount and o.troopSummonItemCount then
 						wo.readyToStart = math.min( o.troopSummonItemCount, wo.readyToStart ); -- Ready to summon
-						wo.lines[#wo.lines + 1] = ( o.troopSummonItemCount > 0 and GREEN_FONT_COLOR_CODE or RED_FONT_COLOR_CODE ) .. string.format( L["%d Ready to summon"], wo.readyToStart ) .. FONT_COLOR_CODE_CLOSE;
-					elseif wo.texture ~= 133858 or wo.spellSeconds == 0 then -- Ignore Seal of Broken Fate unless not completed this week
+						wo.lines[#wo.lines + 1] = ( o.troopSummonItemCount > 0 and GREEN_FONT_COLOR_CODE or HIGHLIGHT_FONT_COLOR_CODE ) .. string.format( L["%d Ready to summon"], wo.readyToStart ) .. FONT_COLOR_CODE_CLOSE;
+					-- All other work orders (except only show on the Seal of Broken Fate Work Order when it hasn't been completed this week)
+					elseif wo.texture ~= 133858 or wo.spellSeconds == 0 then
 						wo.lines[#wo.lines + 1] = GREEN_FONT_COLOR_CODE .. string.format( L["%d Ready to start"], wo.readyToStart ) .. FONT_COLOR_CODE_CLOSE;
 					end
-				elseif o.spellReagentCount and o.spellReagentCount > 0 then
-					wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["%d Available"], o.spellReagentCount ) .. FONT_COLOR_CODE_CLOSE;
 				end
-				--
+				-- Ready for pickup
 				if wo.total > 0 then
 					if wo.readyForPickup == wo.total then
 						wo.lines[#wo.lines + 1] = GREEN_FONT_COLOR_CODE .. string.format( L["%d Ready for pickup"], wo.readyForPickup ) .. FONT_COLOR_CODE_CLOSE;
 						if ( wo.troopCount and NS.db["alertTroops"] ) or
 						   ( wo.texture == 975736 and NS.db["alertChampionArmaments"] ) or
 						   ( wo.texture == 134939 and NS.db["alertLegionCookingRecipes"] ) or
-						   ( wo.texture == 135987 and NS.db["alertBlessingOfTheOrder"] ) or
 						   ( wo.texture == 133858 and NS.db["alertBonusRollToken"] ) then
 							alertCurrentCharacter = ( not alertCurrentCharacter and char["name"] == NS.currentCharacter.name ) and true or alertCurrentCharacter; -- All characters
 							alertAnyCharacter = true; -- All characters
@@ -1240,13 +1189,9 @@ NS.UpdateCharacters = function()
 						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. string.format( L["%d/%d Ready for pickup %s"], wo.readyForPickup, wo.total, string.format( L["(Next: %s)"], SecondsToTime( wo.nextSeconds ) ) ) .. FONT_COLOR_CODE_CLOSE;
 					end
 				end
-				--
-				if wo.troopCount and #wo.lines == 0 then
-					if wo.troopCount >= wo.capacity then
-						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. L["0 recruits remaining"] .. FONT_COLOR_CODE_CLOSE;
-					else
-						wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. L["Unable to detect troop counts"] .. FONT_COLOR_CODE_CLOSE;
-					end
+				-- Troops are full, and nothing else to report
+				if wo.troopCount and wo.troopCount >= wo.capacity and #wo.lines == 0 then
+					wo.lines[#wo.lines + 1] = HIGHLIGHT_FONT_COLOR_CODE .. L["0 recruits remaining"] .. FONT_COLOR_CODE_CLOSE;
 				end
 				-- Monitor Column
 				if wo.troopCount then
@@ -1264,12 +1209,8 @@ NS.UpdateCharacters = function()
 					wo.monitorColumn = "champion-armaments";
 				elseif wo.texture == 134939 then
 					wo.monitorColumn = "cooking-recipes";
-				elseif ( wo.texture == 135705 or wo.texture == 341980 or wo.texture == 1411833 or wo.texture == 1033908 or wo.texture == 1367345 or wo.texture == 1135365 ) then
-					wo.monitorColumn = "world-quest-complete/blessing-order/bonus-roll"; -- World Quest Complete
-				elseif wo.texture == 135987 then
-					wo.monitorColumn = "world-quest-complete/blessing-order/bonus-roll"; -- Blessing Order
 				elseif wo.texture == 133858 then
-					wo.monitorColumn = "world-quest-complete/blessing-order/bonus-roll"; -- Bonus Roll
+					wo.monitorColumn = "bonus-roll"; -- Bonus Roll
 				end
 				--
 				wo.color = ( not wo.spell and wo.total == 0 and "Gray" ) or ( ( ( wo.spell and wo.spellSeconds > 0 ) or ( not wo.spell and wo.readyForPickup == 0 ) ) and "Red" ) or ( wo.readyForPickup < wo.total and "Yellow" ) or "Green";
@@ -1382,8 +1323,8 @@ NS.UpdateLDB = function()
 			local complete = not orders[i].spell and orders[i].readyForPickup or nil;
 			local total = not orders[i].spell and orders[i].total or nil;
 			local readyToStart = orders[i].spell and ( orders[i].spellSeconds == 0 and 1 or 0 ) or orders[i].readyToStart;
-			local icon = orders[i].spellTexture and orders[i].spellTexture or orders[i].texture;
-			local leftText = orders[i].spellName or orders[i].text;
+			local icon = orders[i].texture;
+			local leftText = orders[i].text;
 			local rightText;
 			if orders[i].spell then
 				-- Spells
@@ -1398,7 +1339,7 @@ NS.UpdateLDB = function()
 				elseif orders[i].troopSummonItemCount then
 					-- Green, 1+ Ready to summon
 					-- Red, 0 Ready to summon
-					rightText = ( readyToStart > 0 and GREEN_FONT_COLOR_CODE or RED_FONT_COLOR_CODE ) .. string.format( L["%d Ready to summon"], readyToStart ) .. FONT_COLOR_CODE_CLOSE;
+					rightText = ( readyToStart > 0 and GREEN_FONT_COLOR_CODE or HIGHLIGHT_FONT_COLOR_CODE ) .. string.format( L["%d Ready to summon"], readyToStart ) .. FONT_COLOR_CODE_CLOSE;
 				elseif total == 0 then
 					-- Green, None in progress, Ready to start
 					rightText = GREEN_FONT_COLOR_CODE .. string.format( L["%d Ready to start"], readyToStart ) .. FONT_COLOR_CODE_CLOSE;
@@ -1592,8 +1533,6 @@ NS.UpdateAll = function( forceUpdate )
 		NS.currentCharacter.key = NS.FindKeyByField( NS.db["characters"], "name", NS.currentCharacter.name ); -- Set key here after UpdateCharacter() because new characters will cause a characters sort
 		NS.selectedCharacterKey = NS.currentCharacter.key; -- Sets selected character in Characters tab
 		-- Events (continued from COHCEventsFrame > OnLoad)
-		WorldMapFrame:HookScript( "OnShow", function( self ) COHCEventsFrame:RegisterEvent( "UNIT_SPELLCAST_SUCCEEDED" ); end ); -- Fires when casting spells with the World Map shown
-		WorldMapFrame:HookScript( "OnHide", function( self ) COHCEventsFrame:UnregisterEvent( "UNIT_SPELLCAST_SUCCEEDED" ); end ); -- Ignore casting spells with the World Map hidden
 		COHCEventsFrame:RegisterEvent( "CHAT_MSG_CURRENCY" ); -- Fires when Order Resources are looted
 		COHCEventsFrame:RegisterEvent( "BONUS_ROLL_RESULT" ); -- Fires when Bonus Rolls are used
 		COHCEventsFrame:RegisterEvent( "GARRISON_MISSION_STARTED" ); -- Fires when player starts a mission
@@ -1631,7 +1570,11 @@ NS.MinimapButton( "COHCMinimapButton", "Interface\\TargetingFrame\\UI-Classes-Ci
 	end,
 	OnRightClick = function( self )
 		if C_Garrison.HasGarrison( LE_GARRISON_TYPE_7_0 ) then
-			GarrisonLandingPageMinimapButton_OnClick();
+			if not GarrisonLandingPage or not GarrisonLandingPage:IsShown() or GarrisonLandingPage.garrTypeID ~= LE_GARRISON_TYPE_7_0 then
+				ShowGarrisonLandingPage( LE_GARRISON_TYPE_7_0 );
+			elseif GarrisonLandingPage:IsShown() and GarrisonLandingPage.garrTypeID == LE_GARRISON_TYPE_7_0 then
+				HideUIPanel( GarrisonLandingPage );
+			end
 		end
 	end,
 	OnMiddleClick = function( self )
@@ -1650,7 +1593,11 @@ NS.ldb = LibStub:GetLibrary( "LibDataBroker-1.1" ):NewDataObject( NS.addon, {
 		if button == "RightButton" and self:GetName() == NS.ldbiButtonName then -- Right-Click LibDBIcon Minimap button
 			-- Open the Class Hall Report just as the custom Minimap button does
 			if C_Garrison.HasGarrison( LE_GARRISON_TYPE_7_0 ) then
-				GarrisonLandingPageMinimapButton_OnClick();
+				if not GarrisonLandingPage or not GarrisonLandingPage:IsShown() or GarrisonLandingPage.garrTypeID ~= LE_GARRISON_TYPE_7_0 then
+					ShowGarrisonLandingPage( LE_GARRISON_TYPE_7_0 );
+				elseif GarrisonLandingPage:IsShown() and GarrisonLandingPage.garrTypeID == LE_GARRISON_TYPE_7_0 then
+					HideUIPanel( GarrisonLandingPage );
+				end
 			end
 		else
 			NS.SlashCmdHandler( ( button == "RightButton" and "ldb" ) );
@@ -1778,16 +1725,7 @@ end
 NS.Frame( "COHCEventsFrame", UIParent, {
 	topLevel = true,
 	OnEvent = function ( self, event, ... )
-		if		event == "UNIT_SPELLCAST_SUCCEEDED"				then
-			--------------------------------------------------------------------------------------------------------------------------------
-			-- Instant Complete World Quest (World Map Shown)
-			--------------------------------------------------------------------------------------------------------------------------------
-			local unit,_,_,_,spellID = ...;
-			if unit == "player" and NS.classRef[NS.currentCharacter.class].wqcomplete and spellID == NS.classRef[NS.currentCharacter.class].wqcomplete[4] then
-				NS.UpdateRequestHandler( event );
-			end
-			--------------------------------------------------------------------------------------------------------------------------------
-		elseif	event == "GARRISON_LANDINGPAGE_SHIPMENTS"		then
+		if	event == "GARRISON_LANDINGPAGE_SHIPMENTS"		then
 			--------------------------------------------------------------------------------------------------------------------------------
 			-- Work Orders {UPDATED}
 			--------------------------------------------------------------------------------------------------------------------------------
@@ -1822,7 +1760,7 @@ NS.Frame( "COHCEventsFrame", UIParent, {
 			--------------------------------------------------------------------------------------------------------------------------------
 		elseif	event == "GARRISON_MISSION_STARTED" or event == "GARRISON_MISSION_BONUS_ROLL_COMPLETE" then
 			--------------------------------------------------------------------------------------------------------------------------------
-			-- Missions started or ended at tables outside of Class Order Hall {UPDATED}
+			-- Missions started or ended at tables outside of Class Order Hall and Dalaran (Legion) {UPDATED}
 			--------------------------------------------------------------------------------------------------------------------------------
 			local mapAreaID = C_Map.GetBestMapForUnit( "player" ); -- Krokuun = 1135, Mac'Aree = 1170, Antoran Wastes = 1171, Broken Shore = 1021
 			if mapAreaID == 1135 or mapAreaID == 1170 or mapAreaID == 1171 or mapAreaID == 1021 then
@@ -1865,7 +1803,7 @@ NS.Frame( "COHCEventsFrame", UIParent, {
 			end
 			-- Class Hall Report Minimap Button
 			GarrisonLandingPageMinimapButton:HookScript( "OnShow", function()
-				if not NS.db["showClassHallReportMinimapButton"] and C_Garrison.HasGarrison( LE_GARRISON_TYPE_7_0 ) then
+				if not NS.db["showClassHallReportMinimapButton"] and C_Garrison.GetLandingPageGarrisonType() == LE_GARRISON_TYPE_7_0 then
 					GarrisonLandingPageMinimapButton:Hide();
 				end
 			end );

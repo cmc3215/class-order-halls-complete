@@ -1,6 +1,6 @@
-## Interface: 80100
+## Interface: 80205
 ## Title: Class Order Halls Complete
-## Version: 1.34
+## Version: 1.35
 ## Author: Clinton Caldwell (CurseForge User: cmc3215)
 ## Notes: Monitors Missions, Class Hall Upgrades, and Work Orders account-wide.
 ## SavedVariables: CLASSORDERHALLSCOMPLETE_SAVEDVARIABLES

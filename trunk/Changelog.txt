@@ -1,3 +1,8 @@
+**1.35**
+
+- Release date: 10/19/2019
+- TOC updated for patch 8.2.5.
+
 **1.34**
 
 - Release date: 12/22/2018

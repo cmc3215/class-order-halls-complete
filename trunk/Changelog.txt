@@ -1,3 +1,10 @@
+**1.36**
+
+- Release date: 10/20/2020
+- Minor compatibility fixes for latest patch 9.0.1.
+- If upgrading from a previous version of this addon, your character data will be wiped due to significant changes in patch 9.0.1.
+- TOC updated for patch 9.0.1.
+
 **1.35**
 
 - Release date: 10/19/2019

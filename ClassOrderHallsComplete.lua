@@ -3,8 +3,8 @@
 --------------------------------------------------------------------------------------------------------------------------------------------
 local NS = select( 2, ... );
 local L = NS.localization;
-NS.releasePatch = "8.2.5";
-NS.versionString = "1.35";
+NS.releasePatch = "9.0.1";
+NS.versionString = "1.36";
 NS.version = tonumber( NS.versionString );
 --
 NS.initialized = false;
@@ -310,43 +310,8 @@ NS.Upgrade = function()
 		-- Add
 		--REMOVED--NS.db["alertBlessingOfTheOrder"] = vars["alertBlessingOfTheOrder"];
 	end
-	-- 1.13
-	if version < 1.13 then
-		-- Remove
-		for ck,c in ipairs( NS.db["characters"] ) do
-			NS.RemoveKeysByFunction( c["orders"], function( o )
-				-- Orders: Instant Complete World Quest (e.g. Horn of War, etc.)
-				if ( o.texture == 135705 or o.texture == 341980 or o.texture == 1411833 or o.texture == 1033908 or o.texture == 1367345 or o.texture == 1135365 ) then
-					c["monitor"][o.texture] = nil;
-					return true;
-				end
-			end );
-		end
-	end
 	-- 1.23
 	if version < 1.23 then
-		local itemSummonTroops = { 1551342, 1551349 }; -- Grimtotem Warrior and Coilskar Brute
-		--
-		for ck,c in ipairs( NS.db["characters"] ) do
-			-- Remove
-			NS.RemoveKeysByFunction( c["orders"], function( o )
-				if o.troopCount == "?" then
-					c["monitor"][o.texture] = nil;
-					return true;
-				end
-			end );
-			-- Change
-			for i = 1, #itemSummonTroops do
-				local ok = NS.FindKeyByField( c["orders"], "texture", itemSummonTroops[i] );
-				if ok then
-					c["orders"][ok]["troopSummonItemCount"] = 0;
-				end
-			end
-			-- Change/Remove
-			c["seals"]["sealingFateQuestsCompleted"] = c["seals"]["sealOfBrokenFate"] or nil;
-			-- Remove
-			c["seals"]["sealOfBrokenFate"] = nil;
-		end
 		-- Add
 		if not NS.FindKeyByValue( NS.db["monitorColumn"], "troop5" ) then
 			table.insert( NS.db["monitorColumn"], "troop5" );
@@ -381,16 +346,6 @@ NS.Upgrade = function()
 		NS.db["alertAnyArtifactResearchNotes"] = nil;
 		NS.db["alertChatArtifactResearchNotes"] = nil;
 		NS.RemoveKeysByFunction( NS.db["monitorColumn"], function( mc ) return ( mc == "artifact-research-notes" ); end );
-		for ck,c in ipairs( NS.db["characters"] ) do
-			c["artifactKnowledgeLevel"] = nil;
-			c["artifactKnowledgeStage2Unlocked"] = nil;
-			NS.RemoveKeysByFunction( c["orders"], function( o )
-				if o.texture == 237446 then
-					c["monitor"][o.texture] = nil;
-					return true;
-				end
-			end );
-		end
 	end
 	-- 1.28
 	if version < 1.28 then
@@ -408,16 +363,6 @@ NS.Upgrade = function()
 	-- 1.33
 	if version < 1.33 then
 		-- Remove
-		for ck,c in ipairs( NS.db["characters"] ) do
-			c["wqcomplete"] = nil;
-			NS.RemoveKeysByFunction( c["orders"], function( o )
-				-- Orders: Blessing of the Order, Instant Complete World Quest (e.g. Horn of War, etc.)
-				if ( o.texture == 135987 or o.texture == 135705 or o.texture == 341980 or o.texture == 1411833 or o.texture == 1033908 or o.texture == 1367345 or o.texture == 1135365 ) then
-					c["monitor"][o.texture] = nil;
-					return true;
-				end
-			end );
-		end
 		NS.db["alertBlessingOfTheOrder"] = nil;
 		NS.db["alertInstantCompleteWorldQuest"] = nil;
 		-- Change
@@ -425,6 +370,12 @@ NS.Upgrade = function()
 		if mck then
 			NS.db["monitorColumn"][mck] = "bonus-roll";
 		end
+	end
+	-- 1.36
+	if version < 1.36 then
+		-- Wipe characters because of level squish and other bad data that may have been introduced due to major changes in patch 9.0.1
+		NS.db["characters"] = {};
+		NS.Print("Character data has been wiped to due to significant changes in patch 9.0.1. Please log back into any characters you wish to track a Class Order Hall on to repopulate the information.");
 	end
 	--
 	NS.db["version"] = NS.version;
@@ -613,19 +564,19 @@ NS.UpdateCharacter = function()
 	--------------------------------------------------------------------------------------------------------------------------------------------
 	NS.currentCharacter.level = UnitLevel( "player" );
 	NS.db["characters"][k]["level"] = NS.currentCharacter.level;
-	NS.db["characters"][k]["orderResources"] = select( 2, GetCurrencyInfo( 1220 ) );
-	NS.db["characters"][k]["sealOfBrokenFate"] = select( 2, GetCurrencyInfo( 1273 ) );
+	NS.db["characters"][k]["orderResources"] = C_CurrencyInfo.GetCurrencyInfo( 1220 )["quantity"];
+	NS.db["characters"][k]["sealOfBrokenFate"] = C_CurrencyInfo.GetCurrencyInfo( 1273 )["quantity"];
 	--------------------------------------------------------------------------------------------------------------------------------------------
 	-- Class Order Hall ?
 	--------------------------------------------------------------------------------------------------------------------------------------------
-	local hasOrderHall = C_Garrison.HasGarrison( LE_GARRISON_TYPE_7_0 );
+	local hasOrderHall = C_Garrison.HasGarrison( Enum.GarrisonType.Type_7_0 );
 	if hasOrderHall then
 		--------------------------------------------------------------------------------------------------------------------------------------------
 		-- Shipment Confirm: Avoids incomplete and inaccurate data being recorded following login, reloads, and pickups
 		--------------------------------------------------------------------------------------------------------------------------------------------
 		local shipmentsNum,shipmentsNumReady = 0,0;
 		--
-		local followerShipments = C_Garrison.GetFollowerShipments( LE_GARRISON_TYPE_7_0 );
+		local followerShipments = C_Garrison.GetFollowerShipments( Enum.GarrisonType.Type_7_0 );
 		shipmentsNum = shipmentsNum + #followerShipments;
 		for i = 1, #followerShipments do
 			local name,texture,shipmentCapacity,shipmentsReady,shipmentsTotal,creationTime,duration,timeleftString = C_Garrison.GetLandingPageShipmentInfoByContainerID( followerShipments[i] );
@@ -634,7 +585,7 @@ NS.UpdateCharacter = function()
 			end
 		end
 		--
-		local looseShipments = C_Garrison.GetLooseShipments( LE_GARRISON_TYPE_7_0 );
+		local looseShipments = C_Garrison.GetLooseShipments( Enum.GarrisonType.Type_7_0 );
 		shipmentsNum = shipmentsNum + #looseShipments;
 		for i = 1, #looseShipments do
 			local name,texture,shipmentCapacity,shipmentsReady,shipmentsTotal,creationTime,duration,timeleftString = C_Garrison.GetLandingPageShipmentInfoByContainerID( looseShipments[i] );
@@ -664,16 +615,16 @@ NS.UpdateCharacter = function()
 			--------------------------------------------------------------------------------------------------------------------------------------------
 			wipe( NS.db["characters"][k]["advancement"] ); -- Start fresh every update
 			local talentTiers = {}; -- Selected talents by tier
-			if IsQuestFlaggedCompleted( NS.classRef[NS.currentCharacter.class].advancement ) or GetQuestLogIndexByID( NS.classRef[NS.currentCharacter.class].advancement ) > 0 then
+			if C_QuestLog.IsQuestFlaggedCompleted( NS.classRef[NS.currentCharacter.class].advancement ) or C_QuestLog.GetLogIndexForQuestID( NS.classRef[NS.currentCharacter.class].advancement ) ~= nil then
 				if NS.db["characters"][k]["monitor"]["advancement"] == nil then
 					NS.db["characters"][k]["monitor"]["advancement"] = true;
 				end
 				monitorable["advancement"] = true;
 				--
-				local talentTreeIDs = C_Garrison.GetTalentTreeIDsByClassID( LE_GARRISON_TYPE_7_0, NS.currentCharacter.classID );
-				local completeTalentID = C_Garrison.GetCompleteTalent( LE_GARRISON_TYPE_7_0 );
+				local talentTreeIDs = C_Garrison.GetTalentTreeIDsByClassID( Enum.GarrisonType.Type_7_0, NS.currentCharacter.classID );
+				local completeTalentID = C_Garrison.GetCompleteTalent( Enum.GarrisonType.Type_7_0 );
 				if talentTreeIDs and talentTreeIDs[1] then -- Talent trees and first treeID available
-					local talentTree = select( 3, C_Garrison.GetTalentTreeInfoForID( talentTreeIDs[1] ) );
+					local talentTree = C_Garrison.GetTalentTreeInfo( talentTreeIDs[1] )["talents"];
 					for _,talent in ipairs( talentTree ) do
 						talent.tier = talent.tier + 1; -- Fix tiers starting at 0
 						talent.uiOrder = talent.uiOrder + 1; -- Fix order starting at 0
@@ -703,7 +654,7 @@ NS.UpdateCharacter = function()
 			--------------------------------------------------------------------------------------------------------------------------------------------
 			wipe( NS.db["characters"][k]["orders"] ); -- Start fresh every update
 			-- Follower Shipments
-			local followerShipments = C_Garrison.GetFollowerShipments( LE_GARRISON_TYPE_7_0 );
+			local followerShipments = C_Garrison.GetFollowerShipments( Enum.GarrisonType.Type_7_0 );
 			for i = 1, #followerShipments do
 				local name,texture,capacity,ready,total,creationTime,duration = C_Garrison.GetLandingPageShipmentInfoByContainerID( followerShipments[i] );
 				table.insert( NS.db["characters"][k]["orders"], {
@@ -770,7 +721,7 @@ NS.UpdateCharacter = function()
 			NS.RemoveKeysByFunction( NS.db["characters"][k]["orders"], function( order ) if not order.troopCount then return true end end ); -- Remove unexpected followerShipments without a matching troop
 			NS.Sort( NS.db["characters"][k]["orders"], "capacity", "DESC" ); -- Order troops by capacity for a more consistent display
 			-- Loose Shipments
-			local looseShipments = C_Garrison.GetLooseShipments( LE_GARRISON_TYPE_7_0 );
+			local looseShipments = C_Garrison.GetLooseShipments( Enum.GarrisonType.Type_7_0 );
 			for i = 1, #looseShipments do
 				local name,texture,capacity,ready,total,creationTime,duration = C_Garrison.GetLandingPageShipmentInfoByContainerID( looseShipments[i] );
 				if not NS.FindKeyByValue( NS.ignoredWorkOrderTextures, texture ) then -- Ignore certain work orders
@@ -826,7 +777,7 @@ NS.UpdateCharacter = function()
 				end
 			end
 			-- Cooking Recipes
-			if IsQuestFlaggedCompleted( 40991 ) then
+			if C_QuestLog.IsQuestFlaggedCompleted( 40991 ) then
 				local texture = 134939;
 				local capacity = 24;
 				local ordersKey = NS.FindKeyByField( NS.db["characters"][k]["orders"], "texture", texture );
@@ -847,8 +798,8 @@ NS.UpdateCharacter = function()
 			-- Missions
 			--------------------------------------------------------------------------------------------------------------------------------------------
 			wipe( NS.db["characters"][k]["missions"] );
-			if ( NS.currentCharacter.class ~= "DEMONHUNTER" and IsQuestFlaggedCompleted( NS.classRef[NS.currentCharacter.class].missions ) ) or ( NS.currentCharacter.class == "DEMONHUNTER" and ( IsQuestFlaggedCompleted( NS.classRef[NS.currentCharacter.class].missions[1] ) or IsQuestFlaggedCompleted( NS.classRef[NS.currentCharacter.class].missions[2] ) ) ) then
-				NS.db["characters"][k]["missions"] = C_Garrison.GetLandingPageItems( LE_GARRISON_TYPE_7_0 ); -- In Progress or Complete
+			if ( NS.currentCharacter.class ~= "DEMONHUNTER" and C_QuestLog.IsQuestFlaggedCompleted( NS.classRef[NS.currentCharacter.class].missions ) ) or ( NS.currentCharacter.class == "DEMONHUNTER" and ( C_QuestLog.IsQuestFlaggedCompleted( NS.classRef[NS.currentCharacter.class].missions[1] ) or C_QuestLog.IsQuestFlaggedCompleted( NS.classRef[NS.currentCharacter.class].missions[2] ) ) ) then
+				NS.db["characters"][k]["missions"] = C_Garrison.GetLandingPageItems( Enum.GarrisonType.Type_7_0 ); -- In Progress or Complete
 				for i = 1, #NS.db["characters"][k]["missions"] do
 					local mission = NS.db["characters"][k]["missions"][i];
 					-- Success Chance
@@ -888,15 +839,15 @@ NS.UpdateCharacter = function()
 			-- Seals
 			--------------------------------------------------------------------------------------------------------------------------------------------
 			wipe( NS.db["characters"][k]["seals"] );
-			if NS.currentCharacter.level >= 110 then
+			if NS.currentCharacter.level >= 45 then
 				-- Bonus Roll Work Order (Talent)
 				if NS.classRef[NS.currentCharacter.class].bonusroll and talentTiers[5] then
-					NS.db["characters"][k]["seals"]["bonusRollWorkOrderCompleted"] = IsQuestFlaggedCompleted( 43510 ); -- 43510 = Seal of Fate: Class Hall
+					NS.db["characters"][k]["seals"]["bonusRollWorkOrderCompleted"] = C_QuestLog.IsQuestFlaggedCompleted( 43510 ); -- 43510 = Seal of Fate: Class Hall
 				end
 				-- Sealing Fate Quests (Dalaran)
 				local sealingFateQuestsCompleted = 0;
 				for i = 1, #NS.sealingFateQuests do
-					if IsQuestFlaggedCompleted( NS.sealingFateQuests[i] ) then
+					if C_QuestLog.IsQuestFlaggedCompleted( NS.sealingFateQuests[i] ) then
 						sealingFateQuestsCompleted = sealingFateQuestsCompleted + 1;
 						if sealingFateQuestsCompleted == NS.sealofBrokenFateWeeklyMax then
 							break; -- Stop early when possible
@@ -1093,14 +1044,14 @@ NS.UpdateCharacters = function()
 					oa.lines[#oa.lines + 1] = { talent.description, nil, nil, nil, true };
 					oa.lines[#oa.lines + 1] = " ";
 					oa.lines[#oa.lines + 1] = string.format( L["Research Time: %s"], HIGHLIGHT_FONT_COLOR_CODE .. SecondsToTime( talent.researchDuration ) ) .. FONT_COLOR_CODE_CLOSE;
-					oa.lines[#oa.lines + 1] = string.format( L["Cost: %s"], HIGHLIGHT_FONT_COLOR_CODE .. BreakUpLargeNumbers( talent.researchCost ) .. FONT_COLOR_CODE_CLOSE .. "|T".. 1397630 ..":0:0:2:0|t" );
+					oa.lines[#oa.lines + 1] = string.format( L["Cost: %s"], HIGHLIGHT_FONT_COLOR_CODE .. BreakUpLargeNumbers( talent.researchCurrencyCosts[1].currencyQuantity ) .. FONT_COLOR_CODE_CLOSE .. "|T".. 1397630 ..":0:0:2:0|t" );
 					--
-					if char["advancement"]["numTalents"] == 1 and char["level"] and char["level"] < 105 then
-						oa.lines[#oa.lines + 1] = RED_FONT_COLOR_CODE .. L["You need to be level 105 to research."] .. FONT_COLOR_CODE_CLOSE;
-						oa.levelRequired = 105;
-					elseif char["advancement"]["numTalents"] == 2 and char["level"] and char["level"] < 110 then
-						oa.lines[#oa.lines + 1] = RED_FONT_COLOR_CODE .. L["You need to be level 110 to research."] .. FONT_COLOR_CODE_CLOSE;
-						oa.levelRequired = 110;
+					if char["advancement"]["numTalents"] == 1 and char["level"] and char["level"] < 42 then
+						oa.lines[#oa.lines + 1] = RED_FONT_COLOR_CODE .. L["You need to be level 42 to research."] .. FONT_COLOR_CODE_CLOSE;
+						oa.levelRequired = 42;
+					elseif char["advancement"]["numTalents"] == 2 and char["level"] and char["level"] < 45 then
+						oa.lines[#oa.lines + 1] = RED_FONT_COLOR_CODE .. L["You need to be level 45 to research."] .. FONT_COLOR_CODE_CLOSE;
+						oa.levelRequired = 45;
 					end
 				end
 				oa.status = "available";
@@ -1302,7 +1253,7 @@ NS.UpdateLDB = function()
 			at = advancement.seconds and 1 or 0;
 			natr = advancement.seconds and advancement.seconds;
 			ari = ( advancement.status == "researching" and char["advancement"]["talentBeingResearched"] ) or
-			( advancement.status == "available" and { icon = char["advancement"]["newTalentTier"][1].icon, name = string.format( L["%sNew!|r Tier %d: %s"], GREEN_FONT_COLOR_CODE, char["advancement"]["newTalentTier"][1].tier, ( HIGHLIGHT_FONT_COLOR_CODE .. SecondsToTime( char["advancement"]["newTalentTier"][1].researchDuration ) .. " - " .. BreakUpLargeNumbers( char["advancement"]["newTalentTier"][1].researchCost ) .. FONT_COLOR_CODE_CLOSE .. "|T" .. 1397630 ..":0:0:2:0|t" ) ) } ) or
+			( advancement.status == "available" and { icon = char["advancement"]["newTalentTier"][1].icon, name = string.format( L["%sNew!|r Tier %d: %s"], GREEN_FONT_COLOR_CODE, char["advancement"]["newTalentTier"][1].tier, ( HIGHLIGHT_FONT_COLOR_CODE .. SecondsToTime( char["advancement"]["newTalentTier"][1].researchDuration ) .. " - " .. BreakUpLargeNumbers( char["advancement"]["newTalentTier"][1].researchCurrencyCosts[1].currencyQuantity ) .. FONT_COLOR_CODE_CLOSE .. "|T" .. 1397630 ..":0:0:2:0|t" ) ) } ) or
 			( advancement.status == "maxed" and { icon = advancement.texture, name = ( GRAY_FONT_COLOR_CODE .. L["No new tiers available"] .. FONT_COLOR_CODE_CLOSE ) } );
 		end
 		if at == 0 then
@@ -1512,7 +1463,7 @@ NS.UpdateLDB = function()
 	NS.ldbTooltip.missions = missionsTooltip;
 	NS.ldbTooltip.advancements = advancementsTooltip;
 	NS.ldbTooltip.orders = ordersTooltip;
-	NS.ldbTooltip.available = C_Garrison.HasGarrison( LE_GARRISON_TYPE_7_0 );
+	NS.ldbTooltip.available = C_Garrison.HasGarrison( Enum.GarrisonType.Type_7_0 );
 end
 --
 NS.UpdateAll = function( forceUpdate )
@@ -1569,10 +1520,10 @@ NS.MinimapButton( "COHCMinimapButton", "Interface\\TargetingFrame\\UI-Classes-Ci
 		NS.SlashCmdHandler();
 	end,
 	OnRightClick = function( self )
-		if C_Garrison.HasGarrison( LE_GARRISON_TYPE_7_0 ) then
-			if not GarrisonLandingPage or not GarrisonLandingPage:IsShown() or GarrisonLandingPage.garrTypeID ~= LE_GARRISON_TYPE_7_0 then
-				ShowGarrisonLandingPage( LE_GARRISON_TYPE_7_0 );
-			elseif GarrisonLandingPage:IsShown() and GarrisonLandingPage.garrTypeID == LE_GARRISON_TYPE_7_0 then
+		if C_Garrison.HasGarrison( Enum.GarrisonType.Type_7_0 ) then
+			if not GarrisonLandingPage or not GarrisonLandingPage:IsShown() or GarrisonLandingPage.garrTypeID ~= Enum.GarrisonType.Type_7_0 then
+				ShowGarrisonLandingPage( Enum.GarrisonType.Type_7_0 );
+			elseif GarrisonLandingPage:IsShown() and GarrisonLandingPage.garrTypeID == Enum.GarrisonType.Type_7_0 then
 				HideUIPanel( GarrisonLandingPage );
 			end
 		end
@@ -1592,10 +1543,10 @@ NS.ldb = LibStub:GetLibrary( "LibDataBroker-1.1" ):NewDataObject( NS.addon, {
 	OnClick = function( self, button )
 		if button == "RightButton" and self:GetName() == NS.ldbiButtonName then -- Right-Click LibDBIcon Minimap button
 			-- Open the Class Hall Report just as the custom Minimap button does
-			if C_Garrison.HasGarrison( LE_GARRISON_TYPE_7_0 ) then
-				if not GarrisonLandingPage or not GarrisonLandingPage:IsShown() or GarrisonLandingPage.garrTypeID ~= LE_GARRISON_TYPE_7_0 then
-					ShowGarrisonLandingPage( LE_GARRISON_TYPE_7_0 );
-				elseif GarrisonLandingPage:IsShown() and GarrisonLandingPage.garrTypeID == LE_GARRISON_TYPE_7_0 then
+			if C_Garrison.HasGarrison( Enum.GarrisonType.Type_7_0 ) then
+				if not GarrisonLandingPage or not GarrisonLandingPage:IsShown() or GarrisonLandingPage.garrTypeID ~= Enum.GarrisonType.Type_7_0 then
+					ShowGarrisonLandingPage( Enum.GarrisonType.Type_7_0 );
+				elseif GarrisonLandingPage:IsShown() and GarrisonLandingPage.garrTypeID == Enum.GarrisonType.Type_7_0 then
 					HideUIPanel( GarrisonLandingPage );
 				end
 			end
@@ -1690,8 +1641,8 @@ NS.UpdateRequestHandler = function( event )
 	local currentTime = time();
 	-- Ticker
 	if not event then
-		local hasOrderHall = C_Garrison.HasGarrison( LE_GARRISON_TYPE_7_0 );
-		local inOrderHall = C_Garrison.IsPlayerInGarrison( LE_GARRISON_TYPE_7_0 );
+		local hasOrderHall = C_Garrison.HasGarrison( Enum.GarrisonType.Type_7_0 );
+		local inOrderHall = C_Garrison.IsPlayerInGarrison( Enum.GarrisonType.Type_7_0 );
 		local inDalaranLegion = ( C_Map.GetBestMapForUnit( "player" ) == 1014 ); -- Dalaran Legion = 1014
 		local inEventZoneOrPeriod = ( inOrderHall or inDalaranLegion or not NS.shipmentConfirmsFlaggedComplete );
 		-- When INSIDE event zone or period, update requests are made automatically every 2 seconds
@@ -1736,7 +1687,7 @@ NS.Frame( "COHCEventsFrame", UIParent, {
 			--------------------------------------------------------------------------------------------------------------------------------
 			-- Troops {UPDATED}
 			--------------------------------------------------------------------------------------------------------------------------------
-			local troops = C_Garrison.GetClassSpecCategoryInfo( LE_FOLLOWER_TYPE_GARRISON_7_0 );
+			local troops = C_Garrison.GetClassSpecCategoryInfo( Enum.GarrisonFollowerType.FollowerType_7_0 );
 			if troops and #troops > 0 then
 				NS.currentCharacter.troops = troops;
 				if NS.initialized then
@@ -1750,13 +1701,13 @@ NS.Frame( "COHCEventsFrame", UIParent, {
 			--------------------------------------------------------------------------------------------------------------------------------
 			-- Order Resources {UPDATED}
 			--------------------------------------------------------------------------------------------------------------------------------
-			NS.db["characters"][NS.currentCharacter.key]["orderResources"] = select( 2, GetCurrencyInfo( 1220 ) );
+			NS.db["characters"][NS.currentCharacter.key]["orderResources"] = C_CurrencyInfo.GetCurrencyInfo( 1220 )["quantity"];
 			--------------------------------------------------------------------------------------------------------------------------------
 		elseif	event == "BONUS_ROLL_RESULT"					then
 			--------------------------------------------------------------------------------------------------------------------------------
 			-- Seal of Broken Fate {UPDATED}
 			--------------------------------------------------------------------------------------------------------------------------------
-			NS.db["characters"][NS.currentCharacter.key]["sealOfBrokenFate"] = select( 2, GetCurrencyInfo( 1273 ) );
+			NS.db["characters"][NS.currentCharacter.key]["sealOfBrokenFate"] = C_CurrencyInfo.GetCurrencyInfo( 1273 )["quantity"];
 			--------------------------------------------------------------------------------------------------------------------------------
 		elseif	event == "GARRISON_MISSION_STARTED" or event == "GARRISON_MISSION_BONUS_ROLL_COMPLETE" then
 			--------------------------------------------------------------------------------------------------------------------------------
@@ -1803,7 +1754,7 @@ NS.Frame( "COHCEventsFrame", UIParent, {
 			end
 			-- Class Hall Report Minimap Button
 			GarrisonLandingPageMinimapButton:HookScript( "OnShow", function()
-				if not NS.db["showClassHallReportMinimapButton"] and C_Garrison.GetLandingPageGarrisonType() == LE_GARRISON_TYPE_7_0 then
+				if not NS.db["showClassHallReportMinimapButton"] and C_Garrison.GetLandingPageGarrisonType() == Enum.GarrisonType.Type_7_0 then
 					GarrisonLandingPageMinimapButton:Hide();
 				end
 			end );
@@ -1818,8 +1769,8 @@ NS.Frame( "COHCEventsFrame", UIParent, {
 			--------------------------------------------------------------------------------------------------------------------------------
 			-- Troops {REQUEST}
 			--------------------------------------------------------------------------------------------------------------------------------
-			if C_Garrison.HasGarrison( LE_GARRISON_TYPE_7_0 ) then
-				C_Garrison.RequestClassSpecCategoryInfo( LE_FOLLOWER_TYPE_GARRISON_7_0 );
+			if C_Garrison.HasGarrison( Enum.GarrisonType.Type_7_0 ) then
+				C_Garrison.RequestClassSpecCategoryInfo( Enum.GarrisonFollowerType.FollowerType_7_0 );
 			end
 			--------------------------------------------------------------------------------------------------------------------------------
 		end

@@ -851,17 +851,17 @@ NS.BatchDataLoop = function( set )
 end
 --
 NS.GetAtlasInlineTexture = function( name, size1, size2 )
-	local filename, width, height, left, right, top, bottom, tilesHoriz, tilesVert = GetAtlasInfo( name );
+	local info = C_Texture.GetAtlasInfo( name );
 	size1, size2 = ( size1 or 0 ), ( size2 or 0 );
-	local width = width / ( right - left ); -- Width of actual texture (e.g. width = 64, texture = 256)
-	local height = height / ( bottom - top ); -- Height ^
-	local left = width * left;
-	local right = width * right;
-	local top = height * top;
-	local bottom = height * bottom;
+	info.width = info.width / ( info.rightTexCoord - info.leftTexCoord ); -- Width of actual texture (e.g. width = 64, texture = 256)
+	info.height = info.height / ( info.bottomTexCoord - info.topTexCoord ); -- Height ^
+	info.leftTexCoord = info.width * info.leftTexCoord;
+	info.rightTexCoord = info.width * info.rightTexCoord;
+	info.topTexCoord = info.height * info.topTexCoord;
+	info.bottomTexCoord = info.height * info.bottomTexCoord;
 	-- https://wow.gamepedia.com/UI_escape_sequences#Textures
 	-- |TTexturePath:size1:size2:xoffset:yoffset:dimx:dimy:coordx1:coordx2:coordy1:coordy2:red:green:blue|t
-	return string.format( "|T%s:%d:%d:0:0:%d:%d:%d:%d:%d:%d|t", filename, size1, size2, width, height, left, right, top, bottom );
+	return string.format( "|T%s:%d:%d:0:0:%d:%d:%d:%d:%d:%d|t", info.file, size1, size2, info.width, info.height, info.leftTexCoord, info.rightTexCoord, info.topTexCoord, info.bottomTexCoord );
 end
 --
 NS.AddLinesToTooltip = function( lines, double, tooltip )

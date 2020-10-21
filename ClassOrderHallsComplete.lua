@@ -4,7 +4,7 @@
 local NS = select( 2, ... );
 local L = NS.localization;
 NS.releasePatch = "9.0.1";
-NS.versionString = "1.36";
+NS.versionString = "1.37";
 NS.version = tonumber( NS.versionString );
 --
 NS.initialized = false;
@@ -1015,7 +1015,7 @@ NS.UpdateCharacters = function()
 				local talent = char["advancement"]["talentBeingResearched"];
 				oa.texture = talent.icon;
 				oa.text = HIGHLIGHT_FONT_COLOR_CODE .. talent.name .. FONT_COLOR_CODE_CLOSE;
-				oa.seconds = talent.researchTimeRemaining > passedTime and ( talent.researchTimeRemaining - passedTime ) or 0;
+				oa.seconds = talent.timeRemaining > passedTime and ( talent.timeRemaining - passedTime ) or 0;
 				oa.lines = {};
 				oa.lines[#oa.lines + 1] = { talent.description, nil, nil, nil, true };
 				oa.lines[#oa.lines + 1] = " ";

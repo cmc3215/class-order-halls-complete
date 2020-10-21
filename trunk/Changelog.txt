@@ -1,3 +1,8 @@
+**1.37**
+
+- Release date: 10/20/2020
+- Bug fixed: Lua error when Class Hall Upgrade (Advancement) is in progress. Variable researchTimeRemaining updated to timeRemaining.
+
 **1.36**
 
 - Release date: 10/20/2020

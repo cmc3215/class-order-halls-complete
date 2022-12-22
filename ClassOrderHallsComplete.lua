@@ -3,8 +3,8 @@
 --------------------------------------------------------------------------------------------------------------------------------------------
 local NS = select( 2, ... );
 local L = NS.localization;
-NS.releasePatch = "9.0.1";
-NS.versionString = "1.37";
+NS.releasePatch = "10.0.2";
+NS.versionString = "1.39";
 NS.version = tonumber( NS.versionString );
 --
 NS.initialized = false;
@@ -150,6 +150,14 @@ NS.classRef = {
 		missions = { 42670, 42671 },																			-- Rise, Champions
 		icon = 1260827,
 	},
+	["EVOKER"] = {
+		-- Not available during Legion when Class Order Halls were introduced.
+		advancement = nil,
+		armaments = nil,
+		bonusroll = nil,
+		missions = nil,
+		icon = 4574311,
+	}
 };
 NS.troopTextureRef = {
 	--
@@ -215,13 +223,6 @@ NS.DefaultSavedVariables = function()
 		["characters"] = {},
 		["orderCharactersAutomatically"] = true,
 		["currentCharacterFirst"] = true,
-		["showMinimapButton"] = true,
-		["showCharacterTooltipMinimapButton"] = true,
-		["dockMinimapButton"] = true,
-		["lockMinimapButton"] = false,
-		["largeMinimapButton"] = true,
-		["minimapButtonPosition"] = 237.2,
-		["showClassHallReportMinimapButton"] = true,
 		["showCharacterRealms"] = true,
 		["forgetDragPosition"] = true,
 		["dragPosition"] = nil,
@@ -259,7 +260,7 @@ NS.DefaultSavedVariables = function()
 		["ldbShowNextUpgradeCharacter"] = true,
 		["ldbShowNextOrder"] = true,
 		["ldbShowNextOrderCharacter"] = true,
-		["ldbi"] = { hide = true },
+		["ldbi"] = { hide = false },
 		["ldbiShowCharacterTooltip"] = true,
 	};
 end
@@ -320,12 +321,6 @@ NS.Upgrade = function()
 	-- 1.26
 	if version < 1.26 then
 		-- Add
-		NS.db["showMinimapButton"] = vars["showMinimapButton"];
-		NS.db["showCharacterTooltipMinimapButton"] = vars["showCharacterTooltipMinimapButton"];
-		NS.db["dockMinimapButton"] = vars["dockMinimapButton"];
-		NS.db["largeMinimapButton"] = vars["largeMinimapButton"];
-		NS.db["minimapButtonPosition"] = vars["minimapButtonPosition"];
-		NS.db["showClassHallReportMinimapButton"] = vars["showClassHallReportMinimapButton"];
 		NS.db["ldbSource"] = vars["ldbSource"];
 		NS.db["ldbTextFormat"] = vars["ldbTextFormat"];
 		NS.db["ldbShowLabels"] = vars["ldbShowLabels"];
@@ -357,7 +352,6 @@ NS.Upgrade = function()
 	-- 1.30
 	if version < 1.30 then
 		-- Add
-		NS.db["lockMinimapButton"] = vars["lockMinimapButton"];
 		NS.db["alertBonusRollTokenDisableWhenMaxSeals"] = vars["alertBonusRollTokenDisableWhenMaxSeals"]
 	end
 	-- 1.33
@@ -376,6 +370,11 @@ NS.Upgrade = function()
 		-- Wipe characters because of level squish and other bad data that may have been introduced due to major changes in patch 9.0.1
 		NS.db["characters"] = {};
 		NS.Print("Character data has been wiped to due to significant changes in patch 9.0.1. Please log back into any characters you wish to track a Class Order Hall on to repopulate the information.");
+	end
+	-- 1.38
+	if version < 1.38 then
+		-- Got rid of custom minimap button, so enable LibDBIcon minimap button by default now
+		NS.db["ldbi"] = vars["ldbi"];
 	end
 	--
 	NS.db["version"] = NS.version;
@@ -500,7 +499,7 @@ end
 --
 NS.ToggleAlert = function()
 	if not NS.minimapButtonFlash then
-		NS.minimapButtonFlash = COHCMinimapButton:CreateAnimationGroup();
+		NS.minimapButtonFlash = _G[NS.ldbiButtonName]:CreateAnimationGroup();
 		NS.minimapButtonFlash:SetLooping( "REPEAT" );
 		local a1 = NS.minimapButtonFlash:CreateAnimation( "Alpha" );
 		a1:SetDuration( 0.5 );
@@ -514,7 +513,7 @@ NS.ToggleAlert = function()
 		a2:SetOrder( 2 );
 	end
 	--
-	if NS.db["showMinimapButton"] and ( not NS.db["alertDisableInInstances"] or not IsInInstance() ) and (
+	if not NS.db["ldbi"].hide and ( not NS.db["alertDisableInInstances"] or not IsInInstance() ) and (
 			( NS.db["alert"] == "current" and NS.allCharacters.alertCurrentCharacter ) or ( NS.db["alert"] == "any" and NS.allCharacters.alertAnyCharacter )
 		) then
 		if not NS.alertFlashing then
@@ -628,7 +627,7 @@ NS.UpdateCharacter = function()
 					for _,talent in ipairs( talentTree ) do
 						talent.tier = talent.tier + 1; -- Fix tiers starting at 0
 						talent.uiOrder = talent.uiOrder + 1; -- Fix order starting at 0
-						if talent.selected then
+						if talent.selected or talent.isBeingResearched then
 							talentTiers[talent.tier] = talent;
 							if talent.isBeingResearched or talent.id == completeTalentID then
 								NS.db["characters"][k]["advancement"]["talentBeingResearched"] = CopyTable( talent );
@@ -1508,32 +1507,6 @@ NS.UpdateAll = function( forceUpdate )
 	end
 end
 --------------------------------------------------------------------------------------------------------------------------------------------
--- Minimap Button
---------------------------------------------------------------------------------------------------------------------------------------------
-NS.MinimapButton( "COHCMinimapButton", "Interface\\TargetingFrame\\UI-Classes-Circles", {
-	db = "minimapButtonPosition",
-	texCoord = CLASS_ICON_TCOORDS[strupper( NS.currentCharacter.class )],
-	tooltip = function()
-		NS.ldb.OnTooltipShow( GameTooltip );
-	end,
-	OnLeftClick = function( self )
-		NS.SlashCmdHandler();
-	end,
-	OnRightClick = function( self )
-		if C_Garrison.HasGarrison( Enum.GarrisonType.Type_7_0 ) then
-			if not GarrisonLandingPage or not GarrisonLandingPage:IsShown() or GarrisonLandingPage.garrTypeID ~= Enum.GarrisonType.Type_7_0 then
-				ShowGarrisonLandingPage( Enum.GarrisonType.Type_7_0 );
-			elseif GarrisonLandingPage:IsShown() and GarrisonLandingPage.garrTypeID == Enum.GarrisonType.Type_7_0 then
-				HideUIPanel( GarrisonLandingPage );
-			end
-		end
-	end,
-	OnMiddleClick = function( self )
-		NS.db["lockMinimapButton"] = ( not NS.db["lockMinimapButton"] and true ) or false;
-		self.locked = NS.db["lockMinimapButton"];
-	end,
-} );
---------------------------------------------------------------------------------------------------------------------------------------------
 -- LDB Data Object
 --------------------------------------------------------------------------------------------------------------------------------------------
 NS.ldb = LibStub:GetLibrary( "LibDataBroker-1.1" ):NewDataObject( NS.addon, {
@@ -1542,7 +1515,7 @@ NS.ldb = LibStub:GetLibrary( "LibDataBroker-1.1" ):NewDataObject( NS.addon, {
 	icon = NS.classRef[NS.currentCharacter.class].icon,
 	OnClick = function( self, button )
 		if button == "RightButton" and self:GetName() == NS.ldbiButtonName then -- Right-Click LibDBIcon Minimap button
-			-- Open the Class Hall Report just as the custom Minimap button does
+			-- Open the Class Hall Report
 			if C_Garrison.HasGarrison( Enum.GarrisonType.Type_7_0 ) then
 				if not GarrisonLandingPage or not GarrisonLandingPage:IsShown() or GarrisonLandingPage.garrTypeID ~= Enum.GarrisonType.Type_7_0 then
 					ShowGarrisonLandingPage( Enum.GarrisonType.Type_7_0 );
@@ -1557,9 +1530,9 @@ NS.ldb = LibStub:GetLibrary( "LibDataBroker-1.1" ):NewDataObject( NS.addon, {
 	OnTooltipShow = function( self )
 		local ownerName = self:GetOwner():GetName();
 		-- Not initialized or not available and not known Minimap owner
-		if not NS.initialized or ( not NS.ldbTooltip.available and ( ownerName ~= "COHCMinimapButton" and ownerName ~= NS.ldbiButtonName ) ) then return end
+		if not NS.initialized or ( not NS.ldbTooltip.available and ownerName ~= NS.ldbiButtonName ) then return end
 		-- Show default tooltip for known Minimap buttons when character tooltip is not available or disabled
-		if ( not NS.ldbTooltip.available and ( ownerName == "COHCMinimapButton" or ownerName == NS.ldbiButtonName ) ) or ( not NS.db["showCharacterTooltipMinimapButton"] and ownerName == "COHCMinimapButton" ) or ( not NS.db["ldbiShowCharacterTooltip"] and ownerName == NS.ldbiButtonName ) then
+		if ( not NS.ldbTooltip.available and ownerName == NS.ldbiButtonName ) or ( not NS.db["ldbiShowCharacterTooltip"] and ownerName == NS.ldbiButtonName ) then
 			self:SetText( HIGHLIGHT_FONT_COLOR_CODE .. NS.title .. FONT_COLOR_CODE_CLOSE );
 			self:AddLine( L["Left-Click to open and close"] );
 			self:AddLine( L["Right-Click to show the Class Hall Report"] );
@@ -1567,7 +1540,7 @@ NS.ldb = LibStub:GetLibrary( "LibDataBroker-1.1" ):NewDataObject( NS.addon, {
 			return;
 		end
 		-- Adjust anchor for known Minimap buttons when character tooltip will be shown
-		if ownerName == "COHCMinimapButton" or ownerName == NS.ldbiButtonName then
+		if ownerName == NS.ldbiButtonName then
 			self:SetAnchorType( "ANCHOR_BOTTOMLEFT" );
 		end
 		-- Header
@@ -1744,20 +1717,6 @@ NS.Frame( "COHCEventsFrame", UIParent, {
 			self:UnregisterEvent( event );
 			NS.UpdateRequestHandler( event ); -- Initial update request
 			NS.UpdateRequestHandler(); -- Start handler/ticker
-			-- COHC Minimap Button
-			COHCMinimapButton.docked = NS.db["dockMinimapButton"];
-			COHCMinimapButton.locked = NS.db["lockMinimapButton"];
-			COHCMinimapButton:UpdateSize( NS.db["largeMinimapButton"] );
-			COHCMinimapButton:UpdatePos(); -- Reset to last drag position
-			if not NS.db["showMinimapButton"] then
-				COHCMinimapButton:Hide(); -- Hide if unchecked in options
-			end
-			-- Class Hall Report Minimap Button
-			GarrisonLandingPageMinimapButton:HookScript( "OnShow", function()
-				if not NS.db["showClassHallReportMinimapButton"] and C_Garrison.GetLandingPageGarrisonType() == Enum.GarrisonType.Type_7_0 then
-					GarrisonLandingPageMinimapButton:Hide();
-				end
-			end );
 			-- LDB Icon
 			NS.ldb.icon = NS.db["ldbSource"] == "current" and NS.classRef[NS.currentCharacter.class].icon or 1397630;
 			-- LibDBIcon

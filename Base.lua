@@ -179,6 +179,9 @@ NS.Button = function( name, parent, text, set )
 	if set.disabledTexture then
 		f:SetDisabledTexture( set.disabledTexture );
 	end
+	if set.texCoord then
+		f:GetNormalTexture():SetTexCoord( unpack( set.texCoord ) );
+	end
 	-- Tooltip
 	if set.tooltip then
 		NS.Tooltip( f, set.tooltip, set.tooltipAnchor or { f, "ANCHOR_TOPRIGHT", 3, 0 } );
@@ -216,7 +219,7 @@ NS.Button = function( name, parent, text, set )
 end
 --
 NS.CheckButton = function( name, parent, text, set )
-	local f = CreateFrame( "CheckButton", "$parent" .. name, parent, set.template or "InterfaceOptionsCheckButtonTemplate" );
+	local f = CreateFrame( "CheckButton", "$parent" .. name, parent, set.template or "UICheckButtonTemplate" );
 	--
 	_G[f:GetName() .. 'Text']:SetText( text );
 	--
@@ -627,7 +630,7 @@ NS.SecondsToStrTime = function( seconds, colorCode )
     local remainingSeconds = minuteSeconds % secondsInAMinute;
     local seconds = math.ceil( remainingSeconds );
 	--
-	local strTime = ( days > 0 and hours == 0 and days .. " day" ) or ( days > 0 and days .. " day " .. hours .. " hr" ) or ( hours > 0 and minutes == 0 and hours .. " hr" ) or ( hours > 0 and hours .. " hr " .. minutes .. " min" ) or ( minutes > 0 and minutes .. " min" ) or seconds .. " sec";
+	local strTime = ( days > 0 and hours == 0 and days .. " Day" ) or ( days > 0 and days .. " Day " .. hours .. " Hr" ) or ( hours > 0 and minutes == 0 and hours .. " Hr" ) or ( hours > 0 and hours .. " Hr " .. minutes .. " Min" ) or ( minutes > 0 and minutes .. " Min" ) or seconds .. " sec";
 	return colorCode and ( colorCode .. strTime .. "|r" ) or strTime;
 end
 --
@@ -635,6 +638,7 @@ NS.StrTimeToSeconds = function( str )
 	if not str then return 0; end
 	local t1, i1, t2, i2 = strsplit( " ", str ); -- x day   -   x day x hr   -   x hr y min   -   x hr   -   x min   -   x sec
 	local M = function( i )
+		i = string.lower( i );
 		if i == "hr" then
 			return 3600;
 		elseif i == "min" then
@@ -710,6 +714,16 @@ end
 NS.FindKeyByValue = function( t, v )
 	if not v then return nil end
 	for k = 1, #t do
+		if t[k] == v then
+			return k;
+		end
+	end
+	return nil;
+end
+--
+NS.PairsFindKeyByValue = function( t, v )
+	if not v then return nil end
+	for k,_ in pairs( t ) do
 		if t[k] == v then
 			return k;
 		end
@@ -850,18 +864,19 @@ NS.BatchDataLoop = function( set )
 	NextData();
 end
 --
-NS.GetAtlasInlineTexture = function( name, size1, size2 )
+NS.GetAtlasInlineTexture = function( name, height, width )
+	-- https://wowpedia.fandom.com/wiki/API_C_Texture.GetAtlasInfo
+	-- info: width, height, leftTexCoord, rightTexCoord, topTexCoord, bottomTexCoord, tilesHorizontally, titlesVertically, file, filename
+	height, width = ( height or 0 ), ( width or 0 );
 	local info = C_Texture.GetAtlasInfo( name );
-	size1, size2 = ( size1 or 0 ), ( size2 or 0 );
-	info.width = info.width / ( info.rightTexCoord - info.leftTexCoord ); -- Width of actual texture (e.g. width = 64, texture = 256)
-	info.height = info.height / ( info.bottomTexCoord - info.topTexCoord ); -- Height ^
-	info.leftTexCoord = info.width * info.leftTexCoord;
-	info.rightTexCoord = info.width * info.rightTexCoord;
-	info.topTexCoord = info.height * info.topTexCoord;
-	info.bottomTexCoord = info.height * info.bottomTexCoord;
-	-- https://wow.gamepedia.com/UI_escape_sequences#Textures
-	-- |TTexturePath:size1:size2:xoffset:yoffset:dimx:dimy:coordx1:coordx2:coordy1:coordy2:red:green:blue|t
-	return string.format( "|T%s:%d:%d:0:0:%d:%d:%d:%d:%d:%d|t", info.file, size1, size2, info.width, info.height, info.leftTexCoord, info.rightTexCoord, info.topTexCoord, info.bottomTexCoord );
+	if height == 0 and width > 0 then
+		height = ( info.height / info.width ) * width;
+	elseif width == 0 and height > 0 then
+		width = ( info.width / info.height ) * height;
+	end
+	-- https://wowpedia.fandom.com/wiki/UI_escape_sequences#Texture_atlas
+	-- |A:atlas:height:width[:offsetX:offsetY[:rVertexColor:gVertexColor:bVertexColor]]|a
+	return string.format( "|A:%s:%d:%d|a", name, height, width );
 end
 --
 NS.AddLinesToTooltip = function( lines, double, tooltip )

@@ -1,3 +1,17 @@
+**1.39**
+
+- Release date: 12/07/2022
+- Removed old inaccurate message in config related to LDBIcon.
+
+**1.38**
+
+- Release date: 12/07/2022
+- TOC updated for patch 10.0.2
+- Major compatibility fixes for latest patch 10.0.2.
+- Added Class Hall Report button to the addon's frame which shows only when character has a Legion Class Order Hall.
+- Removed custom Minimap button along with related options and changed flash to LDBIcon Minimap button.
+- Updated Libs
+
 **1.37**
 
 - Release date: 10/20/2020

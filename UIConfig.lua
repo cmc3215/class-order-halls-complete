@@ -16,8 +16,9 @@ NS.UI.cfg = {
 		frameLevel	= "TOP",
 		Init		= function( MainFrame )
 			MainFrame:SetHeight( NS.UI.cfg.mainFrame.height + ( ( NS.db["monitorRows"] - 8 ) * 50 ) );
-			MainFrame.portrait:SetTexture( "Interface\\TargetingFrame\\UI-Classes-Circles" );
-			MainFrame.portrait:SetTexCoord( unpack( CLASS_ICON_TCOORDS[strupper( NS.currentCharacter.class )] ) );
+			local mainFramePortrait = _G[MainFrame:GetName() .. 'Portrait'];
+			mainFramePortrait:SetTexture( "Interface\\TargetingFrame\\UI-Classes-Circles" );
+			mainFramePortrait:SetTexCoord( unpack( CLASS_ICON_TCOORDS[strupper( NS.currentCharacter.class )] ) );
 		end,
 		OnShow		= function( MainFrame )
 			MainFrame:Reposition();
@@ -55,7 +56,7 @@ NS.UI.cfg = {
 					setPoint = { "TOPLEFT", "#sibling", "TOPRIGHT", -2, 0 },
 				} );
 				NS.Button( "RefreshButton", SubFrame, L["Refresh"], {
-					size = { 96, 20 },
+					size = { 76, 20 },
 					setPoint = { "BOTTOMRIGHT", "#sibling", "TOPRIGHT", 2, 7 },
 					fontObject = "GameFontNormalSmall",
 					OnClick = function()
@@ -63,9 +64,27 @@ NS.UI.cfg = {
 						NS.Print( "Refreshed" );
 					end,
 				} );
-				NS.TextFrame( "MessageShipmentConfirms", SubFrame, L["Confirming character data..."], {
-					size = { 186, 16 },
-					setPoint = { "RIGHT", "#sibling", "LEFT", -8, 0 },
+				NS.Button( "OpenClassHallReportButton", SubFrame, L["Class Hall Report"], {
+					size = { 116, 20 },
+					setPoint = { "RIGHT", "#sibling", "LEFT", -5, 0 },
+					fontObject = "GameFontNormalSmall",
+					OnClick = function()
+						-- Open the Class Hall Report
+						if not GarrisonLandingPage or not GarrisonLandingPage:IsShown() or GarrisonLandingPage.garrTypeID ~= Enum.GarrisonType.Type_7_0 then
+							ShowGarrisonLandingPage( Enum.GarrisonType.Type_7_0 );
+						elseif GarrisonLandingPage:IsShown() and GarrisonLandingPage.garrTypeID == Enum.GarrisonType.Type_7_0 then
+							HideUIPanel( GarrisonLandingPage );
+						end
+					end,
+					OnLoad = function( self )
+						if not C_Garrison.HasGarrison( Enum.GarrisonType.Type_7_0 ) then
+							self:Hide();
+						end
+					end,
+				} );
+				NS.TextFrame( "MessageShipmentConfirms", SubFrame, L["Validating..."], {
+					size = { 86, 16 },
+					setPoint = { "RIGHT", "#sibling", "LEFT", -8, -2 },
 					fontObject = "GameFontRedSmall",
 					justifyH = "CENTER",
 				} );
@@ -590,7 +609,6 @@ NS.UI.cfg = {
 					end,
 				} );
 				NS.CheckButton( "CurrentCharacterFirstCheckButton", SubFrame, L["Current Character First"], {
-					template = "InterfaceOptionsSmallCheckButtonTemplate",
 					setPoint = { "LEFT", "#sibling", "RIGHT", 45, -1 },
 					tooltip = L["Show current character first on the\nMonitor tab, regardless of order."],
 					db = "currentCharacterFirst",
@@ -706,74 +724,6 @@ NS.UI.cfg = {
 				NS.TextFrame( "MinimapButtonHeader", SubFrame, L["Minimap Button"], {
 					setPoint = {
 						{ "TOPLEFT", "$parent", "TOPLEFT", 8, -8 },
-						{ "RIGHT", -8 },
-					},
-					fontObject = "GameFontNormalLarge",
-				} );
-				NS.CheckButton( "ShowMinimapButtonCheckButton", SubFrame, L["Show Minimap Button"], {
-					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 3, -5 },
-					tooltip = L["Show or hide the\nbutton on the Minimap"],
-					OnClick = function( checked )
-						if not checked then
-							COHCMinimapButton:Hide();
-						else
-							COHCMinimapButton:Show();
-						end
-						NS.UpdateAll( "forceUpdate" );
-					end,
-					db = "showMinimapButton",
-				} );
-				NS.CheckButton( "ShowCharacterTooltipMinimapButtonCheckButton", SubFrame, L["Show Character Tooltip"], {
-					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
-					tooltip = L["Show or hide the character\ntooltip when available\nfor the Minimap button"],
-					db = "showCharacterTooltipMinimapButton",
-				} );
-				NS.CheckButton( "DockMinimapButtonCheckButton", SubFrame, L["Dock Minimap Button"], {
-					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
-					tooltip = L["Docks Minimap button\nto drag around Minimap,\nundock to drag anywhere"],
-					OnClick = function( checked )
-						NS.db[COHCMinimapButton.db] = checked and NS.DefaultSavedVariables()["minimapButtonPosition"] or { "CENTER", 0, 150 };
-						COHCMinimapButton.docked = checked;
-						COHCMinimapButton:UpdatePos();
-					end,
-					db = "dockMinimapButton",
-				} );
-				NS.CheckButton( "LockMinimapButtonCheckButton", SubFrame, L["Lock Minimap Button"], {
-					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
-					tooltip = L["Locks Minimap button\nto prevent dragging\n\nMiddle-clicking the Minimap\nbutton also toggles lock"],
-					OnClick = function( checked )
-						COHCMinimapButton.locked = checked;
-					end,
-					db = "lockMinimapButton",
-				} );
-				NS.CheckButton( "LargeMinimapButtonCheckButton", SubFrame, L["Large Minimap Button"], {
-					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
-					tooltip = L["Enables larger Minimap button\nsimilar to Class Hall Report"],
-					OnClick = function( checked )
-						COHCMinimapButton:UpdateSize( NS.db["largeMinimapButton"] );
-						COHCMinimapButton:UpdatePos();
-					end,
-					db = "largeMinimapButton",
-				} );
-				NS.CheckButton( "ShowClassHallReportMinimapButtonCheckButton", SubFrame, L["Show Class Hall Report Minimap Button"], {
-					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -1 },
-					tooltip = L["Show or hide the\nClass Hall Report\nbutton on the Minimap\n\n|cffff2020Does not force show if\nhidden by default UI|r"],
-					OnClick = function( checked )
-						if not C_Garrison.HasGarrison( LE_GARRISON_TYPE_7_0 ) or C_Garrison.GetLandingPageGarrisonType() ~= LE_GARRISON_TYPE_7_0 or not GarrisonLandingPageMinimapButton.title then return end
-						GarrisonLandingPageMinimapButton:Hide();
-						GarrisonLandingPageMinimapButton:Show();
-					end,
-					db = "showClassHallReportMinimapButton",
-				} );
-				NS.TextFrame( "MinimapButtonNotice", SubFrame, BATTLENET_FONT_COLOR_CODE .. L["Settings above apply to my custom Minimap button.\nFor a standardized Minimap button see the LDB tab."] .. FONT_COLOR_CODE_CLOSE, {
-					setPoint = {
-						{ "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -5 },
-						{ "RIGHT", ( 0 - ( NS.UI.cfg.mainFrame.width / 2 ) ) },
-					},
-				} );
-				NS.TextFrame( "OtherHeader", SubFrame, L["Other"], {
-					setPoint = {
-						{ "TOPLEFT", "$parent", "TOPLEFT", ( ( NS.UI.cfg.mainFrame.width / 2 ) + 8 ), -8 },
 						{ "RIGHT", -8 },
 					},
 					fontObject = "GameFontNormalLarge",
@@ -924,12 +874,6 @@ NS.UI.cfg = {
 			end,
 			Refresh			= function( SubFrame )
 				local sfn = SubFrame:GetName();
-				_G[sfn .. "ShowMinimapButtonCheckButton"]:SetChecked( NS.db["showMinimapButton"] );
-				_G[sfn .. "ShowCharacterTooltipMinimapButtonCheckButton"]:SetChecked( NS.db["showCharacterTooltipMinimapButton"] );
-				_G[sfn .. "DockMinimapButtonCheckButton"]:SetChecked( NS.db["dockMinimapButton"] );
-				_G[sfn .. "LockMinimapButtonCheckButton"]:SetChecked( NS.db["lockMinimapButton"] );
-				_G[sfn .. "LargeMinimapButtonCheckButton"]:SetChecked( NS.db["largeMinimapButton"] );
-				_G[sfn .. "ShowClassHallReportMinimapButtonCheckButton"]:SetChecked( NS.db["showClassHallReportMinimapButton"] );
 				_G[sfn .. "ShowCharacterRealmsCheckButton"]:SetChecked( NS.db["showCharacterRealms"] );
 				_G[sfn .. "ForgetDragPositionCheckButton"]:SetChecked( NS.db["forgetDragPosition"] );
 				if NS.db["forgetDragPosition"] then
@@ -1015,7 +959,6 @@ NS.UI.cfg = {
 					db = "alertBonusRollToken",
 				} );
 				NS.CheckButton( "AlertBonusRollTokenDisableWhenMaxSealsCheckButton", SubFrame, string.format( L["Disable when player already has %s seals"], RED_FONT_COLOR_CODE .. NS.sealofBrokenFateMax .. "/" .. NS.sealofBrokenFateMax .. FONT_COLOR_CODE_CLOSE ), {
-					template = "InterfaceOptionsSmallCheckButtonTemplate",
 					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 24, -1 },
 					OnClick = function()
 						NS.UpdateAll( "forceUpdate" );
@@ -1029,12 +972,6 @@ NS.UI.cfg = {
 						NS.UpdateAll( "forceUpdate" );
 					end,
 					db = "alertDisableInInstances",
-				} );
-				NS.TextFrame( "AlertNotice", SubFrame, BATTLENET_FONT_COLOR_CODE .. L["Minimap button flash is only enabled for my custom Minimap button.\nThe optional standardized LibDBIcon Minimap button (see LDB tab) does not flash."] .. FONT_COLOR_CODE_CLOSE, {
-					setPoint = {
-						{ "TOPLEFT", "#sibling", "BOTTOMLEFT", 0, -5 },
-						{ "RIGHT", -8 },
-					},
 				} );
 			end,
 			Refresh			= function( SubFrame )
@@ -1121,7 +1058,6 @@ NS.UI.cfg = {
 					db = "ldbShowNextMission",
 				} );
 				NS.CheckButton( "ShowNextMissionCharacterCheckButton", SubFrame, L["Show Character Name"], {
-					template = "InterfaceOptionsSmallCheckButtonTemplate",
 					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 24, -1 },
 					OnClick = function()
 						NS.UpdateAll( "forceUpdate" );
@@ -1136,7 +1072,6 @@ NS.UI.cfg = {
 					db = "ldbShowNextUpgrade",
 				} );
 				NS.CheckButton( "ShowNextUpgradeCharacterCheckButton", SubFrame, L["Show Character Name"], {
-					template = "InterfaceOptionsSmallCheckButtonTemplate",
 					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 24, -1 },
 					OnClick = function()
 						NS.UpdateAll( "forceUpdate" );
@@ -1151,7 +1086,6 @@ NS.UI.cfg = {
 					db = "ldbShowNextOrder",
 				} );
 				NS.CheckButton( "ShowNextOrderCharacterCheckButton", SubFrame, L["Show Character Name"], {
-					template = "InterfaceOptionsSmallCheckButtonTemplate",
 					setPoint = { "TOPLEFT", "#sibling", "BOTTOMLEFT", 24, -1 },
 					OnClick = function()
 						NS.UpdateAll( "forceUpdate" );
